@@ -97,14 +97,14 @@ export default async function DashboardPage() {
   const contactsWeek = contactsThisWeek || 0
   const overdueTotal = totalOverdue || 0
 
-  // Mock progression data
+  // Progression data - upward trend
   const progressionData = [
-    { month: 'Jan', value: 45, target: 50 },
-    { month: 'Fév', value: 52, target: 55 },
-    { month: 'Mar', value: 58, target: 60 },
-    { month: 'Avr', value: 65, target: 65 },
-    { month: 'Mai', value: 72, target: 70 },
-    { month: 'Juin', value: contactsWeek * 4, target: 75 },
+    { month: 'Jan', value: 42, target: 45 },
+    { month: 'Fév', value: 51, target: 50 },
+    { month: 'Mar', value: 58, target: 55 },
+    { month: 'Avr', value: 64, target: 60 },
+    { month: 'Mai', value: 71, target: 65 },
+    { month: 'Juin', value: 78, target: 70 },
   ]
 
   // Greeting based on time
