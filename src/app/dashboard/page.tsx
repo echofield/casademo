@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AppShell, TierBadge } from '@/components'
-import { DashboardMetrics, TIER_ORDER, TIER_LABELS, ClientTier } from '@/lib/types'
+import { DashboardMetrics, TIER_ORDER, ClientTier } from '@/lib/types'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -12,14 +12,8 @@ export default async function DashboardPage() {
     redirect('/queue')
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/api/dashboard`, {
-    headers: {
-      cookie: '', // Will be handled by middleware
-    },
-    cache: 'no-store',
-  })
-
-  // Fetch metrics directly from Supabase since we're server-side
+  // Metrics from Supabase only (do not fetch own /api/dashboard from the server:
+  // on Vercel, NEXT_PUBLIC_SITE_URL is often unset → localhost fetch throws and breaks RSC.)
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
