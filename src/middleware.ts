@@ -57,12 +57,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from login
-  if (request.nextUrl.pathname === '/login' && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
-  }
+  // Do not redirect /login → / when a session exists. Home uses getCurrentUser()
+  // (auth + profiles row); redirecting here caused a loop when those disagreed
+  // and triggered Chrome navigation throttling (crbug.com/1038223).
 
   return supabaseResponse
 }
