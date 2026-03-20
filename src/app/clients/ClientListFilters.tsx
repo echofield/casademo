@@ -24,7 +24,7 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
     } else {
       params.delete(key)
     }
-    params.delete('page') // Reset to page 1 on filter change
+    params.delete('page')
     startTransition(() => {
       router.push(`/clients?${params.toString()}`)
     })
@@ -36,7 +36,7 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
+    <div className="flex flex-col md:flex-row gap-3 mb-6">
       <form onSubmit={handleSearchSubmit} className="flex-1">
         <div className="relative">
           <input
@@ -48,7 +48,7 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
             disabled={isPending}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,7 +77,7 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
             setSearch('')
             router.push('/clients')
           }}
-          className="btn-secondary md:w-auto"
+          className="btn-secondary px-4"
         >
           Clear
         </button>

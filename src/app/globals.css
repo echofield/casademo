@@ -2,15 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   CASA CRM DESIGN SYSTEM V2
+   Premium operational clarity
+   ============================================ */
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     min-height: 100vh;
+    background-color: #F7F4EE;
+    color: #1C1B19;
   }
 
+  /* Base heading styles - serif for identity */
   h1, h2, h3, h4 {
     font-family: var(--font-serif);
     font-weight: 400;
@@ -33,9 +42,82 @@
   h4 {
     font-size: 19px;
   }
+
+  /* Global focus styles */
+  *:focus-visible {
+    outline: 2px solid #0D4A3A;
+    outline-offset: 2px;
+  }
 }
 
+/* ============================================
+   TYPOGRAPHY SYSTEM
+   Serif = identity (titles only)
+   Sans = system (everything else)
+   ============================================ */
+
 @layer components {
+  /* Display & Headings */
+  .heading-display {
+    font-family: var(--font-serif);
+    font-size: 3.25rem;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .heading-1 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  .heading-2 {
+    font-family: var(--font-sans);
+    font-size: 1.375rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .heading-3 {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    line-height: 1.35;
+  }
+
+  /* Body text */
+  .body-large {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  .body {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .body-small {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  /* Labels & Meta */
+  .label {
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   .small-caps {
     font-family: var(--font-sans);
     font-size: 11px;
@@ -44,34 +126,244 @@
     text-transform: uppercase;
   }
 
+  .meta {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: #6E685F;
+  }
+
+  /* Data display */
+  .metric {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+  }
+
+  .metric-small {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .table-value {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .table-cell {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+  }
+
+  /* Legacy */
   .narrator {
     font-family: var(--font-serif);
     font-size: 13px;
     font-weight: 400;
     font-style: italic;
     letter-spacing: 0.02em;
-    color: #A38767;
+    color: #A48763;
   }
+}
 
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+
+@layer components {
+  /* Buttons */
   .btn-primary {
-    @apply bg-green text-paper font-serif px-6 py-3 text-base;
-    @apply hover:opacity-90 transition-opacity duration-300;
+    @apply bg-primary text-surface font-sans px-6 py-3 text-sm font-medium;
+    @apply hover:bg-primary-soft transition-colors duration-200;
   }
 
   .btn-secondary {
-    @apply bg-transparent border border-ink/20 text-ink px-6 py-3;
-    @apply text-xs font-sans uppercase tracking-widest;
-    @apply hover:border-ink/40 transition-colors duration-300;
+    @apply bg-transparent text-text px-6 py-3;
+    @apply text-sm font-sans font-medium;
+    border: 1px solid rgba(28, 27, 25, 0.14);
+    @apply hover:bg-bg-soft transition-colors duration-200;
   }
 
+  .btn-ghost {
+    @apply bg-transparent text-text-muted px-4 py-2;
+    @apply text-sm font-sans;
+    @apply hover:text-text hover:bg-bg-soft transition-colors duration-200;
+  }
+
+  /* Inputs */
   .input-field {
-    @apply w-full px-4 py-3 bg-white border border-grey-light rounded-none;
-    @apply text-ink placeholder:text-grey-medium;
-    @apply focus:outline-none focus:border-green transition-colors duration-300;
+    @apply w-full px-4 py-3 bg-surface font-sans text-text;
+    border: 1px solid rgba(28, 27, 25, 0.08);
+    @apply placeholder:text-text-muted;
+    @apply focus:outline-none focus:border-primary transition-colors duration-200;
   }
 
+  /* Cards */
   .card {
-    @apply bg-white border border-grey-light p-6;
-    @apply shadow-sm;
+    @apply bg-surface p-6;
+    border: 1px solid rgba(28, 27, 25, 0.08);
+  }
+
+  .card-elevated {
+    @apply bg-surface p-6 shadow-card;
+    border: 1px solid rgba(28, 27, 25, 0.05);
+  }
+
+  /* Data rows */
+  .data-row {
+    @apply py-5 flex items-center justify-between;
+    border-bottom: 1px solid rgba(28, 27, 25, 0.08);
+    @apply hover:bg-bg-soft transition-colors duration-200;
+  }
+
+  .data-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Section dividers */
+  .divider {
+    border-top: 1px solid rgba(28, 27, 25, 0.08);
+  }
+
+  .divider-strong {
+    border-top: 1px solid rgba(28, 27, 25, 0.14);
+  }
+}
+
+/* ============================================
+   STATE COLORS
+   ============================================ */
+
+@layer utilities {
+  /* Text states */
+  .text-overdue {
+    color: #C34747;
+  }
+
+  .text-success {
+    color: #2F6B4F;
+  }
+
+  .text-gold {
+    color: #A48763;
+  }
+
+  /* Background states */
+  .bg-overdue-soft {
+    background-color: rgba(195, 71, 71, 0.08);
+  }
+
+  .bg-success-soft {
+    background-color: rgba(47, 107, 79, 0.08);
+  }
+
+  .bg-gold-soft {
+    background-color: rgba(164, 135, 99, 0.1);
+  }
+
+  .bg-primary-soft {
+    background-color: rgba(13, 74, 58, 0.08);
+  }
+
+  /* Border states */
+  .border-overdue {
+    border-color: #C34747;
+  }
+
+  /* Left accent borders for urgency */
+  .accent-left-overdue {
+    border-left: 3px solid #C34747;
+  }
+
+  .accent-left-gold {
+    border-left: 3px solid #A48763;
+  }
+
+  .accent-left-primary {
+    border-left: 3px solid #0D4A3A;
+  }
+}
+
+/* ============================================
+   MOTION SYSTEM
+   Alive but calm
+   ============================================ */
+
+@layer utilities {
+  .transition-fast {
+    transition: all 0.15s ease;
+  }
+
+  .transition-default {
+    transition: all 0.2s ease;
+  }
+
+  .transition-slow {
+    transition: all 0.3s ease;
+  }
+
+  /* Hover lift effect - subtle */
+  .hover-lift {
+    @apply transition-default;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  /* Stagger children */
+  .stagger-children > * {
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@layer utilities {
+  /* Hide on mobile */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  /* Hide on desktop */
+  .hide-desktop {
+    @apply block md:hidden;
+  }
+
+  /* Truncate with ellipsis */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

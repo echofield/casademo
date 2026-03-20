@@ -1,33 +1,36 @@
 import { ClientTier, TIER_LABELS } from '@/lib/types'
 
-const TIER_COLORS: Record<ClientTier, { bg: string; text: string }> = {
-  rainbow: { bg: 'bg-grey-light', text: 'text-ink/60' },
-  optimisto: { bg: 'bg-blue-100', text: 'text-blue-800' },
-  kaizen: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
-  idealiste: { bg: 'bg-purple-100', text: 'text-purple-800' },
-  diplomatico: { bg: 'bg-amber-100', text: 'text-amber-800' },
-  grand_prix: { bg: 'bg-gold/20', text: 'text-gold' },
+const TIER_STYLES: Record<ClientTier, string> = {
+  rainbow: 'text-text-muted',
+  optimisto: 'text-text-soft',
+  kaizen: 'text-primary',
+  idealiste: 'text-primary',
+  diplomatico: 'text-gold',
+  grand_prix: 'text-gold',
 }
 
 interface TierBadgeProps {
-  tier: ClientTier
+  tier: ClientTier | string
   size?: 'sm' | 'md'
 }
 
 export function TierBadge({ tier, size = 'sm' }: TierBadgeProps) {
-  const colors = TIER_COLORS[tier]
+  const tierKey = tier as ClientTier
+  const style = TIER_STYLES[tierKey] || 'text-text-muted'
+  const label = TIER_LABELS[tierKey] || tier
+
   const sizeClasses = size === 'sm'
-    ? 'px-2 py-0.5 text-[10px]'
-    : 'px-3 py-1 text-xs'
+    ? 'text-[10px] tracking-[0.1em]'
+    : 'text-xs tracking-[0.08em]'
 
   return (
     <span
       className={`
-        inline-block font-sans font-medium uppercase tracking-wider
-        ${colors.bg} ${colors.text} ${sizeClasses}
+        inline-block font-sans font-medium uppercase
+        ${style} ${sizeClasses}
       `}
     >
-      {TIER_LABELS[tier]}
+      {label}
     </span>
   )
 }

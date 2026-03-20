@@ -32,7 +32,6 @@ export default function LoginPage() {
         return
       }
 
-      // Wait for session to be ready before redirect
       await supabase.auth.getSession()
       window.location.replace('/')
     } catch (err) {
@@ -42,50 +41,127 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">Casa One</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
+    <main className="min-h-screen bg-[#003D2B] flex flex-col">
+      {/* Top Bar */}
+      <header className="flex items-center justify-between px-8 py-6">
+        <span className="text-white/90 text-sm font-medium tracking-[0.2em] uppercase">
+          Casa One
+        </span>
+        <span className="text-white/60 text-sm">
+          English
+        </span>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
+        {/* Brand */}
+        <div className="text-center mb-16">
+          <h1 className="font-serif text-white text-5xl md:text-6xl tracking-tight mb-4">
+            Casa One
+          </h1>
+          <p className="text-white/70 text-lg tracking-wide">
+            One Client. One Experience.
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="w-full max-w-sm">
+          <div className="space-y-5">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-white/80 text-sm tracking-wide mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="
+                  w-full px-0 py-3
+                  bg-transparent
+                  border-0 border-b border-white/30
+                  text-white text-base
+                  placeholder:text-white/30
+                  focus:outline-none focus:border-white/60
+                  transition-colors duration-200
+                "
+                placeholder="your@email.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-white/80 text-sm tracking-wide mb-2"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="
+                  w-full px-0 py-3
+                  bg-transparent
+                  border-0 border-b border-white/30
+                  text-white text-base
+                  placeholder:text-white/30
+                  focus:outline-none focus:border-white/60
+                  transition-colors duration-200
+                "
+                placeholder="Enter password"
+              />
+            </div>
           </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
+
           {error && (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="mt-4 text-sm text-red-300">{error}</p>
           )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="
+              w-full mt-10 py-4
+              bg-transparent
+              border border-white/40
+              text-white text-sm tracking-[0.15em] uppercase
+              hover:bg-white/10 hover:border-white/60
+              focus:outline-none focus:border-white
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Entering...' : 'Enter'}
           </button>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              className="text-white/50 text-sm hover:text-white/80 transition-colors"
+            >
+              Forgot password
+            </button>
+          </div>
         </form>
       </div>
+
+      {/* Footer */}
+      <footer className="px-8 py-6 text-center">
+        <p className="text-white/30 text-xs tracking-wide">
+          2026 Casa One. Private clienteling system.
+        </p>
+      </footer>
     </main>
   )
 }

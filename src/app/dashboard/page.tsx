@@ -1,19 +1,16 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, TierBadge } from '@/components'
+import { AppShell, TierBadge, PageHeader, StatCard } from '@/components'
 import { DashboardMetrics, TIER_ORDER, ClientTier } from '@/lib/types'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
 
-  // Only supervisors can access dashboard
   if (user.profile.role !== 'supervisor') {
     redirect('/queue')
   }
 
-  // Metrics from Supabase only (do not fetch own /api/dashboard from the server:
-  // on Vercel, NEXT_PUBLIC_SITE_URL is often unset → localhost fetch throws and breaks RSC.)
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
@@ -70,7 +67,7 @@ export default async function DashboardPage() {
     .select('*', { count: 'exact', head: true })
     .gte('contact_date', weekAgo.toISOString())
 
-  // Get seller activity (contacts per seller this week)
+  // Get seller activity
   const { data: sellerActivity } = await supabase
     .from('contacts')
     .select('seller_id')
@@ -110,47 +107,48 @@ export default async function DashboardPage() {
 
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8">
-          <h1 className="mb-2">Dashboard</h1>
-          <p className="text-ink/60">Supervisor overview</p>
-        </header>
+      <div className="max-w-6xl mx-auto animate-fade-in">
+        <PageHeader
+          title="Dashboard"
+          subtitle="Team overview"
+        />
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="card text-center">
-            <p className="small-caps text-ink/60 mb-1">Total Clients</p>
-            <p className="font-serif text-3xl text-green">{metrics.total_clients}</p>
-          </div>
-          <div className="card text-center">
-            <p className="small-caps text-ink/60 mb-1">Contacts This Week</p>
-            <p className="font-serif text-3xl text-green">{metrics.contacts_this_week}</p>
-          </div>
-          <div className="card text-center">
-            <p className="small-caps text-ink/60 mb-1">Total Overdue</p>
-            <p className={`font-serif text-3xl ${metrics.total_overdue > 0 ? 'text-red-600' : 'text-green'}`}>
-              {metrics.total_overdue}
-            </p>
-          </div>
-          <div className="card text-center">
-            <p className="small-caps text-ink/60 mb-1">Avg. Contacts/Day</p>
-            <p className="font-serif text-3xl text-green">
-              {(metrics.contacts_this_week / 7).toFixed(1)}
-            </p>
-          </div>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <StatCard
+            label="Total Clients"
+            value={metrics.total_clients}
+          />
+          <StatCard
+            label="Contacts This Week"
+            value={metrics.contacts_this_week}
+          />
+          <StatCard
+            label="Total Overdue"
+            value={metrics.total_overdue}
+            tone={metrics.total_overdue > 0 ? 'danger' : 'default'}
+          />
+          <StatCard
+            label="Avg. Contacts/Day"
+            value={(metrics.contacts_this_week / 7).toFixed(1)}
+          />
         </div>
 
-        {/* Seller Activity - Primary Section */}
-        <section className="card mb-6">
-          <h2 className="small-caps text-ink/60 mb-6">Seller Activity (This Week)</h2>
+        {/* Seller Activity Table */}
+        <section
+          className="bg-surface p-6 mb-8"
+          style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
+        >
+          <h2 className="label text-text-muted mb-6">Seller Activity (This Week)</h2>
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-grey-light">
-                  <th className="small-caps text-left py-2 px-2 font-normal">Seller</th>
-                  <th className="small-caps text-center py-2 px-2 font-normal">Contacts</th>
-                  <th className="small-caps text-center py-2 px-2 font-normal">Overdue</th>
-                  <th className="small-caps text-center py-2 px-2 font-normal">Status</th>
+                <tr style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}>
+                  <th className="label text-left py-3 px-3 font-semibold text-text-muted">Seller</th>
+                  <th className="label text-center py-3 px-3 font-semibold text-text-muted">Contacts</th>
+                  <th className="label text-center py-3 px-3 font-semibold text-text-muted">Overdue</th>
+                  <th className="label text-center py-3 px-3 font-semibold text-text-muted">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,45 +158,25 @@ export default async function DashboardPage() {
                   const status = isInactive ? 'inactive' : hasOverdue ? 'warning' : 'ok'
 
                   return (
-                    <tr key={seller.seller_id} className="border-b border-grey-light/50">
-                      <td className="py-3 px-2">
-                        <span className="font-medium">{seller.seller_name}</span>
+                    <tr
+                      key={seller.seller_id}
+                      style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}
+                    >
+                      <td className="py-4 px-3">
+                        <span className="table-value text-text">{seller.seller_name}</span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className={`font-serif text-lg ${seller.contacts_this_week === 0 ? 'text-red-600' : 'text-green'}`}>
+                      <td className="py-4 px-3 text-center">
+                        <span className={`metric-small ${seller.contacts_this_week === 0 ? 'text-danger' : 'text-primary'}`}>
                           {seller.contacts_this_week}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className={`font-serif text-lg ${seller.overdue_count > 0 ? 'text-amber-600' : 'text-ink/40'}`}>
+                      <td className="py-4 px-3 text-center">
+                        <span className={`metric-small ${seller.overdue_count > 0 ? 'text-gold' : 'text-text-muted'}`}>
                           {seller.overdue_count}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        {status === 'inactive' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            No Activity
-                          </span>
-                        )}
-                        {status === 'warning' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            Falling Behind
-                          </span>
-                        )}
-                        {status === 'ok' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green/10 text-green text-xs rounded">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            On Track
-                          </span>
-                        )}
+                      <td className="py-4 px-3 text-center">
+                        <StatusBadge status={status} />
                       </td>
                     </tr>
                   )
@@ -208,61 +186,93 @@ export default async function DashboardPage() {
           </div>
         </section>
 
+        {/* Bottom Grid */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Clients by Tier */}
-          <section className="card">
-            <h2 className="small-caps text-ink/60 mb-6">Clients by Tier</h2>
+          <section
+            className="bg-surface p-6"
+            style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
+          >
+            <h2 className="label text-text-muted mb-6">Clients by Tier</h2>
+
             <div className="space-y-4">
               {TIER_ORDER.map((tier) => {
                 const count = metrics.clients_by_tier[tier]
                 const percentage = (count / maxTierCount) * 100
 
                 return (
-                  <div key={tier}>
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={tier} className="flex items-center gap-4">
+                    <div className="w-24">
                       <TierBadge tier={tier} />
-                      <span className="text-sm font-medium">{count}</span>
                     </div>
-                    <div className="h-2 bg-grey-light rounded-full overflow-hidden">
+                    <div className="flex-1">
                       <div
-                        className="h-full bg-green transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
+                        className="h-1.5 bg-bg-soft overflow-hidden"
+                        style={{ borderRadius: '1px' }}
+                      >
+                        <div
+                          className="h-full bg-primary transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
                     </div>
+                    <span className="w-8 text-right text-sm font-medium text-text">
+                      {count}
+                    </span>
                   </div>
                 )
               })}
             </div>
           </section>
 
-          {/* Recent Activity Feed */}
-          <section className="card">
-            <h2 className="small-caps text-ink/60 mb-6">Team Performance</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b border-grey-light/50">
-                <span className="text-sm text-ink/60">Daily Target</span>
-                <span className="font-medium">5 contacts/seller</span>
+          {/* Overdue by Seller */}
+          <section
+            className="bg-surface p-6"
+            style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
+          >
+            <h2 className="label text-text-muted mb-6">Overdue by Seller</h2>
+
+            {overdueBySellerArr.length === 0 ? (
+              <p className="text-sm text-text-muted py-4">No overdue clients</p>
+            ) : (
+              <div className="space-y-3">
+                {overdueBySellerArr.map((seller) => (
+                  <div
+                    key={seller.seller_id}
+                    className="flex items-center justify-between py-3"
+                    style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}
+                  >
+                    <span className="text-sm text-text">{seller.seller_name}</span>
+                    <span className="text-danger font-medium">
+                      {seller.overdue_count}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-grey-light/50">
-                <span className="text-sm text-ink/60">Weekly Target</span>
-                <span className="font-medium">25 contacts/seller</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-grey-light/50">
-                <span className="text-sm text-ink/60">Team Avg (This Week)</span>
-                <span className={`font-medium ${(metrics.contacts_this_week / (allSellers?.length || 1)) >= 25 ? 'text-green' : 'text-amber-600'}`}>
-                  {(metrics.contacts_this_week / (allSellers?.length || 1)).toFixed(1)} contacts
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-ink/60">Total Overdue</span>
-                <span className={`font-medium ${metrics.total_overdue > 0 ? 'text-red-600' : 'text-green'}`}>
-                  {metrics.total_overdue} clients
-                </span>
-              </div>
-            </div>
+            )}
           </section>
         </div>
       </div>
     </AppShell>
+  )
+}
+
+function StatusBadge({ status }: { status: 'inactive' | 'warning' | 'ok' }) {
+  const styles = {
+    inactive: 'bg-overdue-soft text-danger',
+    warning: 'bg-gold-soft text-gold',
+    ok: 'bg-primary-soft text-primary',
+  }
+
+  const labels = {
+    inactive: 'No Activity',
+    warning: 'Falling Behind',
+    ok: 'On Track',
+  }
+
+  return (
+    <span className={`inline-block px-2 py-1 text-xs font-medium ${styles[status]}`}>
+      {labels[status]}
+    </span>
   )
 }
