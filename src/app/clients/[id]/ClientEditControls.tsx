@@ -144,8 +144,11 @@ export function ClientEditControls({
       </div>
 
       {showEdit && (
-        <div className="fixed inset-0 bg-ink/20 flex items-center justify-center z-50 p-4">
-          <div className="bg-paper border border-grey-light p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+          <div
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto border bg-surface p-6"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          >
             <h3 className="font-serif text-xl mb-4">Edit client</h3>
             <form onSubmit={submitEdit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -211,11 +214,11 @@ export function ClientEditControls({
       )}
 
       {showReassign && (
-        <div className="fixed inset-0 bg-ink/20 flex items-center justify-center z-50 p-4">
-          <div className="bg-paper border border-grey-light p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+          <div className="w-full max-w-md border bg-surface p-6" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
             <h3 className="font-serif text-xl mb-2">Assign to another seller</h3>
-            <p className="text-sm text-ink/60 mb-4">
-              Current: <span className="text-ink">{sellerName}</span>. Only supervisors can move a
+            <p className="body-small mb-4 text-text-muted">
+              Current: <span className="text-text">{sellerName}</span>. Only supervisors can move a
               client when a seller leaves.
             </p>
             <form onSubmit={submitReassign} className="space-y-4">

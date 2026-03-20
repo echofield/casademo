@@ -66,24 +66,42 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
   const remaining = clients.length - currentIndex - 1
   const nextClients = clients.slice(currentIndex + 1, currentIndex + 4)
 
+  const progressPct = ((currentIndex + 1) / clients.length) * 100
+
   return (
     <div>
+      <p className="label mb-3 text-text-muted">Focus queue</p>
       {/* Headline */}
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight mb-2">
+      <div className="mb-6">
+        <h1 className="mb-2 font-serif text-3xl tracking-tight text-text md:text-4xl">
           {overdueCount > 0 ? (
             <>
-              <span className="text-danger">{overdueCount}</span> clients need attention
+              <span className="text-danger">{overdueCount}</span> need attention now
             </>
           ) : (
-            <>{totalCount} clients to contact</>
+            <>{totalCount} in the queue</>
           )}
         </h1>
-        <p className="text-text-muted">
-          {currentIndex + 1} of {clients.length}
-          {remaining > 0 && ` · ${remaining} remaining`}
+        <p className="body-small text-text-muted">
+          Client {currentIndex + 1} of {clients.length}
+          {remaining > 0 && ` · ${remaining} after this`}
         </p>
+        <div
+          className="mt-4 h-1 w-full overflow-hidden bg-bg-soft"
+          style={{ borderRadius: 1 }}
+          role="progressbar"
+          aria-valuenow={currentIndex + 1}
+          aria-valuemin={1}
+          aria-valuemax={clients.length}
+        >
+          <div
+            className="h-full bg-primary transition-all duration-300 ease-out"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
       </div>
+
+      <p className="label mb-3 text-text-muted">Now</p>
 
       {/* Current client card */}
       <AnimatePresence mode="wait">
@@ -99,11 +117,12 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-6">
+      <div className="mt-6 flex items-center justify-between">
         <button
+          type="button"
           onClick={goPrev}
           disabled={currentIndex === 0}
-          className="px-4 py-2 text-sm text-text-muted disabled:opacity-30 transition-opacity hover:text-text"
+          className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30"
         >
           Previous
         </button>
@@ -124,9 +143,10 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
         </div>
 
         <button
+          type="button"
           onClick={goNext}
           disabled={currentIndex >= clients.length - 1}
-          className="px-4 py-2 text-sm text-text-muted disabled:opacity-30 transition-opacity hover:text-text"
+          className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30"
         >
           Next
         </button>
@@ -134,24 +154,23 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
 
       {/* Preview of next clients */}
       {nextClients.length > 0 && (
-        <div className="mt-10 pt-8 border-t border-text/5">
-          <p className="text-xs uppercase tracking-wider text-text-muted mb-4">Coming up</p>
-          <div className="space-y-2">
+        <div className="mt-10 border-t pt-8" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+          <p className="label mb-4 text-text-muted">Coming up</p>
+          <div className="space-y-1">
             {nextClients.map((client) => {
               const isOverdue = (client.days_overdue ?? 0) > 0
               return (
                 <button
+                  type="button"
                   key={client.id}
                   onClick={() => setCurrentIndex(clients.indexOf(client))}
-                  className="w-full text-left py-3 px-4 -mx-4 hover:bg-text/3 transition-colors"
+                  className="w-full py-3 text-left transition-colors duration-200 hover:bg-bg-soft"
                 >
-                  <span className="text-text">
+                  <span className="body text-text">
                     {client.first_name} {client.last_name}
                   </span>
                   {isOverdue && (
-                    <span className="text-danger text-sm ml-2">
-                      +{client.days_overdue}d
-                    </span>
+                    <span className="body-small ml-2 text-danger">+{client.days_overdue}d</span>
                   )}
                 </button>
               )
@@ -161,9 +180,7 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
       )}
 
       {/* Keyboard hint */}
-      <p className="text-center text-xs text-text-muted/50 mt-8">
-        Use arrow keys to navigate
-      </p>
+      <p className="mt-8 text-center text-xs text-text-muted">Arrow keys · j / k</p>
     </div>
   )
 }

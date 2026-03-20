@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
+import type { NotificationRow } from '@/lib/types'
 
 // GET /api/notifications - Get user's notifications
 export async function GET(request: Request) {
@@ -23,13 +24,16 @@ export async function GET(request: Request) {
 
     const { data, error } = await query
 
-    // If notifications table doesn't exist, return empty gracefully
     if (error) {
-      // Table doesn't exist or other DB error - return empty state
+      const missing =
+        error.code === '42P01' ||
+        error.message.includes('relation') ||
+        error.message.includes('does not exist')
       console.warn('Notifications query failed:', error.message)
       return NextResponse.json({
-        notifications: [],
+        notifications: [] as NotificationRow[],
         unread_count: 0,
+        ...(missing ? { setup_required: true as const } : { fetch_error: true as const }),
       })
     }
 
@@ -41,8 +45,8 @@ export async function GET(request: Request) {
       .eq('read', false)
 
     return NextResponse.json({
-      notifications: data || [],
-      unread_count: count || 0,
+      notifications: (data || []) as NotificationRow[],
+      unread_count: count ?? 0,
     })
   } catch (error) {
     // Auth errors get proper status codes

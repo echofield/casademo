@@ -18,12 +18,16 @@ export function Nav({ userRole, userName }: NavProps) {
   const [loggingOut, setLoggingOut] = useState(false)
 
   const links = [
-    { href: '/', label: 'Queue' },
+    { href: '/', label: 'Home' },
+    { href: '/queue', label: 'Queue' },
     { href: '/clients', label: 'Clients' },
     ...(userRole === 'supervisor' ? [{ href: '/dashboard', label: 'Dashboard' }] : []),
   ]
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -32,31 +36,28 @@ export function Nav({ userRole, userName }: NavProps) {
     router.push('/login')
   }
 
+  const linkClass = (href: string) =>
+    `text-xs font-sans font-medium uppercase tracking-[0.1em] transition-colors duration-200 ${
+      isActive(href) ? 'text-text' : 'text-text-muted hover:text-text'
+    }`
+
   return (
     <>
-      {/* Desktop Nav */}
       <nav
-        className="hidden md:flex items-center justify-between px-8 py-4 bg-bg/80 backdrop-blur-sm sticky top-0 z-40"
-        style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}
+        className="sticky top-0 z-40 hidden items-center justify-between border-b px-8 py-4 md:flex"
+        style={{
+          borderColor: 'rgba(28, 27, 25, 0.08)',
+          backgroundColor: 'rgba(247, 244, 238, 0.88)',
+          backdropFilter: 'blur(8px)',
+        }}
       >
-        <Link href="/queue" className="font-serif text-xl text-primary tracking-tight">
+        <Link href="/" className="font-serif text-xl tracking-tight text-primary">
           Casa One
         </Link>
 
         <div className="flex items-center gap-10">
           {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`
-                text-xs font-sans font-medium uppercase tracking-[0.1em]
-                transition-colors duration-200
-                ${isActive(link.href)
-                  ? 'text-text'
-                  : 'text-text-muted hover:text-text'
-                }
-              `}
-            >
+            <Link key={link.href} href={link.href} className={linkClass(link.href)}>
               {link.label}
             </Link>
           ))}
@@ -66,13 +67,12 @@ export function Nav({ userRole, userName }: NavProps) {
             style={{ borderLeft: '1px solid rgba(28, 27, 25, 0.08)' }}
           >
             <NotificationBell />
-
             <span className="text-xs text-text-muted">{userName}</span>
-
             <button
+              type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="text-xs font-medium uppercase tracking-[0.1em] text-text-muted hover:text-text transition-colors duration-200 disabled:opacity-50"
+              className="text-xs font-medium uppercase tracking-[0.1em] text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-50"
             >
               {loggingOut ? '...' : 'Logout'}
             </button>
@@ -80,24 +80,20 @@ export function Nav({ userRole, userName }: NavProps) {
         </div>
       </nav>
 
-      {/* Mobile Nav */}
-      <nav className="md:hidden sticky top-0 z-40 bg-bg">
-        <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}
-        >
-          <Link href="/queue" className="font-serif text-lg text-primary">
+      <nav className="sticky top-0 z-40 border-b bg-bg md:hidden" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href="/" className="font-serif text-lg text-primary">
             Casa One
           </Link>
-
           <div className="flex items-center gap-2">
             <NotificationBell />
             <button
+              type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 -mr-2 text-text"
+              className="-mr-2 p-2 text-text"
               aria-label="Toggle menu"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -110,31 +106,29 @@ export function Nav({ userRole, userName }: NavProps) {
 
         {mobileOpen && (
           <div
-            className="absolute top-full left-0 right-0 bg-bg z-50"
+            className="absolute left-0 right-0 top-full z-50 bg-bg"
             style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}
           >
-            <div className="px-4 py-4 space-y-4">
+            <div className="space-y-4 px-4 py-4">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`
-                    block text-sm font-medium uppercase tracking-[0.08em] py-2
-                    transition-colors duration-200
-                    ${isActive(link.href) ? 'text-text' : 'text-text-muted'}
-                  `}
+                  className={`block py-2 text-sm font-medium uppercase tracking-[0.08em] transition-colors duration-200 ${
+                    isActive(link.href) ? 'text-text' : 'text-text-muted'
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
-
               <div className="pt-4" style={{ borderTop: '1px solid rgba(28, 27, 25, 0.08)' }}>
-                <p className="text-xs text-text-muted mb-3">{userName}</p>
+                <p className="mb-3 text-xs text-text-muted">{userName}</p>
                 <button
+                  type="button"
                   onClick={handleLogout}
                   disabled={loggingOut}
-                  className="text-xs font-medium uppercase tracking-[0.08em] text-text-muted hover:text-text transition-colors"
+                  className="text-xs font-medium uppercase tracking-[0.08em] text-text-muted transition-colors hover:text-text"
                 >
                   {loggingOut ? 'Logging out...' : 'Logout'}
                 </button>

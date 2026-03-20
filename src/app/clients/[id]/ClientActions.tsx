@@ -90,8 +90,8 @@ export function ClientActions({ clientId }: Props) {
 
       {/* Contact Modal */}
       {showContactModal && (
-        <div className="fixed inset-0 bg-ink/20 flex items-center justify-center z-50 p-4">
-          <div className="bg-paper border border-grey-light p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+          <div className="w-full max-w-md border bg-surface p-6" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
             <h3 className="font-serif text-xl mb-4">Log Contact</h3>
             <form onSubmit={handleLogContact}>
               <div className="mb-4">
@@ -139,8 +139,8 @@ export function ClientActions({ clientId }: Props) {
 
       {/* Purchase Modal */}
       {showPurchaseModal && (
-        <div className="fixed inset-0 bg-ink/20 flex items-center justify-center z-50 p-4">
-          <div className="bg-paper border border-grey-light p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+          <div className="w-full max-w-md border bg-surface p-6" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
             <h3 className="font-serif text-xl mb-4">Log Purchase</h3>
             <form onSubmit={handleLogPurchase}>
               <div className="mb-4">

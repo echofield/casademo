@@ -62,6 +62,9 @@ export type PurchaseInsert = Database['public']['Tables']['purchases']['Insert']
 
 export type InterestTaxonomy = Database['public']['Tables']['interest_taxonomy']['Row']
 
+export type NotificationType = Database['public']['Enums']['notification_type']
+export type NotificationRow = Database['public']['Tables']['notifications']['Row']
+
 // View types
 export type RecontactQueueItem = Database['public']['Views']['recontact_queue']['Row']
 

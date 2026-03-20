@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, TierBadge, PageHeader } from '@/components'
+import { AppShell, PageHeader, ClientGridCard } from '@/components'
 import { Client, ClientTier, TIER_LABELS, TIER_ORDER } from '@/lib/types'
-import Link from 'next/link'
 import { ClientListFilters } from './ClientListFilters'
 import { AddClientButton } from './AddClientButton'
 
@@ -23,7 +22,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const search = params.search || ''
   const tier = params.tier
   const page = parseInt(params.page || '1', 10)
-  const limit = 20
+  const limit = 24
 
   const supabase = await createClient()
 
@@ -34,7 +33,9 @@ export default async function ClientsPage({ searchParams }: Props) {
     .range((page - 1) * limit, page * limit - 1)
 
   if (search) {
-    query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
+    query = query.or(
+      `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
+    )
   }
 
   if (tier) {
@@ -57,7 +58,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const totalPages = Math.ceil((count || 0) / limit)
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '-'
+    if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',
@@ -72,14 +73,23 @@ export default async function ClientsPage({ searchParams }: Props) {
     }).format(amount)
   }
 
-  const isHighValue = (clientTier: string) => ['grand_prix', 'diplomatico'].includes(clientTier)
+  const list = (clients || []) as Client[]
+
+  const paginationHref = (p: number) => {
+    const sp = new URLSearchParams()
+    if (search) sp.set('search', search)
+    if (tier) sp.set('tier', tier)
+    if (p > 1) sp.set('page', String(p))
+    const q = sp.toString()
+    return q ? `/clients?${q}` : '/clients'
+  }
 
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
-      <div className="max-w-6xl mx-auto animate-fade-in">
+      <div className="mx-auto max-w-6xl animate-fade-in">
         <PageHeader
           title="Clients"
-          subtitle={`${count || 0} client${(count || 0) !== 1 ? 's' : ''} total`}
+          subtitle={`${count || 0} in your portfolio`}
           actions={
             <AddClientButton
               isSupervisor={user.profile.role === 'supervisor'}
@@ -95,114 +105,59 @@ export default async function ClientsPage({ searchParams }: Props) {
           tierLabels={TIER_LABELS}
         />
 
-        {/* Desktop Table */}
-        <div
-          className="hidden md:block bg-surface overflow-hidden"
-          style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
-        >
-          <table className="w-full">
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}>
-                <th className="label text-left py-4 px-5 font-semibold text-text-muted">Name</th>
-                <th className="label text-left py-4 px-5 font-semibold text-text-muted">Tier</th>
-                <th className="label text-right py-4 px-5 font-semibold text-text-muted">Total Spend</th>
-                <th className="label text-left py-4 px-5 font-semibold text-text-muted">Last Contact</th>
-                <th className="label text-left py-4 px-5 font-semibold text-text-muted">Next Recontact</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(clients || []).map((client: Client) => (
-                <tr
-                  key={client.id}
-                  className="hover:bg-bg-soft transition-colors duration-200 cursor-pointer"
-                  style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}
-                >
-                  <td className="py-5 px-5">
-                    <Link href={`/clients/${client.id}`} className="block">
-                      <span className="table-value text-text hover:text-primary transition-colors">
-                        {client.first_name} {client.last_name}
-                      </span>
-                      {client.phone && (
-                        <span className="block text-sm text-text-muted mt-0.5">{client.phone}</span>
-                      )}
-                    </Link>
-                  </td>
-                  <td className="py-5 px-5">
-                    <TierBadge tier={client.tier} />
-                  </td>
-                  <td className={`py-5 px-5 text-right table-value ${isHighValue(client.tier) ? 'text-gold' : 'text-text'}`}>
-                    {formatCurrency(client.total_spend)}
-                  </td>
-                  <td className="py-5 px-5 text-sm text-text-muted">
-                    {formatDate(client.last_contact_date)}
-                  </td>
-                  <td className="py-5 px-5 text-sm text-text-muted">
-                    {formatDate(client.next_recontact_date)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-2">
-          {(clients || []).map((client: Client) => (
-            <Link
-              key={client.id}
-              href={`/clients/${client.id}`}
-              className="block bg-surface p-4 hover:bg-bg-soft transition-colors duration-200"
-              style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <span className="table-value text-text">
-                  {client.first_name} {client.last_name}
-                </span>
-                <TierBadge tier={client.tier} />
-              </div>
-              <div className="flex items-center gap-4 text-sm text-text-muted">
-                <span className={isHighValue(client.tier) ? 'text-gold' : ''}>
-                  {formatCurrency(client.total_spend)}
-                </span>
-                <span>Last: {formatDate(client.last_contact_date)}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {(clients || []).length === 0 && (
-          <div className="py-16 text-center">
-            <p className="text-text-muted mb-2">No clients found</p>
-            {search && <p className="text-sm text-text-muted">Try adjusting your search</p>}
+        {list.length === 0 ? (
+          <div
+            className="border bg-surface py-20 text-center"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          >
+            <p className="body text-text-muted">No clients match your filters.</p>
+            {search && <p className="body-small mt-2 text-text-muted">Try adjusting search or tier.</p>}
           </div>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {list.map((client) => (
+              <li key={client.id}>
+                <ClientGridCard
+                  client={client}
+                  spendLabel={formatCurrency(client.total_spend)}
+                  lastContactLabel={formatDate(client.last_contact_date)}
+                  nextRecontactLabel={formatDate(client.next_recontact_date)}
+                />
+              </li>
+            ))}
+          </ul>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-8">
-            {page > 1 && (
-              <Link
-                href={{ pathname: '/clients', query: { ...params, page: page - 1 } }}
-                className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text transition-colors"
-                style={{ border: '1px solid rgba(28, 27, 25, 0.1)' }}
+          <nav
+            className="mt-10 flex items-center justify-center gap-4 border-t pt-8"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+            aria-label="Pagination"
+          >
+            {page > 1 ? (
+              <a
+                href={paginationHref(page - 1)}
+                className="label text-text-muted transition-colors duration-200 hover:text-text"
               >
                 Previous
-              </Link>
+              </a>
+            ) : (
+              <span className="label text-text-muted/40">Previous</span>
             )}
-            <span className="px-4 py-2 text-sm text-text-muted">
+            <span className="body-small text-text-muted">
               Page {page} of {totalPages}
             </span>
-            {page < totalPages && (
-              <Link
-                href={{ pathname: '/clients', query: { ...params, page: page + 1 } }}
-                className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text transition-colors"
-                style={{ border: '1px solid rgba(28, 27, 25, 0.1)' }}
+            {page < totalPages ? (
+              <a
+                href={paginationHref(page + 1)}
+                className="label text-text-muted transition-colors duration-200 hover:text-text"
               >
                 Next
-              </Link>
+              </a>
+            ) : (
+              <span className="label text-text-muted/40">Next</span>
             )}
-          </div>
+          </nav>
         )}
       </div>
     </AppShell>

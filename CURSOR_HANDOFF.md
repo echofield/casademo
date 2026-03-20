@@ -28,46 +28,70 @@ npm run dev
 
 ---
 
+## Post-login information architecture
+
+| Route | Purpose |
+|-------|---------|
+| `/` | **Home** — overview, stats, “Work the queue” CTA, sections by priority |
+| `/queue` | **Focus queue** — one client at a time (`QueueStack` + `FocusedClientCard`) |
+| `/clients` | **Portfolio** — search-first **card grid** only (`ClientGridCard`) |
+| `/clients/[id]` | **Client 360** — hero, contacts, merged **Activity** timeline, sticky actions on mobile |
+| `/dashboard` | **Supervisor** — headline insight + rhythm table + tier / overdue panels |
+
+Nav: **Home**, **Queue**, **Clients**, **Dashboard** (supervisor). Logo → `/`.
+
+---
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx              # Root layout, fonts
+│   ├── layout.tsx              # Root layout, fonts (bg-bg, text-text)
+│   ├── loading.tsx             # Home skeleton (ScreenSkeleton)
 │   ├── globals.css             # Tailwind + custom classes
-│   ├── page.tsx                # Redirects to /queue
+│   ├── page.tsx                # Home overview (not a redirect to /queue)
 │   ├── login/
-│   │   └── page.tsx            # ✅ DONE - Login page (beige bg, green text)
+│   │   └── page.tsx            # Intentionally unchanged vs post-login shell
 │   ├── queue/
-│   │   └── page.tsx            # ⚠️ WIP - Recontact queue
+│   │   ├── loading.tsx
+│   │   └── page.tsx            # Focus queue
 │   ├── clients/
-│   │   ├── page.tsx            # ⚠️ NEEDS REDESIGN - Client list
+│   │   ├── loading.tsx
+│   │   ├── page.tsx            # Card grid only
 │   │   ├── AddClientButton.tsx
 │   │   ├── AddClientModal.tsx
 │   │   ├── ClientListFilters.tsx
 │   │   └── [id]/
-│   │       └── page.tsx        # ⚠️ NEEDS REDESIGN - Client detail
+│   │       ├── loading.tsx
+│   │       └── page.tsx        # Hero + timeline + sticky ClientActions
 │   ├── dashboard/
-│   │   └── page.tsx            # ⚠️ NEEDS REDESIGN - Supervisor dashboard
+│   │   ├── loading.tsx
+│   │   └── page.tsx            # Narrative headline + panels
 │   └── api/
-│       ├── clients/            # CRUD for clients
-│       ├── notifications/      # Notifications (table not created yet)
-│       ├── recontact-queue/    # Queue data
-│       ├── dashboard/          # Supervisor metrics
-│       └── import/             # CSV import
+│       ├── clients/
+│       ├── notifications/      # GET/PATCH; expects `notifications` table
+│       ├── recontact-queue/
+│       ├── dashboard/
+│       └── import/
 │
 ├── components/
-│   ├── index.ts                # Barrel exports
-│   ├── AppShell.tsx            # Main layout wrapper
-│   ├── Nav.tsx                 # Navigation bar
-│   ├── PageHeader.tsx          # Page title component
-│   ├── StatCard.tsx            # Dashboard KPI cards
-│   ├── TierBadge.tsx           # Tier label styling
-│   ├── ClientRow.tsx           # Table row (old design)
-│   ├── FocusedClientCard.tsx   # NEW - Queue card component
-│   ├── QueueStack.tsx          # NEW - Queue navigation
-│   ├── NotificationBell.tsx    # Bell icon (broken - no table)
-│   └── Button.tsx              # Button variants
+│   ├── index.ts
+│   ├── AppShell.tsx            # bg-bg shell
+│   ├── Nav.tsx                 # Home / Queue / Clients / Dashboard
+│   ├── LoadingShell.tsx        # loading.tsx chrome
+│   ├── ScreenSkeleton.tsx      # Variants: home, queue, clients, clientDetail, dashboard
+│   ├── PageHeader.tsx
+│   ├── StatCard.tsx
+│   ├── TierBadge.tsx
+│   ├── ClientGridCard.tsx      # Clients list card
+│   ├── ClientRow.tsx           # Legacy (unused on clients page)
+│   ├── FocusedClientCard.tsx
+│   ├── QueueStack.tsx
+│   ├── RecontactQueueSection.tsx
+│   ├── RecontactQueueRow.tsx
+│   ├── NotificationBell.tsx    # setup_required / fetch_error / empty states
+│   └── Button.tsx
 │
 ├── lib/
 │   ├── types/
@@ -133,7 +157,8 @@ success:      #2F6B4F    (positive)
 - `contacts` - Contact history
 - `purchases` - Purchase records
 - `interests` - Client interests
-- `notifications` - ⚠️ TABLE NOT CREATED - run migration
+- `notifications` - In-app alerts (RLS: own rows); triggers on `clients` / `purchases`; optional cron calls generator functions
+- View `notification_counts` - Unread/total per user (from `005`)
 
 ### Views
 - `recontact_queue` - Clients needing contact
@@ -154,31 +179,29 @@ success:      #2F6B4F    (positive)
 | POST | `/api/clients/[id]/interests` | Add interest |
 | GET | `/api/recontact-queue` | Recontact queue |
 | GET | `/api/dashboard` | Supervisor metrics |
-| GET | `/api/notifications` | User notifications (returns empty - no table) |
+| GET | `/api/notifications` | User notifications (`setup_required` if table missing) |
 
 ---
 
 ## Current State
 
 ### ✅ Working
-- Authentication (login, logout, session)
-- Role-based access (RLS)
-- All API endpoints
-- Login page (redesigned)
+- Post-login shell aligned with design tokens (`bg-bg`, `surface`, `text` / `text-muted`)
+- Home (`/`) overview + CTA to `/queue`
+- Focus queue (`/queue`) with progress strip and refined card / CTAs
+- Clients: responsive **card grid** only
+- Client 360: hero, activity timeline (contacts + purchases), sticky action bar on small screens
+- Supervisor dashboard: **headline insight** first, then mini stats and panels
+- Route-level **`loading.tsx`** skeletons per main segment
+- Notifications API + types aligned with `005_notifications.sql`; UI shows setup hint only if the table is missing
 
-### ⚠️ Needs Design Work
-- **Queue page** - Has new stack component but feels generic
-- **Clients page** - Table layout, not card-based
-- **Client detail** - Section-based, not story-based
-- **Dashboard** - KPI boxes, not narrative
-
-### ❌ Broken
-- Notifications (table doesn't exist in Supabase)
-  - Fix: Run `supabase/migrations/005_notifications.sql`
+### ⚠️ Ops / data
+- **005** — Core notifications schema, RLS, triggers, generator functions (deployed on your project).
+- **006** — Optional hardening in repo: [`supabase/migrations/006_notifications_hardening.sql`](supabase/migrations/006_notifications_hardening.sql) adds indexes, a daily dedupe unique index for `client_overdue`, and restricts `EXECUTE` on `generate_overdue_notifications()` / `generate_seller_inactivity_alerts()` to **`service_role`** (call from cron/Edge with service key, not anon/authenticated). Run this in SQL editor if you have not applied equivalent changes yet.
 
 ---
 
-## Design Philosophy (NOT YET IMPLEMENTED)
+## Design Philosophy
 
 ### Core Rule
 > If user says "nice animation" → failed
@@ -190,25 +213,30 @@ success:      #2F6B4F    (positive)
 3. **State** - Tonality not animation (overdue = red accent, premium = gold)
 4. **Typography** - Micro-weight transitions (400 → 450 on focus)
 
-### Page Goals
-- **Queue** - One client at a time, one action
-- **Clients** - Search-first, card grid
-- **Client Detail** - Hero card, timeline, sticky action bar
-- **Dashboard** - One headline insight, drill-down on tap
+### Page goals (implemented direction)
+- **Home** — State of portfolio + single obvious next step (`/queue`)
+- **Queue** — Exactly who is next and why; call / WhatsApp / full profile
+- **Clients** — Scan and search without a dense table
+- **Client 360** — Who, value, history, next actions
+- **Dashboard** — Pressure and rhythm without BI clutter (lists / bars; no default charts)
 
 ---
 
 ## Files to Focus On
 
-### For Visual Redesign
+### Primary surfaces
 ```
-src/app/globals.css           # Typography, utilities
-tailwind.config.ts            # Colors, spacing
-src/components/*.tsx          # All components
-src/app/queue/page.tsx        # Queue page
-src/app/clients/page.tsx      # Clients page
-src/app/clients/[id]/page.tsx # Client detail
-src/app/dashboard/page.tsx    # Dashboard
+src/app/page.tsx
+src/app/queue/page.tsx
+src/app/clients/page.tsx
+src/app/clients/[id]/page.tsx
+src/app/dashboard/page.tsx
+src/components/Nav.tsx
+src/components/AppShell.tsx
+src/components/ScreenSkeleton.tsx
+src/components/ClientGridCard.tsx
+src/app/globals.css
+tailwind.config.ts
 ```
 
 ### Motion System
@@ -245,11 +273,8 @@ git add . && git commit -m "message" && git push
 
 ---
 
-## What Needs to Happen
+## Follow-ups (optional)
 
-1. **Stop** - Don't add more code until visual direction is clear
-2. **Design** - Create exact visual specs (spacing, colors, typography)
-3. **Implement** - Match specs precisely
-4. **Test** - Verify on real data
-
-The current implementation is functional but generic. It needs a visual transformation that creates "interaction credibility" not "interaction richness."
+- Apply [`006_notifications_hardening.sql`](supabase/migrations/006_notifications_hardening.sql) on production if indexes / generator `EXECUTE` lockdown are not there yet.
+- `AddClientModal` / `ClientCard` / `Button` still mix legacy `ink` aliases in places; align when touching those flows.
+- Recharts or extra charts on dashboard only if a specific insight reads better as a single chart than as a list.

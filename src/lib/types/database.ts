@@ -195,6 +195,38 @@ export type Database = {
           sort_order?: number
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: Database['public']['Enums']['notification_type']
+          title: string
+          message: string | null
+          client_id: string | null
+          read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: Database['public']['Enums']['notification_type']
+          title: string
+          message?: string | null
+          client_id?: string | null
+          read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: Database['public']['Enums']['notification_type']
+          title?: string
+          message?: string | null
+          client_id?: string | null
+          read?: boolean
+          created_at?: string
+        }
+      }
     }
     Views: {
       recontact_queue: {
@@ -240,6 +272,13 @@ export type Database = {
       user_role: 'seller' | 'supervisor'
       contact_channel: 'whatsapp' | 'sms' | 'phone' | 'email' | 'in_store' | 'other'
       client_tier: 'rainbow' | 'optimisto' | 'kaizen' | 'idealiste' | 'diplomatico' | 'grand_prix'
+      notification_type:
+        | 'client_overdue'
+        | 'tier_upgrade'
+        | 'big_purchase'
+        | 'seller_inactive'
+        | 'new_client_assigned'
+        | 'manual'
     }
   }
 }

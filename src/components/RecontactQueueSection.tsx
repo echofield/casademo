@@ -12,9 +12,11 @@ export function RecontactQueueSection({ title, items, urgent = false }: Recontac
   if (items.length === 0) return null
 
   return (
-    <section className="mb-8">
-      <h2 className={`small-caps mb-4 ${urgent ? 'text-red-600' : 'text-ink/60'}`}>
-        {title} ({items.length})
+    <section className="mb-10">
+      <h2
+        className={`label mb-4 ${urgent ? 'text-danger' : 'text-text-muted'}`}
+      >
+        {title} <span className="text-text-muted">({items.length})</span>
       </h2>
       <div className="space-y-3">
         {items.map((item) => (
