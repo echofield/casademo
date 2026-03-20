@@ -2,14 +2,12 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -17,30 +15,20 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      console.log('Creating client...')
-      console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
       const supabase = createClient()
-
-      console.log('Attempting sign in for:', email)
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log('Sign in result:', { data, error })
-
       if (error) {
-        console.error('Auth error:', error)
         setError(error.message)
         setLoading(false)
         return
       }
 
-      console.log('Login successful, redirecting...')
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch (err) {
-      console.error('Caught error:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
