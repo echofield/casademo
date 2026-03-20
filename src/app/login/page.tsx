@@ -1,33 +1,42 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    const emailValue = String(fd.get('email') ?? '').trim()
+    const passwordValue = String(fd.get('password') ?? '')
+
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: emailValue,
+        password: passwordValue,
       })
 
-      if (error) {
-        setError(error.message)
+      if (signInError) {
+        setError(signInError.message)
         setLoading(false)
         return
       }
 
-      window.location.href = '/'
+      await supabase.auth.getSession()
+      router.push('/')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
@@ -45,6 +54,7 @@ export default function LoginPage() {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -58,6 +68,7 @@ export default function LoginPage() {
             </label>
             <input
               id="password"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
