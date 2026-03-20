@@ -32,9 +32,8 @@ export default function LoginPage() {
         return
       }
 
+      // Wait for session to be ready before redirect
       await supabase.auth.getSession()
-      // Single full navigation so cookies are on the next document request; avoids
-      // router.push + refresh stacking navigations with middleware/home redirects.
       window.location.replace('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')

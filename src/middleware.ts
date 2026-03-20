@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
 
   // Protect API routes (except auth routes)
   if (request.nextUrl.pathname.startsWith('/api') && !request.nextUrl.pathname.startsWith('/api/auth')) {
-    console.log('API request:', request.nextUrl.pathname, 'User:', user?.email || 'none')
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
