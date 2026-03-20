@@ -1,9 +1,12 @@
+const frParis: Intl.DateTimeFormatOptions = {
+  timeZone: 'Europe/Paris',
+  day: 'numeric',
+  month: 'short',
+}
+
 export function formatQueueDate(dateStr: string | null): string {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-  })
+  return new Date(dateStr).toLocaleDateString('fr-FR', frParis)
 }
 
 export function formatCurrencyEUR(amount: number | null): string {

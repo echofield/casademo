@@ -1,5 +1,6 @@
 import { RecontactQueueRow } from './RecontactQueueRow'
 import type { RecontactQueueItem } from '@/lib/types'
+import { formatCurrencyEUR, formatQueueDate } from '@/lib/formatDisplay'
 
 interface RecontactQueueSectionProps {
   title: string
@@ -17,7 +18,14 @@ export function RecontactQueueSection({ title, items, urgent = false }: Recontac
       </h2>
       <div className="space-y-3">
         {items.map((item) => (
-          <RecontactQueueRow key={item.id} item={item} urgent={urgent} />
+          <RecontactQueueRow
+            key={item.id}
+            item={item}
+            urgent={urgent}
+            spendLabel={formatCurrencyEUR(item.total_spend)}
+            lastContactLabel={formatQueueDate(item.last_contact_date)}
+            nextRecontactLabel={formatQueueDate(item.next_recontact_date)}
+          />
         ))}
       </div>
     </section>

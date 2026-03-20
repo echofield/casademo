@@ -1,21 +1,45 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { TierBadge } from './TierBadge'
 import type { RecontactQueueItem } from '@/lib/types'
-import { formatCurrencyEUR, formatQueueDate } from '@/lib/formatDisplay'
 
 interface RecontactQueueRowProps {
   item: RecontactQueueItem
   urgent?: boolean
+  /** Pre-formatted on the server to avoid SSR vs browser locale hydration mismatches */
+  spendLabel: string
+  lastContactLabel: string
+  nextRecontactLabel: string
 }
 
-export function RecontactQueueRow({ item, urgent = false }: RecontactQueueRowProps) {
+export function RecontactQueueRow({
+  item,
+  urgent = false,
+  spendLabel,
+  lastContactLabel,
+  nextRecontactLabel,
+}: RecontactQueueRowProps) {
+  const router = useRouter()
+  const href = `/clients/${item.id}`
+
+  const openClient = () => {
+    router.push(href)
+  }
+
   return (
-    <Link
-      href={`/clients/${item.id}`}
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={openClient}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openClient()
+        }
+      }}
       className={`
-        block card hover:shadow-md transition-shadow
+        block card hover:shadow-md transition-shadow cursor-pointer
         ${urgent ? 'border-l-4 border-l-red-500' : ''}
       `}
     >
@@ -37,19 +61,19 @@ export function RecontactQueueRow({ item, urgent = false }: RecontactQueueRowPro
                 {item.phone}
               </a>
             )}
-            <span>{formatCurrencyEUR(item.total_spend)}</span>
+            <span>{spendLabel}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4 text-sm">
           <div className="text-right">
             <p className="text-ink/50 text-xs">Last contact</p>
-            <p>{formatQueueDate(item.last_contact_date)}</p>
+            <p>{lastContactLabel}</p>
           </div>
           <div className="text-right">
             <p className="text-ink/50 text-xs">Due</p>
             <p className={urgent ? 'text-red-600 font-medium' : ''}>
-              {formatQueueDate(item.next_recontact_date)}
+              {nextRecontactLabel}
               {(item.days_overdue ?? 0) > 0 && (
                 <span className="ml-1 text-red-600">
                   +{item.days_overdue}d
@@ -74,6 +98,6 @@ export function RecontactQueueRow({ item, urgent = false }: RecontactQueueRowPro
           )}
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
