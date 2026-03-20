@@ -6,6 +6,8 @@ import {
   CompetencyRadar,
   LearningMomentum,
   InsightCapture,
+  CostROIChart,
+  EnvironmentalImpact,
 } from '@/components/formation'
 
 /**
@@ -134,53 +136,10 @@ export default async function FormationAnalyticsPage() {
           </div>
         </section>
 
-        {/* Bottom row - charts placeholders */}
+        {/* Bottom row - Recharts visualizations */}
         <div className="mb-10 grid gap-6 md:grid-cols-2">
-          {/* Cost vs ROI placeholder */}
-          <section
-            className="border bg-surface p-6"
-            style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
-          >
-            <h2 className="label mb-4 text-text-muted">Coût vs ROI par modalité</h2>
-            <div className="h-48 flex items-center justify-center">
-              <p className="text-sm text-text-muted italic">
-                Graphique en construction...
-              </p>
-            </div>
-            <div className="flex gap-6 justify-center mt-4">
-              <div className="text-center">
-                <div className="text-[10px] text-text-muted tracking-wide">E-Learning</div>
-                <div className="text-lg font-medium text-success">+190% ROI</div>
-              </div>
-              <div className="text-center">
-                <div className="text-[10px] text-text-muted tracking-wide">Présentiel</div>
-                <div className="text-lg font-medium text-text-muted">+120% ROI</div>
-              </div>
-              <div className="text-center">
-                <div className="text-[10px] text-text-muted tracking-wide">Hybride</div>
-                <div className="text-lg font-medium text-gold">+165% ROI</div>
-              </div>
-            </div>
-          </section>
-
-          {/* Environmental impact placeholder */}
-          <section
-            className="border bg-surface p-6"
-            style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
-          >
-            <h2 className="label mb-4 text-text-muted">Impact environnemental</h2>
-            <div className="h-48 flex items-center justify-center">
-              <div className="text-center">
-                <div className="metric text-success">-45%</div>
-                <div className="text-sm text-text-muted mt-1">CO₂ évité vs présentiel</div>
-              </div>
-            </div>
-            <div className="space-y-2 mt-4">
-              <EnvironmentRow label="100% Digital" impact="-45% CO₂" color="#0D4A3A" />
-              <EnvironmentRow label="Hybride" impact="-25% CO₂" color="#A48763" />
-              <EnvironmentRow label="Présentiel" impact="Base" color="#6E685F" />
-            </div>
-          </section>
+          <CostROIChart />
+          <EnvironmentalImpact />
         </div>
 
         {/* Insight capture - subtle footer action */}
@@ -212,14 +171,3 @@ function TrendBadge({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   )
 }
 
-function EnvironmentRow({ label, impact, color }: { label: string; impact: string; color: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2" style={{ backgroundColor: color }} />
-        <span className="text-sm text-text-soft">{label}</span>
-      </div>
-      <span className="text-sm font-medium text-success">{impact}</span>
-    </div>
-  )
-}
