@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { NotificationBell } from './NotificationBell'
 
 interface NavProps {
   userRole: 'seller' | 'supervisor'
@@ -54,6 +55,7 @@ export function Nav({ userRole, userName }: NavProps) {
           ))}
 
           <div className="flex items-center gap-4 pl-8 border-l border-grey-light">
+            <NotificationBell />
             <span className="text-xs text-ink/50">{userName}</span>
             <button
               onClick={handleLogout}
@@ -73,19 +75,22 @@ export function Nav({ userRole, userName }: NavProps) {
             Casa One
           </Link>
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 -mr-2"
-            aria-label="Toggle menu"
-          >
-            <svg className="w-6 h-6 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {mobileOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 -mr-2"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {mobileOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {mobileOpen && (

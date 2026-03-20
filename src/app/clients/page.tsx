@@ -5,6 +5,7 @@ import { AppShell, TierBadge } from '@/components'
 import { Client, ClientTier, TIER_LABELS, TIER_ORDER } from '@/lib/types'
 import Link from 'next/link'
 import { ClientListFilters } from './ClientListFilters'
+import { ClientsHeader } from './ClientsHeader'
 
 interface Props {
   searchParams: Promise<{
@@ -64,12 +65,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
       <div className="max-w-6xl mx-auto">
-        <header className="mb-6">
-          <h1 className="mb-2">Clients</h1>
-          <p className="text-ink/60">
-            {count} client{count !== 1 ? 's' : ''} total
-          </p>
-        </header>
+        <ClientsHeader count={count || 0} />
 
         <ClientListFilters
           currentSearch={search}
