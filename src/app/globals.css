@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 46px);
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: clamp(24px, 4vw, 32px);
+  }
+
+  h3 {
+    font-size: clamp(20px, 3vw, 24px);
+  }
+
+  h4 {
+    font-size: 19px;
+  }
+}
+
+@layer components {
+  .small-caps {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .narrator {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    color: #A38767;
+  }
+
+  .btn-primary {
+    @apply bg-green text-paper font-serif px-6 py-3 text-base;
+    @apply hover:opacity-90 transition-opacity duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border border-ink/20 text-ink px-6 py-3;
+    @apply text-xs font-sans uppercase tracking-widest;
+    @apply hover:border-ink/40 transition-colors duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-grey-light rounded-none;
+    @apply text-ink placeholder:text-grey-medium;
+    @apply focus:outline-none focus:border-green transition-colors duration-300;
+  }
+
+  .card {
+    @apply bg-white border border-grey-light p-6;
+    @apply shadow-sm;
+  }
+}
