@@ -1,5 +1,66 @@
 // Casa One Motion Tokens
 // Philosophy: composed, not alive. Damped, not bouncy.
+// Extended with instrument-style tokens from Aura system
+
+// Named duration tokens (no raw ms in components)
+export const durations = {
+  instant: 90,
+  brisk: 200,
+  measured: 400,
+  contemplative: 1000,
+  ambient: 60000,
+} as const
+
+// Named easing functions
+export const easings = {
+  appear: 'cubic-bezier(0, 0, 0.2, 1)',
+  transition: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  dismiss: 'cubic-bezier(0.4, 0, 1, 1)',
+  continuous: 'linear',
+} as const
+
+// Helper to get duration by name
+export function t(speed: keyof typeof durations): number {
+  return durations[speed]
+}
+
+// Helper to get easing by name
+export function ease(kind: keyof typeof easings): string {
+  return easings[kind]
+}
+
+// Clamp value between 0 and 1
+export function clamp01(v: number): number {
+  if (!Number.isFinite(v)) return 0
+  return Math.max(0, Math.min(1, v))
+}
+
+// Cubic bezier interpolation for animations
+export function interpolate(kind: keyof typeof easings, progress: number): number {
+  const p = clamp01(progress)
+  if (kind === 'continuous') return p
+
+  // Cubic bezier approximation
+  const bezierAt = (x1: number, y1: number, x2: number, y2: number, t: number): number => {
+    const cx = 3 * x1
+    const bx = 3 * (x2 - x1) - cx
+    const ax = 1 - cx - bx
+    const cy = 3 * y1
+    const by = 3 * (y2 - y1) - cy
+    const ay = 1 - cy - by
+    return ((ay * t + by) * t + cy) * t
+  }
+
+  if (kind === 'appear') return bezierAt(0, 0, 0.2, 1, p)
+  if (kind === 'transition') return bezierAt(0.4, 0, 0.2, 1, p)
+  return bezierAt(0.4, 0, 1, 1, p) // dismiss
+}
+
+// Check for reduced motion preference
+export function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
 
 export const transitions = {
   // Main spring - luxury weight, heavily damped

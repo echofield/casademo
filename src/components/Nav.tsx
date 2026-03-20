@@ -21,7 +21,10 @@ export function Nav({ userRole, userName }: NavProps) {
     { href: '/', label: 'Home' },
     { href: '/queue', label: 'Queue' },
     { href: '/clients', label: 'Clients' },
-    ...(userRole === 'supervisor' ? [{ href: '/dashboard', label: 'Dashboard' }] : []),
+    ...(userRole === 'supervisor' ? [
+      { href: '/dashboard', label: 'Dashboard' },
+      { href: '/formation/analytics', label: 'Formation' },
+    ] : []),
   ]
 
   const isActive = (href: string) => {
