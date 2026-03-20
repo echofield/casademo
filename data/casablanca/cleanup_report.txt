@@ -1,0 +1,1327 @@
+Casa One CSV cleanup report
+============================================================
+
+Input: Sales Faubourg Store-2(Sales by SA).csv
+Row count (order lines) before: 3327
+Client count after: 1405
+Order lines consolidated into clients (rows_in - clients_out): 1922
+Cluster count (unique clients): 1405
+Clusters with >1 order line merged: 636
+
+Tier distribution (after cleanup)
+----------------------------------------
+  rainbow: 1052
+  optimisto: 252
+  kaizen: 96
+  idealiste: 3
+  diplomatico: 1
+  grand_prix: 1
+
+Clients with no email AND no usable phone (first 200)
+----------------------------------------
+first_name last_name email phone
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+                                
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+      #N/A      #N/A            
+
+Merge audit — union-find events (sample first 500)
+----------------------------------------
+union_by_email: key='ronizuares@gmail.com' rows 17 <-> 7
+union_by_email: key='ronizuares@gmail.com' rows 20 <-> 7
+union_by_email: key='jamilayounes111@gmail.com' rows 22 <-> 21
+union_by_email: key='ronizuares@gmail.com' rows 26 <-> 7
+union_by_email: key='ronizuares@gmail.com' rows 29 <-> 7
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 30 <-> 8
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 31 <-> 8
+union_by_email: key='tosin@alexbosh.com' rows 32 <-> 24
+union_by_email: key='yoshikorange@gmail.com' rows 34 <-> 19
+union_by_email: key='adnanczar28@gmail.com' rows 35 <-> 27
+union_by_email: key='mohdalkhalifa@aol.com' rows 36 <-> 18
+union_by_email: key='baran91@msn.com' rows 38 <-> 6
+union_by_email: key='sebastian.rehmet@outlook.de' rows 39 <-> 2
+union_by_email: key='msandal24@gmail.com' rows 43 <-> 42
+union_by_email: key='beuzerteddy@gmail.com' rows 44 <-> 41
+union_by_email: key='beuzerteddy@gmail.com' rows 45 <-> 41
+union_by_email: key='beuzerteddy@gmail.com' rows 46 <-> 41
+union_by_email: key='beuzerteddy@gmail.com' rows 47 <-> 41
+union_by_email: key='msandal24@gmail.com' rows 49 <-> 42
+union_by_email: key='f.kawilarang@gmail.com' rows 53 <-> 23
+union_by_email: key='z@gigglefinance.côm' rows 58 <-> 55
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 64 <-> 8
+union_by_email: key='kevinleone999@gmail.com' rows 65 <-> 25
+union_by_email: key='jamilayounes111@gmail.com' rows 66 <-> 21
+union_by_email: key='reachfalgun@gmail.com' rows 68 <-> 61
+union_by_email: key='yoshikorange@gmail.com' rows 69 <-> 19
+union_by_email: key='ronizuares@gmail.com' rows 70 <-> 7
+union_by_email: key='kevinleone999@gmail.com' rows 71 <-> 25
+union_by_email: key='jessi.garro@icloud.com' rows 72 <-> 57
+union_by_email: key='beuzerteddy@gmail.com' rows 73 <-> 41
+union_by_email: key='ronizuares@gmail.com' rows 76 <-> 7
+union_by_email: key='mohdalkhalifa@aol.com' rows 78 <-> 18
+union_by_email: key='jessi.garro@icloud.com' rows 80 <-> 57
+union_by_email: key='tosin@alexbosh.com' rows 81 <-> 24
+union_by_email: key='beuzerteddy@gmail.com' rows 86 <-> 41
+union_by_email: key='beuzerteddy@gmail.com' rows 87 <-> 41
+union_by_email: key='srzongo@gmail.com' rows 89 <-> 88
+union_by_email: key='nesrinelahlouh@hotmail.com' rows 91 <-> 90
+union_by_email: key='tilemovic@gmail.com' rows 93 <-> 50
+union_by_email: key='lgvilaisabel25@gmail.com' rows 94 <-> 51
+union_by_email: key='nablediabate@gmail.com' rows 95 <-> 52
+union_by_email: key='mikevdemetria@gmail.com' rows 96 <-> 60
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 98 <-> 8
+union_by_email: key='yoshikorange@gmail.com' rows 99 <-> 19
+union_by_email: key='ronizuares@gmail.com' rows 100 <-> 7
+union_by_email: key='l.sherre.bonner@gmail.com' rows 101 <-> 77
+union_by_email: key='mikevdemetria@gmail.com' rows 102 <-> 60
+union_by_email: key='l.sherre.bonner@gmail.com' rows 103 <-> 77
+union_by_email: key='rochygxln@gmail.com' rows 104 <-> 14
+union_by_email: key='omarlara_leon@hotmail.com' rows 106 <-> 37
+union_by_email: key='jamilayounes111@gmail.com' rows 107 <-> 21
+union_by_email: key='kevinleone999@gmail.com' rows 108 <-> 25
+union_by_email: key='contact@cvr.lu' rows 110 <-> 105
+union_by_email: key='mohdalkhalifa@aol.com' rows 111 <-> 18
+union_by_email: key='maithilimj@gmail.com' rows 113 <-> 112
+union_by_email: key='kevinleone999@gmail.com' rows 114 <-> 25
+union_by_email: key='kevinleone999@gmail.com' rows 115 <-> 25
+union_by_email: key='jessi.garro@icloud.com' rows 116 <-> 57
+union_by_email: key='redanoor88@icloud.com' rows 117 <-> 83
+union_by_email: key='mario@rosinus.ch' rows 118 <-> 85
+union_by_email: key='igorouak@gmail.com' rows 119 <-> 109
+union_by_email: key='yoshikorange@gmail.com' rows 121 <-> 19
+union_by_email: key='shalom@meck5.com' rows 122 <-> 33
+union_by_email: key='reachfalgun@gmail.com' rows 124 <-> 61
+union_by_email: key='jamilayounes111@gmail.com' rows 125 <-> 21
+union_by_email: key='jamilayounes111@gmail.com' rows 126 <-> 21
+union_by_email: key='jamilayounes111@gmail.com' rows 130 <-> 21
+union_by_email: key='mohdalkhalifa@aol.com' rows 131 <-> 18
+union_by_email: key='kevinleone999@gmail.com' rows 132 <-> 25
+union_by_email: key='oliver.sucher@googlemail.com' rows 133 <-> 84
+union_by_email: key='f.kawilarang@gmail.com' rows 134 <-> 23
+union_by_email: key='igorouak@gmail.com' rows 135 <-> 109
+union_by_email: key='tosin@alexbosh.com' rows 136 <-> 24
+union_by_email: key='jamilayounes111@gmail.com' rows 137 <-> 21
+union_by_email: key='jamilayounes111@gmail.com' rows 141 <-> 21
+union_by_email: key='yoshikorange@gmail.com' rows 144 <-> 19
+union_by_email: key='wangshuang_85@163.com' rows 146 <-> 63
+union_by_email: key='oliver.sucher@googlemail.com' rows 147 <-> 84
+union_by_email: key='oliver.sucher@googlemail.com' rows 148 <-> 84
+union_by_email: key='beuzerteddy@gmail.com' rows 149 <-> 41
+union_by_email: key='jamilayounes111@gmail.com' rows 150 <-> 21
+union_by_email: key='oliver.sucher@googlemail.com' rows 151 <-> 84
+union_by_email: key='oliver.sucher@googlemail.com' rows 152 <-> 84
+union_by_email: key='beuzerteddy@gmail.com' rows 153 <-> 41
+union_by_email: key='ronizuares@gmail.com' rows 154 <-> 7
+union_by_email: key='contact@cvr.lu' rows 155 <-> 105
+union_by_email: key='kevinleone999@gmail.com' rows 158 <-> 25
+union_by_email: key='wangshuang_85@163.com' rows 159 <-> 63
+union_by_email: key='didiermartin@bredinprat.com' rows 160 <-> 28
+union_by_email: key='didiermartin@bredinprat.com' rows 162 <-> 28
+union_by_email: key='adnanczar28@gmail.com' rows 163 <-> 27
+union_by_email: key='maithilimj@gmail.com' rows 164 <-> 112
+union_by_email: key='tosin@alexbosh.com' rows 166 <-> 24
+union_by_email: key='meitar2k@hotmail.com' rows 168 <-> 97
+union_by_email: key='kevinleone999@gmail.com' rows 169 <-> 25
+union_by_email: key='jessi.garro@icloud.com' rows 170 <-> 57
+union_by_email: key='tosin@alexbosh.com' rows 171 <-> 24
+union_by_email: key='kawtar.ayaa92110@gmail.com' rows 173 <-> 56
+union_by_email: key='jamilayounes111@gmail.com' rows 176 <-> 21
+union_by_email: key='oliver.sucher@googlemail.com' rows 177 <-> 84
+union_by_email: key='alberto.saade@hotmail.com' rows 180 <-> 140
+union_by_email: key='didiermartin@bredinprat.com' rows 183 <-> 28
+union_by_email: key='tosin@alexbosh.com' rows 184 <-> 24
+union_by_email: key='nanettespence@hotmail.com' rows 185 <-> 48
+union_by_email: key='wangshuang_85@163.com' rows 187 <-> 63
+union_by_email: key='kevinleone999@gmail.com' rows 190 <-> 25
+union_by_email: key='tosin@alexbosh.com' rows 194 <-> 24
+union_by_email: key='youness@bourimech.fr' rows 195 <-> 161
+union_by_email: key='shalom@meck5.com' rows 196 <-> 33
+union_by_email: key='shalom@meck5.com' rows 197 <-> 33
+union_by_email: key='dasalvi@hotmail.com' rows 202 <-> 201
+union_by_email: key='kevinleone999@gmail.com' rows 203 <-> 25
+union_by_email: key='tosin@alexbosh.com' rows 204 <-> 24
+union_by_email: key='raphaellamusicuk@gmail.com' rows 206 <-> 182
+union_by_email: key='wangshuang_85@163.com' rows 207 <-> 63
+union_by_email: key='awad.dina82@gmail.com' rows 209 <-> 188
+union_by_email: key='jamilayounes111@gmail.com' rows 210 <-> 21
+union_by_email: key='krayan@live.fr' rows 211 <-> 139
+union_by_email: key='wangshuang_85@163.com' rows 213 <-> 63
+union_by_email: key='kamaldaswani@zino.ci' rows 214 <-> 191
+union_by_email: key='maar.az@icloud.com' rows 217 <-> 216
+union_by_email: key='justin@daytonagroup.co.za' rows 218 <-> 142
+union_by_email: key='kawtar.ayaa92110@gmail.com' rows 221 <-> 56
+union_by_email: key='jamilayounes111@gmail.com' rows 224 <-> 21
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 225 <-> 8
+union_by_email: key='chartonarthur3@gmail.com' rows 231 <-> 223
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 232 <-> 8
+union_by_email: key='raphaellamusicuk@gmail.com' rows 233 <-> 182
+union_by_email: key='djoubri.amir@hotmail.fr' rows 235 <-> 192
+union_by_email: key='yoshikorange@gmail.com' rows 236 <-> 19
+union_by_email: key='mikevdemetria@gmail.com' rows 237 <-> 60
+union_by_email: key='benwinsor88@outlook.com' rows 240 <-> 239
+union_by_email: key='benwinsor88@outlook.com' rows 241 <-> 239
+union_by_email: key='wangshuang_85@163.com' rows 243 <-> 63
+union_by_email: key='srzongo@gmail.com' rows 244 <-> 88
+union_by_email: key='contact@cvr.lu' rows 246 <-> 105
+union_by_email: key='analjv@gmail.com' rows 247 <-> 222
+union_by_email: key='lewis@lewishoward.co.uk' rows 248 <-> 82
+union_by_email: key='lewis@lewishoward.co.uk' rows 249 <-> 82
+union_by_email: key='maunela3@gmail.com' rows 251 <-> 156
+union_by_email: key='l.sherre.bonner@gmail.com' rows 252 <-> 77
+union_by_email: key='a-five@live.fr' rows 255 <-> 254
+union_by_email: key='ivanadoteperez@gmail.com' rows 257 <-> 256
+union_by_email: key='maddalena.grassi@gmail.com' rows 259 <-> 258
+union_by_email: key='yoshikorange@gmail.com' rows 260 <-> 19
+union_by_email: key='kamaldaswani@zino.ci' rows 264 <-> 191
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 266 <-> 8
+union_by_email: key='somyosleelapanyalert@gmail.com' rows 267 <-> 8
+union_by_email: key='os.lecomte@gmail.com' rows 269 <-> 268
+union_by_email: key='kamaldaswani@zino.ci' rows 270 <-> 191
+union_by_email: key='kamaldaswani@zino.ci' rows 271 <-> 191
+union_by_email: key='jephtac@gmail.com' rows 272 <-> 92
+union_by_email: key='kevinleone999@gmail.com' rows 273 <-> 25
+union_by_email: key='oliver.sucher@googlemail.com' rows 274 <-> 84
+union_by_email: key='kamaldaswani@zino.ci' rows 275 <-> 191
+union_by_email: key='kamaldaswani@zino.ci' rows 276 <-> 191
+union_by_email: key='nalysimeon6@gmail.com' rows 279 <-> 215
+union_by_email: key='maar.az@icloud.com' rows 280 <-> 216
+union_by_email: key='maar.az@icloud.com' rows 281 <-> 216
+union_by_email: key='justin@daytonagroup.co.za' rows 283 <-> 142
+union_by_email: key='justin@daytonagroup.co.za' rows 284 <-> 142
+union_by_email: key='veermwani31@gmail.com' rows 285 <-> 179
+union_by_email: key='rahul@kohinoortv.com' rows 286 <-> 219
+union_by_email: key='yoshikorange@gmail.com' rows 288 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 289 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 290 <-> 19
+union_by_email: key='jamisonp03@icloud.com' rows 295 <-> 294
+union_by_email: key='jacquescherine@gmail.com' rows 301 <-> 199
+union_by_email: key='reachfalgun@gmail.com' rows 302 <-> 61
+union_by_email: key='ronizuares@gmail.com' rows 303 <-> 7
+union_by_email: key='benwinsor88@outlook.com' rows 304 <-> 239
+union_by_email: key='benwinsor88@outlook.com' rows 305 <-> 239
+union_by_email: key='benwinsor88@outlook.com' rows 306 <-> 239
+union_by_email: key='wangshuang_85@163.com' rows 307 <-> 63
+union_by_email: key='srzongo@gmail.com' rows 308 <-> 88
+union_by_email: key='srzongo@gmail.com' rows 309 <-> 88
+union_by_email: key='maunela3@gmail.com' rows 310 <-> 156
+union_by_email: key='maunela3@gmail.com' rows 311 <-> 156
+union_by_email: key='kristelle.perez17@gmail.com' rows 313 <-> 234
+union_by_email: key='kristelle.perez17@gmail.com' rows 314 <-> 234
+union_by_email: key='kristelle.perez17@gmail.com' rows 315 <-> 234
+union_by_email: key='yoshikorange@gmail.com' rows 319 <-> 19
+union_by_email: key='adnanczar28@gmail.com' rows 320 <-> 27
+union_by_email: key='jessi.garro@icloud.com' rows 323 <-> 57
+union_by_email: key='williamtouillez1@gmail.com' rows 325 <-> 277
+union_by_email: key='igorouak@gmail.com' rows 326 <-> 109
+union_by_email: key='jo-amore06@hotmail.fr' rows 327 <-> 282
+union_by_email: key='veermwani31@gmail.com' rows 328 <-> 179
+union_by_email: key='zrk93160@gmail.com' rows 329 <-> 287
+union_by_email: key='yoshikorange@gmail.com' rows 330 <-> 19
+union_by_email: key='ronizuares@gmail.com' rows 334 <-> 7
+union_by_email: key='ronizuares@gmail.com' rows 335 <-> 7
+union_by_email: key='jacquescherine@gmail.com' rows 336 <-> 199
+union_by_email: key='jessi.garro@icloud.com' rows 337 <-> 57
+union_by_email: key='kamaldaswani@zino.ci' rows 338 <-> 191
+union_by_email: key='l.sherre.bonner@gmail.com' rows 340 <-> 77
+union_by_email: key='chisatononoyama@yahoo.co.jp' rows 341 <-> 198
+union_by_email: key='justin@daytonagroup.co.za' rows 342 <-> 142
+union_by_email: key='chisatononoyama@yahoo.co.jp' rows 344 <-> 198
+union_by_email: key='wouterfluks@icloud.com' rows 345 <-> 242
+union_by_email: key='srzongo@gmail.com' rows 346 <-> 88
+union_by_email: key='lewis@lewishoward.co.uk' rows 347 <-> 82
+union_by_email: key='vincent-darocha@hotmail.fr' rows 350 <-> 250
+union_by_email: key='cisoard@nd-sf.fr' rows 353 <-> 145
+union_by_email: key='mohdalkhalifa@aol.com' rows 355 <-> 18
+union_by_email: key='mikevdemetria@gmail.com' rows 357 <-> 60
+union_by_email: key='anant@shree-group.in' rows 359 <-> 317
+union_by_email: key='gui.brito2002@gmail.com' rows 360 <-> 12
+union_by_email: key='jephtac@gmail.com' rows 362 <-> 92
+union_by_email: key='oliver.sucher@googlemail.com' rows 363 <-> 84
+union_by_email: key='kamaldaswani@zino.ci' rows 365 <-> 191
+union_by_email: key='benjaminmarciano@msn.com' rows 369 <-> 278
+union_by_email: key='nalysimeon6@gmail.com' rows 371 <-> 215
+union_by_email: key='f.kawilarang@gmail.com' rows 373 <-> 23
+union_by_email: key='tosin@alexbosh.com' rows 374 <-> 24
+union_by_email: key='jo-amore06@hotmail.fr' rows 375 <-> 282
+union_by_email: key='justin@daytonagroup.co.za' rows 376 <-> 142
+union_by_email: key='gregoire.hervet@gmail.com' rows 377 <-> 291
+union_by_email: key='nanos55@hotmail.com' rows 378 <-> 332
+union_by_email: key='prekshasekhani@gmail.com' rows 380 <-> 343
+union_by_email: key='mikemills33@gmail.com' rows 382 <-> 333
+union_by_email: key='beuzerteddy@gmail.com' rows 385 <-> 41
+union_by_email: key='yanibormans2008@hotmail.com' rows 386 <-> 174
+union_by_email: key='lewis@lewishoward.co.uk' rows 387 <-> 82
+union_by_email: key='bensebacharlotte@gmail.com' rows 388 <-> 205
+union_by_email: key='gui.brito2002@gmail.com' rows 389 <-> 12
+union_by_email: key='jacquescherine@gmail.com' rows 390 <-> 199
+union_by_email: key='jacquescherine@gmail.com' rows 391 <-> 199
+union_by_email: key='chartonarthur3@gmail.com' rows 393 <-> 223
+union_by_email: key='ronizuares@gmail.com' rows 394 <-> 7
+union_by_email: key='jacquescherine@gmail.com' rows 395 <-> 199
+union_by_email: key='beuzerteddy@gmail.com' rows 398 <-> 41
+union_by_email: key='yoshikorange@gmail.com' rows 399 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 400 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 401 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 402 <-> 19
+union_by_email: key='aglanov777@gmail.com' rows 403 <-> 3
+union_by_email: key='aglanov777@gmail.com' rows 404 <-> 3
+union_by_email: key='aglanov777@gmail.com' rows 405 <-> 3
+union_by_email: key='nuno.luis86@gmail.com' rows 406 <-> 392
+union_by_email: key='shaharmeir419@gmail.com' rows 407 <-> 318
+union_by_email: key='dasalvi@hotmail.com' rows 408 <-> 201
+union_by_email: key='yoshikorange@gmail.com' rows 409 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 410 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 411 <-> 19
+union_by_email: key='yanibormans2008@hotmail.com' rows 412 <-> 174
+union_by_email: key='yoshikorange@gmail.com' rows 413 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 414 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 415 <-> 19
+union_by_email: key='yoshikorange@gmail.com' rows 416 <-> 19
+union_by_email: key='serkan.balak@gmail.com' rows 417 <-> 220
+union_by_email: key='serkan.balak@gmail.com' rows 418 <-> 220
+union_by_email: key='serkan.balak@gmail.com' rows 419 <-> 220
+union_by_email: key='rmouadeb@hotmail.com' rows 421 <-> 420
+union_by_email: key='rmouadeb@hotmail.com' rows 422 <-> 420
+union_by_email: key='rmouadeb@hotmail.com' rows 423 <-> 420
+union_by_email: key='rmouadeb@hotmail.com' rows 424 <-> 420
+union_by_email: key='maunela3@gmail.com' rows 428 <-> 156
+union_by_email: key='lewis@lewishoward.co.uk' rows 429 <-> 82
+union_by_email: key='ereyna@erma.plus' rows 432 <-> 431
+union_by_email: key='lewis@lewishoward.co.uk' rows 435 <-> 82
+union_by_email: key='adnanczar28@gmail.com' rows 436 <-> 27
+union_by_email: key='m.aichi@finex-invest.eu' rows 437 <-> 434
+union_by_email: key='adnanczar28@gmail.com' rows 443 <-> 27
+union_by_email: key='lewis@lewishoward.co.uk' rows 445 <-> 82
+union_by_email: key='raymond.jr@gmail.con' rows 446 <-> 0
+union_by_email: key='raymond.jr@gmail.con' rows 447 <-> 0
+union_by_email: key='dadai@gmail.com' rows 451 <-> 444
+union_by_email: key='lewis@lewishoward.co.uk' rows 454 <-> 82
+union_by_email: key='georgiev.georgio@gmail.com' rows 461 <-> 452
+union_by_email: key='lewis@lewishoward.co.uk' rows 466 <-> 82
+union_by_email: key='lewis@lewishoward.co.uk' rows 467 <-> 82
+union_by_email: key='kyfti@hotmail.fr' rows 473 <-> 228
+union_by_email: key='giulia.ziaperna@gmail.com' rows 475 <-> 430
+union_by_email: key='filippov.r@mail.ru' rows 482 <-> 481
+union_by_email: key='davkiman@hotmail.com' rows 483 <-> 463
+union_by_email: key='katya.mobb@gmail.com' rows 485 <-> 449
+union_by_email: key='25.8raf@gmail.com' rows 486 <-> 465
+union_by_email: key='mehmetk@global.com.tr' rows 487 <-> 455
+union_by_email: key='lewis@lewishoward.co.uk' rows 489 <-> 82
+union_by_email: key='jessi.garro@icloud.com' rows 491 <-> 57
+union_by_email: key='m.aichi@finex-invest.eu' rows 492 <-> 434
+union_by_email: key='khan@kayanpublicists.com' rows 493 <-> 426
+union_by_email: key='mehmetk@global.com.tr' rows 496 <-> 455
+union_by_email: key='katya.mobb@gmail.com' rows 499 <-> 449
+union_by_email: key='eduincaz@gmail.com' rows 500 <-> 441
+union_by_email: key='thomas.rasheemr@gmail.com' rows 501 <-> 442
+union_by_email: key='livier.lc@hotmail.com' rows 502 <-> 439
+union_by_email: key='dadai@gmail.com' rows 510 <-> 444
+union_by_email: key='filippov.r@mail.ru' rows 511 <-> 481
+union_by_email: key='m.aichi@finex-invest.eu' rows 521 <-> 434
+union_by_email: key='filippov.r@mail.ru' rows 522 <-> 481
+union_by_email: key='dadai@gmail.com' rows 524 <-> 444
+union_by_email: key='nesrinelahlouh@hotmail.com' rows 527 <-> 90
+union_by_email: key='jeremiemboma37@gmai.com' rows 529 <-> 474
+union_by_email: key='thomas.rasheemr@gmail.com' rows 531 <-> 442
+union_by_email: key='widianu@yahoo.fr' rows 532 <-> 450
+union_by_email: key='livier.lc@hotmail.com' rows 533 <-> 439
+union_by_email: key='nyoroeling@live.nl' rows 544 <-> 543
+union_by_email: key='davkiman@hotmail.com' rows 556 <-> 463
+union_by_email: key='khan@kayanpublicists.com' rows 557 <-> 426
+union_by_email: key='lewis@lewishoward.co.uk' rows 558 <-> 82
+union_by_email: key='lewis@lewishoward.co.uk' rows 559 <-> 82
+union_by_email: key='mlkzor@hotmail.com' rows 561 <-> 438
+union_by_email: key='eduincaz@gmail.com' rows 563 <-> 441
+union_by_email: key='18602627157@163.com' rows 565 <-> 458
+union_by_email: key='hiroyush@gmail.com' rows 567 <-> 566
+union_by_email: key='ocean.xea@gmail.com' rows 569 <-> 568
+union_by_email: key='lewis@lewishoward.co.uk' rows 572 <-> 82
+union_by_email: key='khan@kayanpublicists.com' rows 573 <-> 426
+union_by_email: key='nicolas@viennot.com' rows 575 <-> 574
+union_by_email: key='antonelacrnac@hotmail.de' rows 580 <-> 579
+union_by_email: key='lewis@lewishoward.co.uk' rows 583 <-> 82
+union_by_email: key='s.boufal@laposte.net' rows 584 <-> 470
+union_by_email: key='nicolas@viennot.com' rows 585 <-> 574
+union_by_email: key='nicolas@viennot.com' rows 586 <-> 574
+union_by_email: key='akzharkyn710@gmail.com' rows 587 <-> 480
+union_by_email: key='thomas.rasheemr@gmail.com' rows 590 <-> 442
+union_by_email: key='livier.lc@hotmail.com' rows 592 <-> 439
+union_by_email: key='antonelacrnac@hotmail.de' rows 594 <-> 579
+union_by_email: key='l.bus925@gmail.com' rows 595 <-> 581
+union_by_email: key='raymond.jr@gmail.con' rows 598 <-> 0
+union_by_email: key='mehmetk@global.com.tr' rows 599 <-> 455
+union_by_email: key='petr.orlov@me.com' rows 601 <-> 459
+union_by_email: key='lewis@lewishoward.co.uk' rows 603 <-> 82
+union_by_email: key='alnaim.m@gmail.com' rows 604 <-> 472
+union_by_email: key='latraorance001@gmail.com' rows 605 <-> 588
+union_by_email: key='dadai@gmail.com' rows 611 <-> 444
+union_by_email: key='malrafi@hotmail.com' rows 612 <-> 553
+union_by_email: key='luisfsal@gmail.com' rows 615 <-> 602
+union_by_email: key='recchiaimpianti@gmail.com' rows 623 <-> 622
+union_by_email: key='paolavillanu@hotmail.com' rows 625 <-> 624
+union_by_email: key='paolavillanu@hotmail.com' rows 626 <-> 624
+union_by_email: key='paolavillanu@hotmail.com' rows 627 <-> 624
+union_by_email: key='paolavillanu@hotmail.com' rows 628 <-> 624
+union_by_email: key='didier.vaitilingon@satp-amiantex.com' rows 630 <-> 629
+union_by_email: key='raymond.jr@gmail.con' rows 633 <-> 0
+union_by_email: key='raymond.jr@gmail.con' rows 634 <-> 0
+union_by_email: key='etekluxury@gmail.com' rows 636 <-> 468
+union_by_email: key='mehmetk@global.com.tr' rows 637 <-> 455
+union_by_email: key='gil.sharonr@gmail.com' rows 644 <-> 564
+union_by_email: key='eric.a.dennison@gmail.com' rows 650 <-> 649
+union_by_email: key='denvernunley1@gmail.com' rows 651 <-> 577
+union_by_email: key='evolutionlc1234@gmail.com' rows 653 <-> 530
+union_by_email: key='evolutionlc1234@gmail.com' rows 654 <-> 530
+union_by_email: key='evolutionlc1234@gmail.com' rows 655 <-> 530
+union_by_email: key='evolutionlc1234@gmail.com' rows 656 <-> 530
+union_by_email: key='thomas.rasheemr@gmail.com' rows 658 <-> 442
+union_by_email: key='cmudiay@yahoo.fr' rows 663 <-> 662
+union_by_email: key='mehmetk@globsl.com.tr' rows 667 <-> 666
+union_by_email: key='mehmetk@globsl.com.tr' rows 668 <-> 666
+union_by_email: key='widianu@yahoo.fr' rows 670 <-> 450
+union_by_email: key='vaa98@ukr.net' rows 672 <-> 671
+union_by_email: key='okonkwojuniorr@yahoo.com' rows 673 <-> 593
+union_by_email: key='petr.orlov@me.com' rows 676 <-> 459
+union_by_email: key='nyoroeling@live.nl' rows 681 <-> 543
+union_by_email: key='mmijares@me.com' rows 683 <-> 440
+union_by_email: key='louisnesbitt95@gmail.com' rows 685 <-> 684
+union_by_email: key='l.bus925@gmail.com' rows 686 <-> 581
+union_by_email: key='thomas.rasheemr@gmail.com' rows 687 <-> 442
+union_by_email: key='l.bus925@gmail.com' rows 691 <-> 581
+union_by_email: key='thomas.rasheemr@gmail.com' rows 692 <-> 442
+union_by_email: key='khan@kayanpublicists.com' rows 694 <-> 426
+union_by_email: key='lewis@lewishoward.co.uk' rows 695 <-> 82
+union_by_email: key='nesrinelahlouh@hotmail.com' rows 696 <-> 90
+union_by_email: key='nlatapie@gmail.com' rows 699 <-> 607
+union_by_email: key='mlkzor@hotmail.com' rows 701 <-> 438
+union_by_email: key='gil.sharonr@gmail.com' rows 705 <-> 564
+union_by_email: key='gil.sharonr@gmail.com' rows 706 <-> 564
+union_by_email: key='petr.orlov@me.com' rows 707 <-> 459
+union_by_email: key='majda.tpl@gmail.com' rows 711 <-> 578
+union_by_email: key='youness@bourimech.fr' rows 712 <-> 161
+union_by_email: key='ocean.xea@gmail.com' rows 713 <-> 568
+union_by_email: key='ocean.xea@gmail.com' rows 714 <-> 568
+union_by_email: key='dadai@gmail.com' rows 715 <-> 444
+union_by_email: key='livier.lc@hotmail.com' rows 716 <-> 439
+union_by_email: key='antonelacrnac@hotmail.de' rows 719 <-> 579
+union_by_email: key='adnanczar28@gmail.com' rows 721 <-> 27
+union_by_email: key='alnaim.m@gmail.com' rows 724 <-> 472
+union_by_email: key='hungchanghou@gmail.com' rows 725 <-> 700
+union_by_email: key='livier.lc@hotmail.com' rows 726 <-> 439
+union_by_email: key='shuab@mirhaexports.com' rows 727 <-> 679
+union_by_email: key='recchiaimpianti@gmail.com' rows 731 <-> 622
+union_by_email: key='nicolas@viennot.com' rows 732 <-> 574
+union_by_email: key='alikejusuleiman@gmail.com' rows 733 <-> 730
+union_by_email: key='ervio@marinadivenezia.it' rows 734 <-> 632
+union_by_email: key='faisal.tsn@gmail.com' rows 737 <-> 736
+union_by_email: key='faisal.tsn@gmail.com' rows 738 <-> 736
+union_by_email: key='raymond.jr@gmail.con' rows 740 <-> 0
+union_by_email: key='raymond.jr@gmail.con' rows 741 <-> 0
+union_by_email: key='latraorance001@gmail.com' rows 749 <-> 588
+union_by_email: key='gabrielafigueroa92@outlook.es' rows 754 <-> 753
+union_by_email: key='af.protin@gmail.com' rows 758 <-> 464
+union_by_email: key='ezekieloyelere@gmail.com' rows 759 <-> 641
+union_by_email: key='eduincaz@gmail.com' rows 760 <-> 441
+union_by_email: key='assasora@yahoo.com' rows 761 <-> 643
+union_by_email: key='kcabell@me.com' rows 763 <-> 762
+union_by_email: key='eric.a.dennison@gmail.com' rows 766 <-> 649
+union_by_email: key='18602627157@163.com' rows 768 <-> 458
+union_by_email: key='petr.orlov@me.com' rows 771 <-> 459
+union_by_email: key='gmonroy1919@gmail.com' rows 775 <-> 688
+union_by_email: key='jessi.garro@icloud.com' rows 777 <-> 57
+union_by_email: key='olivezenarealestate1@gmail.com' rows 779 <-> 735
+union_by_email: key='evolutionlc1234@gmail.com' rows 780 <-> 530
+union_by_email: key='evolutionlc1234@gmail.com' rows 781 <-> 530
+union_by_email: key='thomas.rasheemr@gmail.com' rows 784 <-> 442
+union_by_email: key='thomas.rasheemr@gmail.com' rows 785 <-> 442
+union_by_email: key='radjabu@gmail.com' rows 786 <-> 710
+union_by_email: key='majda.tpl@gmail.com' rows 787 <-> 578
+union_by_email: key='majda.tpl@gmail.com' rows 788 <-> 578
+union_by_email: key='barbara.castelein@pincsale.nl' rows 789 <-> 591
+union_by_email: key='barbara.castelein@pincsale.nl' rows 790 <-> 591
+union_by_email: key='eduincaz@gmail.com' rows 791 <-> 441
+union_by_email: key='widianu@yahoo.fr' rows 794 <-> 450
+union_by_email: key='hector.h.talamantes@gmail.com' rows 797 <-> 796
+union_by_email: key='azmol@hotmail.com' rows 800 <-> 613
+union_by_email: key='vcoffice@thewavegroup.com' rows 805 <-> 689
+union_by_email: key='vcoffice@thewavegroup.com' rows 806 <-> 689
+union_by_email: key='vcoffice@thewavegroup.com' rows 807 <-> 689
+union_by_email: key='bekkai-houari@hotmail.fr' rows 809 <-> 808
+union_by_email: key='luisfsal@gmail.com' rows 811 <-> 602
+union_by_email: key='jihanne@gmail.com' rows 814 <-> 778
+union_by_email: key='esther@xyzfinance.com.au' rows 817 <-> 718
+union_by_email: key='arhamahmed99@gmail.com' rows 818 <-> 678
+union_by_email: key='luisfsal@gmail.com' rows 819 <-> 602
+union_by_email: key='luisfsal@gmail.com' rows 820 <-> 602
+union_by_email: key='adnanczar28@gmail.com' rows 821 <-> 27
+union_by_email: key='arayby1@hotmail.com' rows 823 <-> 535
+union_by_email: key='adnanczar28@gmail.com' rows 824 <-> 27
+union_by_email: key='vikki094@mail.ru' rows 825 <-> 536
+union_by_email: key='madyvprod@gmail.com' rows 831 <-> 621
+union_by_email: key='nlatapie@gmail.com' rows 832 <-> 607
+union_by_email: key='stolberg2404@gmail.com' rows 834 <-> 541
+union_by_email: key='sofisamira15@mail.ru' rows 836 <-> 490
+union_by_email: key='hiroyush@gmail.com' rows 838 <-> 566
+union_by_email: key='georgiev.georgio@gmail.com' rows 839 <-> 452
+union_by_email: key='saintsalha98@gmail.com' rows 841 <-> 505
+union_by_email: key='antonelacrnac@hotmail.de' rows 842 <-> 579
+union_by_email: key='gracelibi@icloud.com' rows 845 <-> 844
+union_by_email: key='patricioverduzco@icloud.com' rows 848 <-> 847
+union_by_email: key='18602627157@163.com' rows 851 <-> 458
+union_by_email: key='18602627157@163.com' rows 852 <-> 458
+union_by_email: key='aashish.bachani@gmail.com' rows 854 <-> 723
+union_by_email: key='aashish.bachani@gmail.com' rows 855 <-> 723
+union_by_email: key='raymond.jr@gmail.con' rows 856 <-> 0
+union_by_email: key='azmol@hotmail.com' rows 861 <-> 613
+union_by_email: key='marvin.dargaid@icloud.com' rows 862 <-> 664
+union_by_email: key='shuab@mirhaexports.com' rows 863 <-> 679
+union_by_email: key='arhamahmed99@gmail.com' rows 864 <-> 678
+union_by_email: key='luisfsal@gmail.com' rows 865 <-> 602
+union_by_email: key='paululysse26@gmail.com' rows 867 <-> 542
+union_by_email: key='yusei1168@icloud.com' rows 868 <-> 665
+union_by_email: key='vcoffice@thewavegroup.com' rows 869 <-> 689
+union_by_email: key='18602627157@163.com' rows 871 <-> 458
+union_by_email: key='widianu@yahoo.fr' rows 872 <-> 450
+union_by_email: key='widianu@yahoo.fr' rows 873 <-> 450
+union_by_email: key='etekluxury@gmail.com' rows 876 <-> 468
+union_by_email: key='theboss_555@hotmail.com' rows 877 <-> 635
+union_by_email: key='angenina1979@yahoo.com' rows 878 <-> 596
+union_by_email: key='vaa98@ukr.net' rows 884 <-> 671
+union_by_email: key='vcoffice@thewavegroup.com' rows 886 <-> 689
+union_by_email: key='dadai@gmail.com' rows 888 <-> 444
+union_by_email: key='olivezenarealestate1@gmail.com' rows 892 <-> 735
+union_by_email: key='raymond.jr@gmail.con' rows 893 <-> 0
+union_by_email: key='alnourzarroug@gmail.com' rows 896 <-> 610
+union_by_email: key='paolavillanu@hotmail.com' rows 901 <-> 624
+union_by_email: key='gil.sharonr@gmail.com' rows 904 <-> 564
+union_by_email: key='thomas.rasheemr@gmail.com' rows 907 <-> 442
+union_by_email: key='meedayscloset1@gmail.com' rows 909 <-> 897
+union_by_email: key='lewis@lewishoward.co.uk' rows 910 <-> 82
+union_by_email: key='nicolas@viennot.com' rows 912 <-> 574
+union_by_email: key='ctoby@stasassocies.com' rows 913 <-> 697
+union_by_email: key='gabrielafigueroa92@outlook.es' rows 915 <-> 753
+union_by_email: key='gabrielafigueroa92@outlook.es' rows 916 <-> 753
+union_by_email: key='jessi.garro@icloud.com' rows 917 <-> 57
+union_by_email: key='petr.orlov@me.com' rows 918 <-> 459
+union_by_email: key='majda.tpl@gmail.com' rows 921 <-> 578
+union_by_email: key='soulai_0608@hotmail.com' rows 925 <-> 519
+union_by_email: key='soulai_0608@hotmail.com' rows 926 <-> 519
+union_by_email: key='soulai_0608@hotmail.com' rows 927 <-> 519
+union_by_email: key='giacomobehar@gmail.com' rows 929 <-> 506
+union_by_email: key='raymond.jr@gmail.con' rows 932 <-> 0
+union_by_email: key='georgiev.georgio@gmail.com' rows 937 <-> 452
+union_by_email: key='totovava64@gmail.com' rows 939 <-> 746
+union_by_email: key='jeanmarclafourcade@gmail.com' rows 940 <-> 514
+union_by_email: key='sergio_0993@hotmail.com' rows 943 <-> 657
+union_by_email: key='livier.lc@hotmail.com' rows 946 <-> 439
+union_by_email: key='vaa98@ukr.net' rows 947 <-> 671
+union_by_email: key='m.aichi@finex-invest.eu' rows 951 <-> 434
+union_by_email: key='m.aichi@finex-invest.eu' rows 952 <-> 434
+union_by_email: key='lewis@lewishoward.co.uk' rows 954 <-> 82
+union_by_email: key='didier.vaitilingon@satp-amiantex.com' rows 955 <-> 629
+union_by_email: key='faisal.tsn@gmail.com' rows 956 <-> 736
+union_by_email: key='amirbenachour29@gmail.com' rows 957 <-> 742
+union_by_email: key='lielstech@gmail.com' rows 958 <-> 748
+union_by_email: key='aurelien.vanhemelryck@gmail.com' rows 960 <-> 750
+union_by_email: key='gabrielafigueroa92@outlook.es' rows 963 <-> 753
+union_by_email: key='gabrielafigueroa92@outlook.es' rows 964 <-> 753
+union_by_email: key='ivanilson.machado79@gmail.com' rows 965 <-> 755
+union_by_email: key='rach95240@gmail.com' rows 967 <-> 942
+... (1422 more union events)
+
+Merge groups (clusters with multiple rows)
+----------------------------------------
+cluster_root_row_index=17 n_rows=13 order_ids_sample=['CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297', 'CB0000000000132297']
+cluster_root_row_index=22 n_rows=13 order_ids_sample=['CB0000000000008683', 'CB0000000000008683', 'CB0000000000008683', 'CB0000000000008683', 'CB0000000000008683', 'CB0000000000008683', 'CB0000000000109755', 'CB0000000000109755', 'CB0000000000109755', 'CB0000000000109755', 'CB0000000000109755', 'CB0000000000109755', 'CB0000000000109755']
+cluster_root_row_index=30 n_rows=9 order_ids_sample=['CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557', 'CB0000000000021557']
+cluster_root_row_index=32 n_rows=10 order_ids_sample=['CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653', 'CB0000000000007653']
+cluster_root_row_index=34 n_rows=24 order_ids_sample=['CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000006455', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000037359', 'CB0000000000134579', 'CB0000000000134579', 'CB0000000000134579', 'CB0000000000134579', 'CB0000000000134579']
+cluster_root_row_index=35 n_rows=31 order_ids_sample=['CB0000000000012171', 'CB0000000000012171', 'CB0000000000012171', 'CB0000000000012173', 'CB0000000000012173', 'CB0000000000012175', 'CB0000000000012177', 'CB0000000000013107', 'CB0000000000013107', 'CB0000000000013107', 'CB0000000000013107', 'CB0000000000013107', 'CB0000000000013107', 'CB0000000000035163', 'CB0000000000035163', 'CB0000000000035163', 'CB0000000000035163', 'CB0000000000043173', 'CB0000000000043173', 'CB0000000000052053', 'CB0000000000052053', 'CB0000000000052053', 'CB0000000000069309', 'CB0000000000069309', 'CB0000000000069309', 'CB0000000000069309', 'CB0000000000069309', 'CB0000000000118453', 'CB0000000000118993', 'CB0000000000121541']...
+cluster_root_row_index=36 n_rows=6 order_ids_sample=['CB0000000000086325', 'CB0000000000086325', 'CB0000000000086325', 'CB0000000000086325', 'CB0000000000086325', 'CB0000000000086325']
+cluster_root_row_index=38 n_rows=2 order_ids_sample=['CB0000000000049133', 'CB0000000000049133']
+cluster_root_row_index=39 n_rows=2 order_ids_sample=['CB0000000000037287', 'CB0000000000037287']
+cluster_root_row_index=43 n_rows=3 order_ids_sample=['CB0000000000011063', 'CB0000000000011063', 'CB0000000000011065']
+cluster_root_row_index=44 n_rows=12 order_ids_sample=['CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000123425', 'CB0000000000130961', 'CB0000000000130961']
+cluster_root_row_index=53 n_rows=4 order_ids_sample=['CB0000000000008129', 'CB0000000000008129', 'CB0000000000008129', 'CB0000000000008129']
+cluster_root_row_index=58 n_rows=2 order_ids_sample=['CB0000000000003219', 'CB0000000000003219']
+cluster_root_row_index=65 n_rows=14 order_ids_sample=['CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000012559', 'CB0000000000093669', 'CB0000000000093669']
+cluster_root_row_index=68 n_rows=4 order_ids_sample=['CB0000000000060773', 'CB0000000000060773', 'CB0000000000060773', 'CB0000000000060773']
+cluster_root_row_index=72 n_rows=15 order_ids_sample=['CB0000000000011409', 'CB0000000000011409', 'CB0000000000011409', 'CB0000000000011409', 'CB0000000000011409', 'CB0000000000011409', 'CB0000000000011415', 'CB0000000000080781', 'CB0000000000080781', 'CB0000000000080781', 'CB0000000000080781', 'CB0000000000080781', 'CB0000000000080781', 'CB0000000000085331', 'CB0000000000085331']
+cluster_root_row_index=89 n_rows=6 order_ids_sample=['CB0000000000120603', 'CB0000000000120603', 'CB0000000000120603', 'CB0000000000120603', 'CB0000000000120603', 'CB0000000000120603']
+cluster_root_row_index=91 n_rows=10 order_ids_sample=['CB0000000000002215', 'CB0000000000002215', 'CB0000000000072947', 'CB0000000000072947', 'CB0000000000116909', 'CB0000000000116909', 'CB0000000000116909', 'CB0000000000116909', 'CB0000000000124091', 'CB0000000000124091']
+cluster_root_row_index=93 n_rows=2 order_ids_sample=['CB0000000000010621', 'CB0000000000010621']
+cluster_root_row_index=94 n_rows=2 order_ids_sample=['CB0000000000010523', 'CB0000000000010523']
+cluster_root_row_index=95 n_rows=2 order_ids_sample=['CB0000000000009171', 'CB0000000000009171']
+cluster_root_row_index=96 n_rows=5 order_ids_sample=['CB0000000000073017', 'CB0000000000073017', 'CB0000000000073017', 'CB0000000000073017', 'CB0000000000073023']
+cluster_root_row_index=101 n_rows=5 order_ids_sample=['CB0000000000091803', 'CB0000000000091803', 'CB0000000000091803', 'CB0000000000091803', 'CB0000000000091803']
+cluster_root_row_index=104 n_rows=2 order_ids_sample=['CB0000000000114573', 'CB0000000000114573']
+cluster_root_row_index=106 n_rows=2 order_ids_sample=['CB0000000000075167', 'CB0000000000075167']
+cluster_root_row_index=110 n_rows=4 order_ids_sample=['CB0000000000110753', 'CB0000000000110753', 'CB0000000000110753', 'CB0000000000110753']
+cluster_root_row_index=113 n_rows=3 order_ids_sample=['CB0000000000024895', 'CB0000000000024895', 'CB0000000000024895']
+cluster_root_row_index=117 n_rows=2 order_ids_sample=['CB0000000000100801', 'CB0000000000100801']
+cluster_root_row_index=118 n_rows=2 order_ids_sample=['CB0000000000002489', 'CB0000000000002489']
+cluster_root_row_index=119 n_rows=5 order_ids_sample=['CB0000000000007919', 'CB0000000000007919', 'CB0000000000008041', 'CB0000000000065955', 'CB0000000000075029']
+cluster_root_row_index=122 n_rows=4 order_ids_sample=['CB0000000000001759', 'CB0000000000001759', 'CB0000000000001759', 'CB0000000000001759']
+cluster_root_row_index=133 n_rows=9 order_ids_sample=['CB0000000000012093', 'CB0000000000012093', 'CB0000000000012093', 'CB0000000000012093', 'CB0000000000012093', 'CB0000000000106615', 'CB0000000000106615', 'CB0000000000113575', 'CB0000000000113575']
+cluster_root_row_index=146 n_rows=8 order_ids_sample=['CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959', 'CB0000000000130959']
+cluster_root_row_index=160 n_rows=4 order_ids_sample=['CB0000000000017745', 'CB0000000000017745', 'CB0000000000017745', 'CB0000000000017745']
+cluster_root_row_index=168 n_rows=2 order_ids_sample=['CB0000000000070811', 'CB0000000000070811']
+cluster_root_row_index=173 n_rows=3 order_ids_sample=['CB0000000000002885', 'CB0000000000002885', 'CB0000000000002887']
+cluster_root_row_index=180 n_rows=2 order_ids_sample=['CB0000000000006335', 'CB0000000000006335']
+cluster_root_row_index=185 n_rows=2 order_ids_sample=['CB0000000000091669', 'CB0000000000091669']
+cluster_root_row_index=195 n_rows=5 order_ids_sample=['CB0000000000003197', 'CB0000000000003197', 'CB0000000000121203', 'CB0000000000121203', 'CB0000000000121203']
+cluster_root_row_index=202 n_rows=3 order_ids_sample=['CB0000000000041253', 'CB0000000000041253', 'CB0000000000041253']
+cluster_root_row_index=206 n_rows=3 order_ids_sample=['CB0000000000122553', 'CB0000000000122553', 'CB0000000000122553']
+cluster_root_row_index=209 n_rows=2 order_ids_sample=['CB0000000000040757', 'CB0000000000040757']
+cluster_root_row_index=211 n_rows=2 order_ids_sample=['CB0000000000006373', 'CB0000000000006373']
+cluster_root_row_index=214 n_rows=9 order_ids_sample=['CB0000000000011383', 'CB0000000000011383', 'CB0000000000011383', 'CB0000000000011383', 'CB0000000000011383', 'CB0000000000011383', 'CB0000000000014835', 'CB0000000000016235', 'CB0000000000029047']
+cluster_root_row_index=217 n_rows=4 order_ids_sample=['CB0000000000007641', 'CB0000000000007641', 'CB0000000000007641', 'CB0000000000007641']
+cluster_root_row_index=218 n_rows=6 order_ids_sample=['CB0000000000007383', 'CB0000000000007383', 'CB0000000000007383', 'CB0000000000007383', 'CB0000000000007383', 'CB0000000000007383']
+cluster_root_row_index=231 n_rows=3 order_ids_sample=['CB0000000000013031', 'CB0000000000013031', 'CB0000000000013031']
+cluster_root_row_index=235 n_rows=4 order_ids_sample=['CB0000000000011253', 'CB0000000000011253', 'CB0000000000011377', 'CB0000000000011377']
+cluster_root_row_index=240 n_rows=6 order_ids_sample=['CB0000000000131491', 'CB0000000000131491', 'CB0000000000131491', 'CB0000000000131491', 'CB0000000000131491', 'CB0000000000131491']
+cluster_root_row_index=247 n_rows=2 order_ids_sample=['CB0000000000110553', 'CB0000000000110553']
+cluster_root_row_index=248 n_rows=44 order_ids_sample=['CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000051563', 'CB0000000000054151', 'CB0000000000054151', 'CB0000000000069305', 'CB0000000000069305', 'CB0000000000069305', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003', 'CB0000000000092003']...
+cluster_root_row_index=251 n_rows=5 order_ids_sample=['CB0000000000096065', 'CB0000000000096065', 'CB0000000000096065', 'CB0000000000096065', 'CB0000000000096065']
+cluster_root_row_index=255 n_rows=2 order_ids_sample=['CB0000000000058399', 'CB0000000000058399']
+cluster_root_row_index=257 n_rows=2 order_ids_sample=['CB0000000000054975', 'CB0000000000054975']
+cluster_root_row_index=259 n_rows=2 order_ids_sample=['CB0000000000045787', 'CB0000000000045787']
+cluster_root_row_index=269 n_rows=3 order_ids_sample=['CB0000000000003215', 'CB0000000000017099', 'CB0000000000017099']
+cluster_root_row_index=272 n_rows=3 order_ids_sample=['CB0000000000013191', 'CB0000000000013191', 'CB0000000000013191']
+cluster_root_row_index=279 n_rows=3 order_ids_sample=['CB0000000000008303', 'CB0000000000008303', 'CB0000000000008303']
+cluster_root_row_index=285 n_rows=3 order_ids_sample=['CB0000000000007045', 'CB0000000000007045', 'CB0000000000007045']
+cluster_root_row_index=286 n_rows=2 order_ids_sample=['CB0000000000007037', 'CB0000000000007037']
+cluster_root_row_index=295 n_rows=2 order_ids_sample=['CB0000000000003977', 'CB0000000000003977']
+cluster_root_row_index=301 n_rows=6 order_ids_sample=['CB0000000000101741', 'CB0000000000101741', 'CB0000000000101741', 'CB0000000000101743', 'CB0000000000102869', 'CB0000000000102869']
+cluster_root_row_index=313 n_rows=4 order_ids_sample=['CB0000000000077671', 'CB0000000000077671', 'CB0000000000077671', 'CB0000000000077671']
+cluster_root_row_index=325 n_rows=2 order_ids_sample=['CB0000000000010845', 'CB0000000000010845']
+cluster_root_row_index=327 n_rows=3 order_ids_sample=['CB0000000000007489', 'CB0000000000007489', 'CB0000000000007489']
+cluster_root_row_index=329 n_rows=2 order_ids_sample=['CB0000000000006517', 'CB0000000000006517']
+cluster_root_row_index=341 n_rows=3 order_ids_sample=['CB0000000000073899', 'CB0000000000073899', 'CB0000000000073899']
+cluster_root_row_index=345 n_rows=2 order_ids_sample=['CB0000000000131425', 'CB0000000000131425']
+cluster_root_row_index=350 n_rows=2 order_ids_sample=['CB0000000000098799', 'CB0000000000098799']
+cluster_root_row_index=353 n_rows=4 order_ids_sample=['CB0000000000090143', 'CB0000000000090143', 'CB0000000000095933', 'CB0000000000095933']
+cluster_root_row_index=359 n_rows=2 order_ids_sample=['CB0000000000053885', 'CB0000000000053885']
+cluster_root_row_index=360 n_rows=3 order_ids_sample=['CB0000000000052659', 'CB0000000000052659', 'CB0000000000052659']
+cluster_root_row_index=369 n_rows=2 order_ids_sample=['CB0000000000010287', 'CB0000000000010287']
+cluster_root_row_index=377 n_rows=2 order_ids_sample=['CB0000000000006451', 'CB0000000000006451']
+cluster_root_row_index=378 n_rows=2 order_ids_sample=['CB0000000000003109', 'CB0000000000003109']
+cluster_root_row_index=380 n_rows=2 order_ids_sample=['CB0000000000002357', 'CB0000000000002357']
+cluster_root_row_index=382 n_rows=2 order_ids_sample=['CB0000000000001173', 'CB0000000000001173']
+cluster_root_row_index=386 n_rows=3 order_ids_sample=['CB0000000000017105', 'CB0000000000017105', 'CB0000000000017105']
+cluster_root_row_index=388 n_rows=3 order_ids_sample=['CB0000000000004425', 'CB0000000000080175', 'CB0000000000080177']
+cluster_root_row_index=403 n_rows=4 order_ids_sample=['CB0000000000127029', 'CB0000000000127029', 'CB0000000000127029', 'CB0000000000127029']
+cluster_root_row_index=406 n_rows=2 order_ids_sample=['CB0000000000074897', 'CB0000000000074897']
+cluster_root_row_index=407 n_rows=2 order_ids_sample=['CB0000000000048515', 'CB0000000000048515']
+cluster_root_row_index=417 n_rows=4 order_ids_sample=['CB0000000000003837', 'CB0000000000003837', 'CB0000000000003837', 'CB0000000000003837']
+cluster_root_row_index=421 n_rows=5 order_ids_sample=['CB0000000000105075', 'CB0000000000105075', 'CB0000000000105075', 'CB0000000000105075', 'CB0000000000105075']
+cluster_root_row_index=432 n_rows=3 order_ids_sample=['CB0000000000111751', 'CB0000000000112361', 'CB0000000000112361']
+cluster_root_row_index=437 n_rows=15 order_ids_sample=['CB0000000000037355', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353', 'CB0000000000110353']
+cluster_root_row_index=446 n_rows=22 order_ids_sample=['CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000013177', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000035469', 'CB0000000000036667', 'CB0000000000036667', 'CB0000000000036667']
+cluster_root_row_index=451 n_rows=12 order_ids_sample=['CB0000000000059225', 'CB0000000000059225', 'CB0000000000059225', 'CB0000000000059225', 'CB0000000000059225', 'CB0000000000059225', 'CB0000000000059507', 'CB0000000000059507', 'CB0000000000124765', 'CB0000000000124765', 'CB0000000000124765', 'CB0000000000124765']
+cluster_root_row_index=461 n_rows=10 order_ids_sample=['CB0000000000001041', 'CB0000000000019437', 'CB0000000000019437', 'CB0000000000019437', 'CB0000000000019437', 'CB0000000000024451', 'CB0000000000033739', 'CB0000000000033739', 'CB0000000000033739', 'CB0000000000033739']
+cluster_root_row_index=473 n_rows=2 order_ids_sample=['CB0000000000003119', 'CB0000000000004415']
+cluster_root_row_index=475 n_rows=2 order_ids_sample=['CB0000000000034097', 'CB0000000000034101']
+cluster_root_row_index=482 n_rows=4 order_ids_sample=['CB0000000000033013', 'CB0000000000033013', 'CB0000000000038303', 'CB0000000000038303']
+cluster_root_row_index=483 n_rows=3 order_ids_sample=['CB0000000000043239', 'CB0000000000043239', 'CB0000000000047973']
+cluster_root_row_index=485 n_rows=6 order_ids_sample=['CB0000000000128091', 'CB0000000000128091', 'CB0000000000128091', 'CB0000000000128091', 'CB0000000000128091', 'CB0000000000128091']
+cluster_root_row_index=486 n_rows=2 order_ids_sample=['CB0000000000118927', 'CB0000000000118927']
+cluster_root_row_index=487 n_rows=7 order_ids_sample=['CB0000000000084661', 'CB0000000000084661', 'CB0000000000084661', 'CB0000000000084661', 'CB0000000000084661', 'CB0000000000085531', 'CB0000000000085531']
+cluster_root_row_index=493 n_rows=11 order_ids_sample=['CB0000000000037371', 'CB0000000000037371', 'CB0000000000037371', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157', 'CB0000000000128157']
+cluster_root_row_index=500 n_rows=15 order_ids_sample=['CB0000000000111355', 'CB0000000000111355', 'CB0000000000111355', 'CB0000000000111355', 'CB0000000000111355', 'CB0000000000111355', 'CB0000000000111355', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000111753', 'CB0000000000112959']
+cluster_root_row_index=501 n_rows=17 order_ids_sample=['CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493', 'CB0000000000006493']
+cluster_root_row_index=502 n_rows=15 order_ids_sample=['CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000058949', 'CB0000000000059653', 'CB0000000000059653', 'CB0000000000059653', 'CB0000000000059653', 'CB0000000000059653', 'CB0000000000059653']
+cluster_root_row_index=529 n_rows=3 order_ids_sample=['CB0000000000053535', 'CB0000000000053535', 'CB0000000000054627']
+cluster_root_row_index=532 n_rows=11 order_ids_sample=['CB0000000000071473', 'CB0000000000071473', 'CB0000000000071473', 'CB0000000000071473', 'CB0000000000071473', 'CB0000000000071473', 'CB0000000000071473', 'CB0000000000072143', 'CB0000000000072209', 'CB0000000000072209', 'CB0000000000072281']
+cluster_root_row_index=544 n_rows=4 order_ids_sample=['CB0000000000084657', 'CB0000000000084657', 'CB0000000000084657', 'CB0000000000084657']
+cluster_root_row_index=561 n_rows=6 order_ids_sample=['CB0000000000004701', 'CB0000000000004701', 'CB0000000000004701', 'CB0000000000045519', 'CB0000000000106683', 'CB0000000000128951']
+cluster_root_row_index=565 n_rows=9 order_ids_sample=['CB0000000000010167', 'CB0000000000010167', 'CB0000000000010167', 'CB0000000000054623', 'CB0000000000054623', 'CB0000000000054623', 'CB0000000000054623', 'CB0000000000054623', 'CB0000000000054623']
+cluster_root_row_index=567 n_rows=17 order_ids_sample=['CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000025429', 'CB0000000000105537', 'CB0000000000105537', 'CB0000000000105537', 'CB0000000000105537', 'CB0000000000105537', 'CB0000000000105537', 'CB0000000000105537']
+cluster_root_row_index=569 n_rows=6 order_ids_sample=['CB0000000000083583', 'CB0000000000083583', 'CB0000000000083583', 'CB0000000000083583', 'CB0000000000083583', 'CB0000000000083583']
+cluster_root_row_index=575 n_rows=9 order_ids_sample=['CB0000000000063477', 'CB0000000000063477', 'CB0000000000063543', 'CB0000000000063543', 'CB0000000000063543', 'CB0000000000063543', 'CB0000000000063543', 'CB0000000000063543', 'CB0000000000063543']
+cluster_root_row_index=580 n_rows=6 order_ids_sample=['CB0000000000088079', 'CB0000000000088079', 'CB0000000000088079', 'CB0000000000088079', 'CB0000000000088079', 'CB0000000000088079']
+cluster_root_row_index=584 n_rows=11 order_ids_sample=['CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083', 'CB0000000000088083']
+cluster_root_row_index=587 n_rows=7 order_ids_sample=['CB0000000000057769', 'CB0000000000057769', 'CB0000000000057769', 'CB0000000000057769', 'CB0000000000057769', 'CB0000000000057769', 'CB0000000000057769']
+cluster_root_row_index=595 n_rows=5 order_ids_sample=['CB0000000000017605', 'CB0000000000017605', 'CB0000000000017605', 'CB0000000000017605', 'CB0000000000017605']
+cluster_root_row_index=601 n_rows=13 order_ids_sample=['CB0000000000007369', 'CB0000000000007369', 'CB0000000000007369', 'CB0000000000007369', 'CB0000000000007371', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499', 'CB0000000000007499']
+cluster_root_row_index=604 n_rows=5 order_ids_sample=['CB0000000000007355', 'CB0000000000007355', 'CB0000000000007355', 'CB0000000000007355', 'CB0000000000007479']
+cluster_root_row_index=605 n_rows=9 order_ids_sample=['CB0000000000010999', 'CB0000000000010999', 'CB0000000000010999', 'CB0000000000010999', 'CB0000000000010999', 'CB0000000000010999', 'CB0000000000011005', 'CB0000000000025455', 'CB0000000000025455']
+cluster_root_row_index=612 n_rows=3 order_ids_sample=['CB0000000000038287', 'CB0000000000038287', 'CB0000000000038287']
+cluster_root_row_index=615 n_rows=11 order_ids_sample=['CB0000000000001853', 'CB0000000000001853', 'CB0000000000001853', 'CB0000000000001853', 'CB0000000000001853', 'CB0000000000001853', 'CB0000000000001855', 'CB0000000000001855', 'CB0000000000001855', 'CB0000000000001855', 'CB0000000000010521']
+cluster_root_row_index=623 n_rows=4 order_ids_sample=['CB0000000000125765', 'CB0000000000125765', 'CB0000000000125767', 'CB0000000000125767']
+cluster_root_row_index=625 n_rows=9 order_ids_sample=['CB0000000000119791', 'CB0000000000119791', 'CB0000000000121205', 'CB0000000000121205', 'CB0000000000121205', 'CB0000000000121205', 'CB0000000000121205', 'CB0000000000121205', 'CB0000000000121205']
+cluster_root_row_index=630 n_rows=12 order_ids_sample=['CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829', 'CB0000000000075829']
+cluster_root_row_index=636 n_rows=5 order_ids_sample=['CB0000000000003293', 'CB0000000000003293', 'CB0000000000033673', 'CB0000000000033673', 'CB0000000000033673']
+cluster_root_row_index=644 n_rows=12 order_ids_sample=['CB0000000000088817', 'CB0000000000088817', 'CB0000000000088817', 'CB0000000000088817', 'CB0000000000088817', 'CB0000000000088817', 'CB0000000000090275', 'CB0000000000090275', 'CB0000000000090275', 'CB0000000000090275', 'CB0000000000090275', 'CB0000000000090275']
+cluster_root_row_index=650 n_rows=6 order_ids_sample=['CB0000000000033743', 'CB0000000000033743', 'CB0000000000033743', 'CB0000000000033743', 'CB0000000000033743', 'CB0000000000033743']
+cluster_root_row_index=651 n_rows=3 order_ids_sample=['CB0000000000006211', 'CB0000000000006211', 'CB0000000000006211']
+cluster_root_row_index=653 n_rows=8 order_ids_sample=['CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547', 'CB0000000000035547']
+cluster_root_row_index=663 n_rows=2 order_ids_sample=['CB0000000000113227', 'CB0000000000113227']
+cluster_root_row_index=667 n_rows=3 order_ids_sample=['CB0000000000082721', 'CB0000000000082721', 'CB0000000000082721']
+cluster_root_row_index=672 n_rows=8 order_ids_sample=['CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219', 'CB0000000000054219']
+cluster_root_row_index=673 n_rows=2 order_ids_sample=['CB0000000000045245', 'CB0000000000045245']
+cluster_root_row_index=683 n_rows=3 order_ids_sample=['CB0000000000044831', 'CB0000000000044831', 'CB0000000000044831']
+cluster_root_row_index=685 n_rows=3 order_ids_sample=['CB0000000000041255', 'CB0000000000041255', 'CB0000000000041255']
+cluster_root_row_index=699 n_rows=6 order_ids_sample=['CB0000000000000875', 'CB0000000000000877', 'CB0000000000000877', 'CB0000000000000877', 'CB0000000000000877', 'CB0000000000000877']
+cluster_root_row_index=711 n_rows=11 order_ids_sample=['CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475', 'CB0000000000121475']
+cluster_root_row_index=725 n_rows=2 order_ids_sample=['CB0000000000000709', 'CB0000000000000709']
+cluster_root_row_index=727 n_rows=3 order_ids_sample=['CB0000000000003547', 'CB0000000000003547', 'CB0000000000003547']
+cluster_root_row_index=733 n_rows=7 order_ids_sample=['CB0000000000060769', 'CB0000000000084443', 'CB0000000000084443', 'CB0000000000084577', 'CB0000000000084577', 'CB0000000000102735', 'CB0000000000129017']
+cluster_root_row_index=734 n_rows=2 order_ids_sample=['CB0000000000046281', 'CB0000000000046283']
+cluster_root_row_index=737 n_rows=6 order_ids_sample=['CB0000000000022659', 'CB0000000000022659', 'CB0000000000022659', 'CB0000000000022659', 'CB0000000000023475', 'CB0000000000023475']
+cluster_root_row_index=754 n_rows=9 order_ids_sample=['CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497', 'CB0000000000010497']
+cluster_root_row_index=758 n_rows=2 order_ids_sample=['CB0000000000134375', 'CB0000000000134441']
+cluster_root_row_index=759 n_rows=2 order_ids_sample=['CB0000000000131093', 'CB0000000000131093']
+cluster_root_row_index=761 n_rows=6 order_ids_sample=['CB0000000000060151', 'CB0000000000060151', 'CB0000000000060151', 'CB0000000000092665', 'CB0000000000092665', 'CB0000000000092665']
+cluster_root_row_index=763 n_rows=3 order_ids_sample=['CB0000000000081987', 'CB0000000000081987', 'CB0000000000085197']
+cluster_root_row_index=775 n_rows=8 order_ids_sample=['CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999', 'CB0000000000005999']
+cluster_root_row_index=779 n_rows=6 order_ids_sample=['CB0000000000038301', 'CB0000000000038301', 'CB0000000000038301', 'CB0000000000040117', 'CB0000000000042265', 'CB0000000000042265']
+cluster_root_row_index=786 n_rows=12 order_ids_sample=['CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493', 'CB0000000000131493']
+cluster_root_row_index=789 n_rows=4 order_ids_sample=['CB0000000000113091', 'CB0000000000113091', 'CB0000000000113091', 'CB0000000000113091']
+cluster_root_row_index=797 n_rows=9 order_ids_sample=['CB0000000000039645', 'CB0000000000039645', 'CB0000000000039645', 'CB0000000000039645', 'CB0000000000039645', 'CB0000000000039645', 'CB0000000000039645', 'CB0000000000040209', 'CB0000000000040209']
+cluster_root_row_index=800 n_rows=3 order_ids_sample=['CB0000000000032149', 'CB0000000000032149', 'CB0000000000032149']
+cluster_root_row_index=805 n_rows=9 order_ids_sample=['CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905', 'CB0000000000014905']
+cluster_root_row_index=809 n_rows=5 order_ids_sample=['CB0000000000012169', 'CB0000000000012169', 'CB0000000000012169', 'CB0000000000012169', 'CB0000000000104809']
+cluster_root_row_index=814 n_rows=2 order_ids_sample=['CB0000000000008739', 'CB0000000000059649']
+cluster_root_row_index=817 n_rows=3 order_ids_sample=['CB0000000000005769', 'CB0000000000005769', 'CB0000000000005769']
+cluster_root_row_index=818 n_rows=4 order_ids_sample=['CB0000000000003545', 'CB0000000000003545', 'CB0000000000003841', 'CB0000000000003907']
+cluster_root_row_index=823 n_rows=9 order_ids_sample=['CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044479', 'CB0000000000044765']
+cluster_root_row_index=825 n_rows=2 order_ids_sample=['CB0000000000011653', 'CB0000000000011653']
+cluster_root_row_index=831 n_rows=11 order_ids_sample=['CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717', 'CB0000000000041717']
+cluster_root_row_index=834 n_rows=7 order_ids_sample=['CB0000000000003025', 'CB0000000000003025', 'CB0000000000003025', 'CB0000000000003025', 'CB0000000000003025', 'CB0000000000003025', 'CB0000000000003025']
+cluster_root_row_index=836 n_rows=2 order_ids_sample=['CB0000000000041711', 'CB0000000000041715']
+cluster_root_row_index=841 n_rows=7 order_ids_sample=['CB0000000000119059', 'CB0000000000119059', 'CB0000000000119059', 'CB0000000000119059', 'CB0000000000119059', 'CB0000000000119059', 'CB0000000000119059']
+cluster_root_row_index=845 n_rows=2 order_ids_sample=['CB0000000000069173', 'CB0000000000069173']
+cluster_root_row_index=848 n_rows=2 order_ids_sample=['CB0000000000102871', 'CB0000000000102871']
+cluster_root_row_index=854 n_rows=9 order_ids_sample=['CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227', 'CB0000000000127227']
+cluster_root_row_index=862 n_rows=2 order_ids_sample=['CB0000000000006319', 'CB0000000000108279']
+cluster_root_row_index=867 n_rows=2 order_ids_sample=['CB0000000000000961', 'CB0000000000118451']
+cluster_root_row_index=868 n_rows=3 order_ids_sample=['CB0000000000097791', 'CB0000000000097791', 'CB0000000000097791']
+cluster_root_row_index=877 n_rows=5 order_ids_sample=['CB0000000000006867', 'CB0000000000006867', 'CB0000000000006867', 'CB0000000000006867', 'CB0000000000006867']
+cluster_root_row_index=878 n_rows=7 order_ids_sample=['CB0000000000035471', 'CB0000000000035471', 'CB0000000000035473', 'CB0000000000035473', 'CB0000000000035473', 'CB0000000000035473', 'CB0000000000035473']
+cluster_root_row_index=896 n_rows=2 order_ids_sample=['CB0000000000006613', 'CB0000000000006615']
+cluster_root_row_index=909 n_rows=12 order_ids_sample=['CB0000000000024979', 'CB0000000000024987', 'CB0000000000025423', 'CB0000000000042195', 'CB0000000000043665', 'CB0000000000070187', 'CB0000000000088005', 'CB0000000000088005', 'CB0000000000092999', 'CB0000000000104875', 'CB0000000000112363', 'CB0000000000124025']
+cluster_root_row_index=913 n_rows=4 order_ids_sample=['CB0000000000001763', 'CB0000000000001763', 'CB0000000000001765', 'CB0000000000001765']
+cluster_root_row_index=925 n_rows=9 order_ids_sample=['CB0000000000003037', 'CB0000000000003037', 'CB0000000000003211', 'CB0000000000003211', 'CB0000000000003211', 'CB0000000000003285', 'CB0000000000003285', 'CB0000000000003285', 'CB0000000000003285']
+cluster_root_row_index=929 n_rows=4 order_ids_sample=['CB0000000000107413', 'CB0000000000107413', 'CB0000000000107413', 'CB0000000000107479']
+cluster_root_row_index=939 n_rows=3 order_ids_sample=['CB0000000000100397', 'CB0000000000101199', 'CB0000000000101199']
+cluster_root_row_index=940 n_rows=2 order_ids_sample=['CB0000000000011419', 'CB0000000000011419']
+cluster_root_row_index=943 n_rows=2 order_ids_sample=['CB0000000000030755', 'CB0000000000030755']
+cluster_root_row_index=957 n_rows=4 order_ids_sample=['CB0000000000010697', 'CB0000000000010697', 'CB0000000000010697', 'CB0000000000010697']
+cluster_root_row_index=958 n_rows=3 order_ids_sample=['CB0000000000011245', 'CB0000000000011245', 'CB0000000000011245']
+cluster_root_row_index=960 n_rows=6 order_ids_sample=['CB0000000000008737', 'CB0000000000008737', 'CB0000000000008737', 'CB0000000000008737', 'CB0000000000008737', 'CB0000000000008737']
+cluster_root_row_index=965 n_rows=7 order_ids_sample=['CB0000000000002283', 'CB0000000000002283', 'CB0000000000002283', 'CB0000000000002283', 'CB0000000000002283', 'CB0000000000002283', 'CB0000000000002285']
+cluster_root_row_index=967 n_rows=8 order_ids_sample=['CB0000000000003555', 'CB0000000000003555', 'CB0000000000004699', 'CB0000000000037389', 'CB0000000000037389', 'CB0000000000037389', 'CB0000000000037389', 'CB0000000000037795']
+cluster_root_row_index=968 n_rows=3 order_ids_sample=['CB0000000000134645', 'CB0000000000134645', 'CB0000000000134647']
+cluster_root_row_index=973 n_rows=4 order_ids_sample=['CB0000000000010843', 'CB0000000000010843', 'CB0000000000010843', 'CB0000000000010843']
+cluster_root_row_index=977 n_rows=3 order_ids_sample=['CB0000000000007385', 'CB0000000000007385', 'CB0000000000007385']
+cluster_root_row_index=978 n_rows=4 order_ids_sample=['CB0000000000006471', 'CB0000000000006471', 'CB0000000000006471', 'CB0000000000006471']
+cluster_root_row_index=979 n_rows=2 order_ids_sample=['CB0000000000008593', 'CB0000000000008593']
+cluster_root_row_index=980 n_rows=4 order_ids_sample=['CB0000000000001757', 'CB0000000000001757', 'CB0000000000001757', 'CB0000000000001757']
+cluster_root_row_index=981 n_rows=4 order_ids_sample=['CB0000000000024893', 'CB0000000000024893', 'CB0000000000024893', 'CB0000000000024893']
+cluster_root_row_index=983 n_rows=5 order_ids_sample=['CB0000000000008585', 'CB0000000000008585', 'CB0000000000008585', 'CB0000000000008585', 'CB0000000000008585']
+cluster_root_row_index=986 n_rows=4 order_ids_sample=['CB0000000000005985', 'CB0000000000005985', 'CB0000000000005985', 'CB0000000000005985']
+cluster_root_row_index=991 n_rows=2 order_ids_sample=['CB0000000000024965', 'CB0000000000024965']
+cluster_root_row_index=992 n_rows=4 order_ids_sample=['CB0000000000020183', 'CB0000000000020183', 'CB0000000000020183', 'CB0000000000020183']
+cluster_root_row_index=998 n_rows=2 order_ids_sample=['CB0000000000010851', 'CB0000000000010851']
+cluster_root_row_index=999 n_rows=11 order_ids_sample=['CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781', 'CB0000000000007781']
+cluster_root_row_index=1000 n_rows=4 order_ids_sample=['CB0000000000007529', 'CB0000000000007529', 'CB0000000000007529', 'CB0000000000007529']
+cluster_root_row_index=1010 n_rows=2 order_ids_sample=['CB0000000000006727', 'CB0000000000006727']
+cluster_root_row_index=1014 n_rows=2 order_ids_sample=['CB0000000000114241', 'CB0000000000114241']
+cluster_root_row_index=1026 n_rows=4 order_ids_sample=['CB0000000000123021', 'CB0000000000123021', 'CB0000000000123021', 'CB0000000000123021']
+cluster_root_row_index=1030 n_rows=2 order_ids_sample=['CB0000000000010295', 'CB0000000000010295']
+cluster_root_row_index=1040 n_rows=5 order_ids_sample=['CB0000000000024459', 'CB0000000000024459', 'CB0000000000024459', 'CB0000000000024459', 'CB0000000000024459']
+cluster_root_row_index=1041 n_rows=8 order_ids_sample=['CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065', 'CB0000000000049065']
+cluster_root_row_index=1045 n_rows=2 order_ids_sample=['CB0000000000047505', 'CB0000000000047505']
+cluster_root_row_index=1048 n_rows=3 order_ids_sample=['CB0000000000079559', 'CB0000000000079559', 'CB0000000000079559']
+cluster_root_row_index=1050 n_rows=8 order_ids_sample=['CB0000000000030741', 'CB0000000000030743', 'CB0000000000032133', 'CB0000000000032133', 'CB0000000000032133', 'CB0000000000032135', 'CB0000000000032135', 'CB0000000000032135']
+cluster_root_row_index=1053 n_rows=27 order_ids_sample=['CB0000000000013491', 'CB0000000000014005', 'CB0000000000014005', 'CB0000000000014005', 'CB0000000000014005', 'CB0000000000014005', 'CB0000000000014005', 'CB0000000000014901', 'CB0000000000031183', 'CB0000000000031183', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000032127', 'CB0000000000040193', 'CB0000000000040193', 'CB0000000000040193', 'CB0000000000040193', 'CB0000000000040193', 'CB0000000000058261']
+cluster_root_row_index=1055 n_rows=2 order_ids_sample=['CB0000000000120001', 'CB0000000000120001']
+cluster_root_row_index=1056 n_rows=6 order_ids_sample=['CB0000000000104743', 'CB0000000000104743', 'CB0000000000104743', 'CB0000000000104743', 'CB0000000000104743', 'CB0000000000104743']
+cluster_root_row_index=1062 n_rows=2 order_ids_sample=['CB0000000000009453', 'CB0000000000010991']
+cluster_root_row_index=1070 n_rows=2 order_ids_sample=['CB0000000000036303', 'CB0000000000036303']
+cluster_root_row_index=1079 n_rows=2 order_ids_sample=['CB0000000000113641', 'CB0000000000113641']
+cluster_root_row_index=1088 n_rows=2 order_ids_sample=['CB0000000000131627', 'CB0000000000131627']
+cluster_root_row_index=1091 n_rows=2 order_ids_sample=['CB0000000000107611', 'CB0000000000107611']
+cluster_root_row_index=1103 n_rows=3 order_ids_sample=['CB0000000000132365', 'CB0000000000132365', 'CB0000000000132365']
+cluster_root_row_index=1107 n_rows=5 order_ids_sample=['CB0000000000003039', 'CB0000000000003039', 'CB0000000000003039', 'CB0000000000003039', 'CB0000000000003039']
+cluster_root_row_index=1110 n_rows=3 order_ids_sample=['CB0000000000003553', 'CB0000000000003553', 'CB0000000000003553']
+cluster_root_row_index=1111 n_rows=5 order_ids_sample=['CB0000000000002149', 'CB0000000000002149', 'CB0000000000002149', 'CB0000000000109285', 'CB0000000000109285']
+cluster_root_row_index=1112 n_rows=2 order_ids_sample=['CB0000000000001755', 'CB0000000000001755']
+cluster_root_row_index=1114 n_rows=7 order_ids_sample=['CB0000000000000857', 'CB0000000000000857', 'CB0000000000000857', 'CB0000000000000857', 'CB0000000000000857', 'CB0000000000000857', 'CB0000000000000857']
+cluster_root_row_index=1118 n_rows=4 order_ids_sample=['CB0000000000003543', 'CB0000000000003543', 'CB0000000000003543', 'CB0000000000003625']
+cluster_root_row_index=1124 n_rows=3 order_ids_sample=['CB0000000000006039', 'CB0000000000006039', 'CB0000000000006039']
+cluster_root_row_index=1125 n_rows=2 order_ids_sample=['CB0000000000098797', 'CB0000000000098797']
+cluster_root_row_index=1127 n_rows=6 order_ids_sample=['CB0000000000001177', 'CB0000000000001177', 'CB0000000000001177', 'CB0000000000001177', 'CB0000000000001177', 'CB0000000000001179']
+cluster_root_row_index=1131 n_rows=4 order_ids_sample=['CB0000000000006121', 'CB0000000000006121', 'CB0000000000006121', 'CB0000000000006121']
+cluster_root_row_index=1138 n_rows=8 order_ids_sample=['CB0000000000082655', 'CB0000000000112429', 'CB0000000000112429', 'CB0000000000112429', 'CB0000000000112429', 'CB0000000000112429', 'CB0000000000112429', 'CB0000000000112495']
+cluster_root_row_index=1140 n_rows=3 order_ids_sample=['CB0000000000121133', 'CB0000000000121133', 'CB0000000000121133']
+cluster_root_row_index=1145 n_rows=2 order_ids_sample=['CB0000000000031817', 'CB0000000000031817']
+cluster_root_row_index=1146 n_rows=7 order_ids_sample=['CB0000000000005817', 'CB0000000000005817', 'CB0000000000005817', 'CB0000000000005817', 'CB0000000000005817', 'CB0000000000005817', 'CB0000000000005817']
+cluster_root_row_index=1148 n_rows=3 order_ids_sample=['CB0000000000037377', 'CB0000000000037377', 'CB0000000000037377']
+cluster_root_row_index=1151 n_rows=4 order_ids_sample=['CB0000000000045863', 'CB0000000000045863', 'CB0000000000045863', 'CB0000000000045863']
+cluster_root_row_index=1154 n_rows=14 order_ids_sample=['CB0000000000001107', 'CB0000000000001859', 'CB0000000000055851', 'CB0000000000095269', 'CB0000000000098725', 'CB0000000000098725', 'CB0000000000098725', 'CB0000000000106005', 'CB0000000000106005', 'CB0000000000106005', 'CB0000000000106005', 'CB0000000000106005', 'CB0000000000108741', 'CB0000000000127361']
+cluster_root_row_index=1157 n_rows=2 order_ids_sample=['CB0000000000043105', 'CB0000000000043105']
+cluster_root_row_index=1158 n_rows=2 order_ids_sample=['CB0000000000040185', 'CB0000000000040185']
+cluster_root_row_index=1166 n_rows=5 order_ids_sample=['CB0000000000001037', 'CB0000000000001037', 'CB0000000000122551', 'CB0000000000122551', 'CB0000000000122551']
+cluster_root_row_index=1176 n_rows=2 order_ids_sample=['CB0000000000013527', 'CB0000000000013527']
+cluster_root_row_index=1177 n_rows=3 order_ids_sample=['CB0000000000001935', 'CB0000000000001935', 'CB0000000000001935']
+cluster_root_row_index=1178 n_rows=2 order_ids_sample=['CB0000000000024453', 'CB0000000000024453']
+cluster_root_row_index=1179 n_rows=2 order_ids_sample=['CB0000000000006475', 'CB0000000000006475']
+cluster_root_row_index=1180 n_rows=2 order_ids_sample=['CB0000000000006301', 'CB0000000000006301']
+cluster_root_row_index=1183 n_rows=3 order_ids_sample=['CB0000000000036649', 'CB0000000000036649', 'CB0000000000036649']
+cluster_root_row_index=1186 n_rows=2 order_ids_sample=['CB0000000000037279', 'CB0000000000043375']
+cluster_root_row_index=1188 n_rows=2 order_ids_sample=['CB0000000000093803', 'CB0000000000093803']
+cluster_root_row_index=1192 n_rows=2 order_ids_sample=['CB0000000000003443', 'CB0000000000003443']
+cluster_root_row_index=1230 n_rows=3 order_ids_sample=['CB0000000000003523', 'CB0000000000003523', 'CB0000000000003523']
+cluster_root_row_index=1247 n_rows=6 order_ids_sample=['CB0000000000001181', 'CB0000000000001181', 'CB0000000000001181', 'CB0000000000001181', 'CB0000000000001181', 'CB0000000000001181']
+cluster_root_row_index=1249 n_rows=5 order_ids_sample=['CB0000000000007513', 'CB0000000000007513', 'CB0000000000007519', 'CB0000000000010039', 'CB0000000000010039']
+cluster_root_row_index=1252 n_rows=6 order_ids_sample=['CB0000000000007263', 'CB0000000000007265', 'CB0000000000037285', 'CB0000000000037285', 'CB0000000000037285', 'CB0000000000037285']
+cluster_root_row_index=1263 n_rows=3 order_ids_sample=['CB0000000000010175', 'CB0000000000010175', 'CB0000000000010175']
+cluster_root_row_index=1267 n_rows=6 order_ids_sample=['CB0000000000008439', 'CB0000000000012919', 'CB0000000000012919', 'CB0000000000012919', 'CB0000000000012919', 'CB0000000000012919']
+cluster_root_row_index=1268 n_rows=4 order_ids_sample=['CB0000000000008583', 'CB0000000000008583', 'CB0000000000008583', 'CB0000000000008583']
+cluster_root_row_index=1269 n_rows=4 order_ids_sample=['CB0000000000001175', 'CB0000000000001175', 'CB0000000000012179', 'CB0000000000012179']
+cluster_root_row_index=1278 n_rows=7 order_ids_sample=['CB0000000000007887', 'CB0000000000007887', 'CB0000000000007887', 'CB0000000000008059', 'CB0000000000008059', 'CB0000000000008059', 'CB0000000000008059']
+cluster_root_row_index=1298 n_rows=2 order_ids_sample=['CB0000000000032649', 'CB0000000000032649']
+cluster_root_row_index=1307 n_rows=2 order_ids_sample=['CB0000000000082789', 'CB0000000000082789']
+cluster_root_row_index=1315 n_rows=2 order_ids_sample=['CB0000000000006513', 'CB0000000000006513']
+cluster_root_row_index=1316 n_rows=3 order_ids_sample=['CB0000000000004491', 'CB0000000000004491', 'CB0000000000004491']
+cluster_root_row_index=1326 n_rows=7 order_ids_sample=['CB0000000000051431', 'CB0000000000051431', 'CB0000000000051431', 'CB0000000000051431', 'CB0000000000051431', 'CB0000000000051431', 'CB0000000000051431']
+cluster_root_row_index=1328 n_rows=8 order_ids_sample=['CB0000000000048513', 'CB0000000000048513', 'CB0000000000048513', 'CB0000000000049135', 'CB0000000000049673', 'CB0000000000049673', 'CB0000000000049673', 'CB0000000000049673']
+cluster_root_row_index=1333 n_rows=8 order_ids_sample=['CB0000000000004319', 'CB0000000000004319', 'CB0000000000004325', 'CB0000000000004325', 'CB0000000000004325', 'CB0000000000004423', 'CB0000000000004423', 'CB0000000000041703']
+cluster_root_row_index=1338 n_rows=6 order_ids_sample=['CB0000000000104205', 'CB0000000000104205', 'CB0000000000104205', 'CB0000000000104205', 'CB0000000000104205', 'CB0000000000104205']
+cluster_root_row_index=1344 n_rows=3 order_ids_sample=['CB0000000000037373', 'CB0000000000037373', 'CB0000000000037373']
+cluster_root_row_index=1355 n_rows=4 order_ids_sample=['CB0000000000025435', 'CB0000000000025435', 'CB0000000000025435', 'CB0000000000025435']
+cluster_root_row_index=1361 n_rows=4 order_ids_sample=['CB0000000000004179', 'CB0000000000004179', 'CB0000000000004179', 'CB0000000000004179']
+cluster_root_row_index=1363 n_rows=2 order_ids_sample=['CB0000000000003979', 'CB0000000000003979']
+cluster_root_row_index=1381 n_rows=6 order_ids_sample=['CB0000000000081717', 'CB0000000000081717', 'CB0000000000081717', 'CB0000000000081717', 'CB0000000000081717', 'CB0000000000081717']
+cluster_root_row_index=1382 n_rows=2 order_ids_sample=['CB0000000000032251', 'CB0000000000032251']
+cluster_root_row_index=1383 n_rows=2 order_ids_sample=['CB0000000000116907', 'CB0000000000116907']
+cluster_root_row_index=1384 n_rows=7 order_ids_sample=['CB0000000000019851', 'CB0000000000019851', 'CB0000000000019851', 'CB0000000000019851', 'CB0000000000027979', 'CB0000000000027979', 'CB0000000000027979']
+cluster_root_row_index=1385 n_rows=2 order_ids_sample=['CB0000000000084509', 'CB0000000000084509']
+cluster_root_row_index=1386 n_rows=15 order_ids_sample=['CB0000000000032427', 'CB0000000000032427', 'CB0000000000032427', 'CB0000000000032427', 'CB0000000000032427', 'CB0000000000032427', 'CB0000000000032429', 'CB0000000000034099', 'CB0000000000034099', 'CB0000000000034099', 'CB0000000000041697', 'CB0000000000050827', 'CB0000000000050827', 'CB0000000000050827', 'CB0000000000052661']
+cluster_root_row_index=1391 n_rows=2 order_ids_sample=['CB0000000000018539', 'CB0000000000018539']
+cluster_root_row_index=1393 n_rows=5 order_ids_sample=['CB0000000000008975', 'CB0000000000008975', 'CB0000000000008975', 'CB0000000000008975', 'CB0000000000008975']
+cluster_root_row_index=1406 n_rows=4 order_ids_sample=['CB0000000000048517', 'CB0000000000048517', 'CB0000000000048517', 'CB0000000000048517']
+cluster_root_row_index=1412 n_rows=3 order_ids_sample=['CB0000000000130075', 'CB0000000000130075', 'CB0000000000130075']
+cluster_root_row_index=1430 n_rows=5 order_ids_sample=['CB0000000000039567', 'CB0000000000039567', 'CB0000000000039567', 'CB0000000000039571', 'CB0000000000039571']
+cluster_root_row_index=1443 n_rows=3 order_ids_sample=['CB0000000000002567', 'CB0000000000081583', 'CB0000000000081583']
+cluster_root_row_index=1449 n_rows=3 order_ids_sample=['CB0000000000131629', 'CB0000000000131629', 'CB0000000000131629']
+cluster_root_row_index=1450 n_rows=4 order_ids_sample=['CB0000000000125763', 'CB0000000000125763', 'CB0000000000125763', 'CB0000000000125763']
+cluster_root_row_index=1451 n_rows=5 order_ids_sample=['CB0000000000034509', 'CB0000000000034509', 'CB0000000000034509', 'CB0000000000034511', 'CB0000000000037861']
+cluster_root_row_index=1460 n_rows=4 order_ids_sample=['CB0000000000002741', 'CB0000000000002741', 'CB0000000000002741', 'CB0000000000002741']
+cluster_root_row_index=1465 n_rows=3 order_ids_sample=['CB0000000000007541', 'CB0000000000007541', 'CB0000000000007541']
+cluster_root_row_index=1466 n_rows=5 order_ids_sample=['CB0000000000119935', 'CB0000000000119935', 'CB0000000000119935', 'CB0000000000119935', 'CB0000000000119935']
+cluster_root_row_index=1469 n_rows=4 order_ids_sample=['CB0000000000119927', 'CB0000000000119927', 'CB0000000000119931', 'CB0000000000119931']
+cluster_root_row_index=1470 n_rows=8 order_ids_sample=['CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607', 'CB0000000000101607']
+cluster_root_row_index=1471 n_rows=12 order_ids_sample=['CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000102405', 'CB0000000000114771']
+cluster_root_row_index=1474 n_rows=2 order_ids_sample=['CB0000000000001317', 'CB0000000000001531']
+cluster_root_row_index=1475 n_rows=3 order_ids_sample=['CB0000000000002957', 'CB0000000000006505', 'CB0000000000006505']
+cluster_root_row_index=1477 n_rows=2 order_ids_sample=['CB0000000000037281', 'CB0000000000037281']
+cluster_root_row_index=1492 n_rows=2 order_ids_sample=['CB0000000000075965', 'CB0000000000075965']
+cluster_root_row_index=1495 n_rows=2 order_ids_sample=['CB0000000000031675', 'CB0000000000031675']
+cluster_root_row_index=1498 n_rows=7 order_ids_sample=['CB0000000000011411', 'CB0000000000011411', 'CB0000000000011411', 'CB0000000000012183', 'CB0000000000012183', 'CB0000000000012183', 'CB0000000000012183']
+cluster_root_row_index=1499 n_rows=7 order_ids_sample=['CB0000000000001847', 'CB0000000000001847', 'CB0000000000001847', 'CB0000000000001847', 'CB0000000000001847', 'CB0000000000001847', 'CB0000000000001847']
+cluster_root_row_index=1504 n_rows=2 order_ids_sample=['CB0000000000006621', 'CB0000000000061323']
+cluster_root_row_index=1513 n_rows=2 order_ids_sample=['CB0000000000106549', 'CB0000000000106549']
+cluster_root_row_index=1514 n_rows=3 order_ids_sample=['CB0000000000069377', 'CB0000000000071141', 'CB0000000000071141']
+cluster_root_row_index=1520 n_rows=2 order_ids_sample=['CB0000000000003769', 'CB0000000000003769']
+cluster_root_row_index=1524 n_rows=5 order_ids_sample=['CB0000000000070261', 'CB0000000000070261', 'CB0000000000070261', 'CB0000000000070261', 'CB0000000000070261']
+cluster_root_row_index=1528 n_rows=3 order_ids_sample=['CB0000000000115905', 'CB0000000000115905', 'CB0000000000115905']
+cluster_root_row_index=1530 n_rows=5 order_ids_sample=['CB0000000000008423', 'CB0000000000008423', 'CB0000000000103735', 'CB0000000000103735', 'CB0000000000103735']
+cluster_root_row_index=1539 n_rows=2 order_ids_sample=['CB0000000000080179', 'CB0000000000080179']
+cluster_root_row_index=1542 n_rows=2 order_ids_sample=['CB0000000000115307', 'CB0000000000115307']
+cluster_root_row_index=1543 n_rows=3 order_ids_sample=['CB0000000000106483', 'CB0000000000106483', 'CB0000000000106483']
+cluster_root_row_index=1557 n_rows=3 order_ids_sample=['CB0000000000008325', 'CB0000000000008325', 'CB0000000000008325']
+cluster_root_row_index=1566 n_rows=5 order_ids_sample=['CB0000000000007543', 'CB0000000000041705', 'CB0000000000041705', 'CB0000000000041705', 'CB0000000000041705']
+cluster_root_row_index=1569 n_rows=3 order_ids_sample=['CB0000000000023853', 'CB0000000000023853', 'CB0000000000024215']
+cluster_root_row_index=1570 n_rows=3 order_ids_sample=['CB0000000000023781', 'CB0000000000023781', 'CB0000000000023781']
+cluster_root_row_index=1572 n_rows=3 order_ids_sample=['CB0000000000007755', 'CB0000000000008037', 'CB0000000000008037']
+cluster_root_row_index=1575 n_rows=3 order_ids_sample=['CB0000000000006303', 'CB0000000000006303', 'CB0000000000006303']
+cluster_root_row_index=1580 n_rows=4 order_ids_sample=['CB0000000000008053', 'CB0000000000008053', 'CB0000000000008053', 'CB0000000000008053']
+cluster_root_row_index=1583 n_rows=2 order_ids_sample=['CB0000000000010053', 'CB0000000000010053']
+cluster_root_row_index=1594 n_rows=5 order_ids_sample=['CB0000000000007627', 'CB0000000000007627', 'CB0000000000007627', 'CB0000000000007627', 'CB0000000000007627']
+cluster_root_row_index=1595 n_rows=2 order_ids_sample=['CB0000000000104273', 'CB0000000000104275']
+cluster_root_row_index=1601 n_rows=3 order_ids_sample=['CB0000000000002665', 'CB0000000000002665', 'CB0000000000002665']
+cluster_root_row_index=1621 n_rows=2 order_ids_sample=['CB0000000000082455', 'CB0000000000082455']
+cluster_root_row_index=1622 n_rows=2 order_ids_sample=['CB0000000000003035', 'CB0000000000023771']
+cluster_root_row_index=1627 n_rows=3 order_ids_sample=['CB0000000000023779', 'CB0000000000023779', 'CB0000000000023779']
+cluster_root_row_index=1633 n_rows=3 order_ids_sample=['CB0000000000010839', 'CB0000000000010839', 'CB0000000000010839']
+cluster_root_row_index=1639 n_rows=2 order_ids_sample=['CB0000000000001607', 'CB0000000000001607']
+cluster_root_row_index=1648 n_rows=2 order_ids_sample=['CB0000000000002739', 'CB0000000000003029']
+cluster_root_row_index=1655 n_rows=2 order_ids_sample=['CB0000000000001927', 'CB0000000000001927']
+cluster_root_row_index=1658 n_rows=4 order_ids_sample=['CB0000000000017747', 'CB0000000000017747', 'CB0000000000017747', 'CB0000000000017747']
+cluster_root_row_index=1659 n_rows=4 order_ids_sample=['CB0000000000009985', 'CB0000000000009985', 'CB0000000000009985', 'CB0000000000009985']
+cluster_root_row_index=1664 n_rows=2 order_ids_sample=['CB0000000000025457', 'CB0000000000025457']
+cluster_root_row_index=1665 n_rows=2 order_ids_sample=['CB0000000000087063', 'CB0000000000087063']
+cluster_root_row_index=1666 n_rows=2 order_ids_sample=['CB0000000000004769', 'CB0000000000004769']
+cluster_root_row_index=1668 n_rows=2 order_ids_sample=['CB0000000000002147', 'CB0000000000002147']
+cluster_root_row_index=1676 n_rows=4 order_ids_sample=['CB0000000000000635', 'CB0000000000000635', 'CB0000000000001529', 'CB0000000000001601']
+cluster_root_row_index=1677 n_rows=2 order_ids_sample=['CB0000000000001945', 'CB0000000000001945']
+cluster_root_row_index=1678 n_rows=3 order_ids_sample=['CB0000000000007049', 'CB0000000000007049', 'CB0000000000007049']
+cluster_root_row_index=1693 n_rows=10 order_ids_sample=['CB0000000000004407', 'CB0000000000004407', 'CB0000000000004407', 'CB0000000000004413', 'CB0000000000004413', 'CB0000000000004413', 'CB0000000000004413', 'CB0000000000004413', 'CB0000000000004413', 'CB0000000000004413']
+cluster_root_row_index=1694 n_rows=4 order_ids_sample=['CB0000000000002565', 'CB0000000000002565', 'CB0000000000002565', 'CB0000000000002565']
+cluster_root_row_index=1708 n_rows=4 order_ids_sample=['CB0000000000036283', 'CB0000000000036283', 'CB0000000000036283', 'CB0000000000036283']
+cluster_root_row_index=1713 n_rows=4 order_ids_sample=['CB0000000000024961', 'CB0000000000024961', 'CB0000000000024961', 'CB0000000000024961']
+cluster_root_row_index=1714 n_rows=2 order_ids_sample=['CB0000000000010601', 'CB0000000000010601']
+cluster_root_row_index=1715 n_rows=3 order_ids_sample=['CB0000000000005049', 'CB0000000000005049', 'CB0000000000005049']
+cluster_root_row_index=1717 n_rows=3 order_ids_sample=['CB0000000000004771', 'CB0000000000004771', 'CB0000000000004771']
+cluster_root_row_index=1721 n_rows=2 order_ids_sample=['CB0000000000125429', 'CB0000000000125429']
+cluster_root_row_index=1723 n_rows=2 order_ids_sample=['CB0000000000090409', 'CB0000000000090409']
+cluster_root_row_index=1730 n_rows=3 order_ids_sample=['CB0000000000001325', 'CB0000000000001325', 'CB0000000000001325']
+cluster_root_row_index=1731 n_rows=2 order_ids_sample=['CB0000000000071273', 'CB0000000000071273']
+cluster_root_row_index=1733 n_rows=4 order_ids_sample=['CB0000000000065019', 'CB0000000000065019', 'CB0000000000065019', 'CB0000000000065019']
+cluster_root_row_index=1735 n_rows=2 order_ids_sample=['CB0000000000006347', 'CB0000000000006347']
+cluster_root_row_index=1736 n_rows=2 order_ids_sample=['CB0000000000001533', 'CB0000000000001533']
+cluster_root_row_index=1740 n_rows=3 order_ids_sample=['CB0000000000113643', 'CB0000000000113643', 'CB0000000000113643']
+cluster_root_row_index=1745 n_rows=3 order_ids_sample=['CB0000000000057227', 'CB0000000000057227', 'CB0000000000085399']
+cluster_root_row_index=1749 n_rows=2 order_ids_sample=['CB0000000000011093', 'CB0000000000031191']
+cluster_root_row_index=1754 n_rows=2 order_ids_sample=['CB0000000000009163', 'CB0000000000036665']
+cluster_root_row_index=1757 n_rows=3 order_ids_sample=['CB0000000000010603', 'CB0000000000010603', 'CB0000000000010603']
+cluster_root_row_index=1766 n_rows=2 order_ids_sample=['CB0000000000104071', 'CB0000000000104071']
+cluster_root_row_index=1767 n_rows=2 order_ids_sample=['CB0000000000008405', 'CB0000000000008405']
+cluster_root_row_index=1768 n_rows=4 order_ids_sample=['CB0000000000006345', 'CB0000000000006345', 'CB0000000000006345', 'CB0000000000006345']
+cluster_root_row_index=1771 n_rows=3 order_ids_sample=['CB0000000000005211', 'CB0000000000005211', 'CB0000000000005211']
+cluster_root_row_index=1773 n_rows=2 order_ids_sample=['CB0000000000003297', 'CB0000000000003515']
+cluster_root_row_index=1776 n_rows=2 order_ids_sample=['CB0000000000011089', 'CB0000000000011089']
+cluster_root_row_index=1778 n_rows=5 order_ids_sample=['CB0000000000039643', 'CB0000000000039643', 'CB0000000000039643', 'CB0000000000039643', 'CB0000000000039643']
+cluster_root_row_index=1779 n_rows=2 order_ids_sample=['CB0000000000007089', 'CB0000000000007089']
+cluster_root_row_index=1780 n_rows=2 order_ids_sample=['CB0000000000009459', 'CB0000000000009459']
+cluster_root_row_index=1782 n_rows=4 order_ids_sample=['CB0000000000006467', 'CB0000000000006467', 'CB0000000000006467', 'CB0000000000006467']
+cluster_root_row_index=1791 n_rows=2 order_ids_sample=['CB0000000000003429', 'CB0000000000003429']
+cluster_root_row_index=1796 n_rows=6 order_ids_sample=['CB0000000000130543', 'CB0000000000130543', 'CB0000000000130543', 'CB0000000000130543', 'CB0000000000130543', 'CB0000000000130551']
+cluster_root_row_index=1800 n_rows=4 order_ids_sample=['CB0000000000077935', 'CB0000000000077935', 'CB0000000000077935', 'CB0000000000077935']
+cluster_root_row_index=1802 n_rows=6 order_ids_sample=['CB0000000000052729', 'CB0000000000052729', 'CB0000000000052729', 'CB0000000000052731', 'CB0000000000052931', 'CB0000000000052931']
+cluster_root_row_index=1808 n_rows=4 order_ids_sample=['CB0000000000005803', 'CB0000000000007535', 'CB0000000000007535', 'CB0000000000011849']
+cluster_root_row_index=1814 n_rows=3 order_ids_sample=['CB0000000000000885', 'CB0000000000000885', 'CB0000000000000885']
+cluster_root_row_index=1819 n_rows=3 order_ids_sample=['CB0000000000008017', 'CB0000000000008017', 'CB0000000000008017']
+cluster_root_row_index=1821 n_rows=4 order_ids_sample=['CB0000000000007639', 'CB0000000000007639', 'CB0000000000007639', 'CB0000000000007639']
+cluster_root_row_index=1823 n_rows=9 order_ids_sample=['CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973', 'CB0000000000003973']
+cluster_root_row_index=1828 n_rows=4 order_ids_sample=['CB0000000000010145', 'CB0000000000010145', 'CB0000000000010145', 'CB0000000000016869']
+cluster_root_row_index=1834 n_rows=9 order_ids_sample=['CB0000000000005979', 'CB0000000000005979', 'CB0000000000005979', 'CB0000000000005979', 'CB0000000000006007', 'CB0000000000006007', 'CB0000000000059153', 'CB0000000000059153', 'CB0000000000060697']
+cluster_root_row_index=1845 n_rows=3 order_ids_sample=['CB0000000000007051', 'CB0000000000007051', 'CB0000000000007051']
+cluster_root_row_index=1846 n_rows=2 order_ids_sample=['CB0000000000004421', 'CB0000000000004421']
+cluster_root_row_index=1858 n_rows=2 order_ids_sample=['CB0000000000010711', 'CB0000000000010711']
+cluster_root_row_index=1860 n_rows=2 order_ids_sample=['CB0000000000009973', 'CB0000000000009987']
+cluster_root_row_index=1866 n_rows=4 order_ids_sample=['CB0000000000004845', 'CB0000000000004845', 'CB0000000000004845', 'CB0000000000004845']
+cluster_root_row_index=1867 n_rows=7 order_ids_sample=['CB0000000000004557', 'CB0000000000004557', 'CB0000000000004557', 'CB0000000000004557', 'CB0000000000004557', 'CB0000000000004557', 'CB0000000000004557']
+cluster_root_row_index=1887 n_rows=2 order_ids_sample=['CB0000000000004329', 'CB0000000000004329']
+cluster_root_row_index=1888 n_rows=3 order_ids_sample=['CB0000000000113095', 'CB0000000000113095', 'CB0000000000113095']
+cluster_root_row_index=1895 n_rows=2 order_ids_sample=['CB0000000000025467', 'CB0000000000025467']
+cluster_root_row_index=1903 n_rows=2 order_ids_sample=['CB0000000000003627', 'CB0000000000003627']
+cluster_root_row_index=1905 n_rows=6 order_ids_sample=['CB0000000000012551', 'CB0000000000012905', 'CB0000000000012905', 'CB0000000000012905', 'CB0000000000012905', 'CB0000000000012905']
+cluster_root_row_index=1911 n_rows=3 order_ids_sample=['CB0000000000053397', 'CB0000000000053397', 'CB0000000000053397']
+cluster_root_row_index=1914 n_rows=3 order_ids_sample=['CB0000000000088081', 'CB0000000000088081', 'CB0000000000088081']
+cluster_root_row_index=1924 n_rows=2 order_ids_sample=['CB0000000000002645', 'CB0000000000002735']
+cluster_root_row_index=1928 n_rows=5 order_ids_sample=['CB0000000000100463', 'CB0000000000100463', 'CB0000000000116111', 'CB0000000000116111', 'CB0000000000116111']
+cluster_root_row_index=1929 n_rows=6 order_ids_sample=['CB0000000000084581', 'CB0000000000111887', 'CB0000000000111887', 'CB0000000000111887', 'CB0000000000111887', 'CB0000000000111887']
+cluster_root_row_index=1942 n_rows=2 order_ids_sample=['CB0000000000004417', 'CB0000000000071471']
+cluster_root_row_index=1944 n_rows=2 order_ids_sample=['CB0000000000036669', 'CB0000000000036669']
+cluster_root_row_index=1954 n_rows=2 order_ids_sample=['CB0000000000082855', 'CB0000000000085263']
+cluster_root_row_index=1955 n_rows=2 order_ids_sample=['CB0000000000003441', 'CB0000000000003441']
+cluster_root_row_index=1956 n_rows=2 order_ids_sample=['CB0000000000010047', 'CB0000000000100199']
+cluster_root_row_index=1959 n_rows=3 order_ids_sample=['CB0000000000133913', 'CB0000000000133913', 'CB0000000000133913']
+cluster_root_row_index=1964 n_rows=2 order_ids_sample=['CB0000000000000955', 'CB0000000000000955']
+cluster_root_row_index=1984 n_rows=2 order_ids_sample=['CB0000000000092467', 'CB0000000000092467']
+cluster_root_row_index=1989 n_rows=2 order_ids_sample=['CB0000000000069379', 'CB0000000000069379']
+cluster_root_row_index=1992 n_rows=3 order_ids_sample=['CB0000000000047907', 'CB0000000000047907', 'CB0000000000047907']
+cluster_root_row_index=2006 n_rows=5 order_ids_sample=['CB0000000000008069', 'CB0000000000008069', 'CB0000000000008069', 'CB0000000000008069', 'CB0000000000008073']
+cluster_root_row_index=2012 n_rows=2 order_ids_sample=['CB0000000000006487', 'CB0000000000006487']
+cluster_root_row_index=2016 n_rows=5 order_ids_sample=['CB0000000000003519', 'CB0000000000003519', 'CB0000000000003519', 'CB0000000000003519', 'CB0000000000003519']
+cluster_root_row_index=2027 n_rows=4 order_ids_sample=['CB0000000000000861', 'CB0000000000000861', 'CB0000000000000861', 'CB0000000000000861']
+cluster_root_row_index=2036 n_rows=3 order_ids_sample=['CB0000000000001247', 'CB0000000000001247', 'CB0000000000001247']
+cluster_root_row_index=2040 n_rows=4 order_ids_sample=['CB0000000000090873', 'CB0000000000090873', 'CB0000000000090873', 'CB0000000000090873']
+cluster_root_row_index=2045 n_rows=2 order_ids_sample=['CB0000000000031189', 'CB0000000000031197']
+cluster_root_row_index=2052 n_rows=4 order_ids_sample=['CB0000000000010987', 'CB0000000000010987', 'CB0000000000010987', 'CB0000000000010987']
+cluster_root_row_index=2059 n_rows=3 order_ids_sample=['CB0000000000008019', 'CB0000000000119861', 'CB0000000000119861']
+cluster_root_row_index=2064 n_rows=3 order_ids_sample=['CB0000000000006847', 'CB0000000000006847', 'CB0000000000010989']
+cluster_root_row_index=2072 n_rows=2 order_ids_sample=['CB0000000000003289', 'CB0000000000003289']
+cluster_root_row_index=2082 n_rows=2 order_ids_sample=['CB0000000000001777', 'CB0000000000115913']
+cluster_root_row_index=2085 n_rows=2 order_ids_sample=['CB0000000000000965', 'CB0000000000000965']
+cluster_root_row_index=2096 n_rows=2 order_ids_sample=['CB0000000000002663', 'CB0000000000002663']
+cluster_root_row_index=2106 n_rows=3 order_ids_sample=['CB0000000000018471', 'CB0000000000018471', 'CB0000000000018471']
+cluster_root_row_index=2108 n_rows=2 order_ids_sample=['CB0000000000016879', 'CB0000000000016879']
+cluster_root_row_index=2109 n_rows=2 order_ids_sample=['CB0000000000121473', 'CB0000000000121473']
+cluster_root_row_index=2122 n_rows=3 order_ids_sample=['CB0000000000014279', 'CB0000000000014279', 'CB0000000000014279']
+cluster_root_row_index=2123 n_rows=3 order_ids_sample=['CB0000000000003701', 'CB0000000000003701', 'CB0000000000003975']
+cluster_root_row_index=2128 n_rows=3 order_ids_sample=['CB0000000000007517', 'CB0000000000007517', 'CB0000000000007517']
+cluster_root_row_index=2130 n_rows=2 order_ids_sample=['CB0000000000001933', 'CB0000000000001933']
+cluster_root_row_index=2131 n_rows=3 order_ids_sample=['CB0000000000000565', 'CB0000000000000565', 'CB0000000000000565']
+cluster_root_row_index=2135 n_rows=2 order_ids_sample=['CB0000000000059149', 'CB0000000000059149']
+cluster_root_row_index=2137 n_rows=2 order_ids_sample=['CB0000000000130009', 'CB0000000000130009']
+cluster_root_row_index=2139 n_rows=2 order_ids_sample=['CB0000000000124227', 'CB0000000000124227']
+cluster_root_row_index=2141 n_rows=2 order_ids_sample=['CB0000000000121199', 'CB0000000000121199']
+cluster_root_row_index=2142 n_rows=3 order_ids_sample=['CB0000000000119525', 'CB0000000000119525', 'CB0000000000122485']
+cluster_root_row_index=2146 n_rows=2 order_ids_sample=['CB0000000000112359', 'CB0000000000112359']
+cluster_root_row_index=2157 n_rows=3 order_ids_sample=['CB0000000000080849', 'CB0000000000080849', 'CB0000000000080849']
+cluster_root_row_index=2160 n_rows=2 order_ids_sample=['CB0000000000051915', 'CB0000000000051915']
+cluster_root_row_index=2164 n_rows=8 order_ids_sample=['CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063', 'CB0000000000049063']
+cluster_root_row_index=2180 n_rows=2 order_ids_sample=['CB0000000000010971', 'CB0000000000010971']
+cluster_root_row_index=2184 n_rows=2 order_ids_sample=['CB0000000000008983', 'CB0000000000019305']
+cluster_root_row_index=2189 n_rows=2 order_ids_sample=['CB0000000000007907', 'CB0000000000007907']
+cluster_root_row_index=2208 n_rows=4 order_ids_sample=['CB0000000000002649', 'CB0000000000002649', 'CB0000000000002649', 'CB0000000000002649']
+cluster_root_row_index=2215 n_rows=2 order_ids_sample=['CB0000000000007033', 'CB0000000000007033']
+cluster_root_row_index=2216 n_rows=2 order_ids_sample=['CB0000000000004841', 'CB0000000000004841']
+cluster_root_row_index=2217 n_rows=2 order_ids_sample=['CB0000000000004839', 'CB0000000000004839']
+cluster_root_row_index=2225 n_rows=5 order_ids_sample=['CB0000000000101673', 'CB0000000000101673', 'CB0000000000101673', 'CB0000000000101673', 'CB0000000000101673']
+cluster_root_row_index=2239 n_rows=2 order_ids_sample=['CB0000000000008143', 'CB0000000000008143']
+cluster_root_row_index=2253 n_rows=2 order_ids_sample=['CB0000000000087131', 'CB0000000000091937']
+cluster_root_row_index=2255 n_rows=4 order_ids_sample=['CB0000000000091009', 'CB0000000000091009', 'CB0000000000091009', 'CB0000000000091009']
+cluster_root_row_index=2257 n_rows=3 order_ids_sample=['CB0000000000090675', 'CB0000000000090675', 'CB0000000000090675']
+cluster_root_row_index=2260 n_rows=2 order_ids_sample=['CB0000000000076441', 'CB0000000000076441']
+cluster_root_row_index=2261 n_rows=5 order_ids_sample=['CB0000000000010173', 'CB0000000000010177', 'CB0000000000067099', 'CB0000000000067099', 'CB0000000000067099']
+cluster_root_row_index=2264 n_rows=4 order_ids_sample=['CB0000000000008979', 'CB0000000000008981', 'CB0000000000010293', 'CB0000000000057155']
+cluster_root_row_index=2275 n_rows=2 order_ids_sample=['CB0000000000034581', 'CB0000000000034581']
+cluster_root_row_index=2276 n_rows=3 order_ids_sample=['CB0000000000033003', 'CB0000000000033003', 'CB0000000000033003']
+cluster_root_row_index=2287 n_rows=4 order_ids_sample=['CB0000000000011097', 'CB0000000000011097', 'CB0000000000011097', 'CB0000000000011097']
+cluster_root_row_index=2290 n_rows=2 order_ids_sample=['CB0000000000010595', 'CB0000000000010595']
+cluster_root_row_index=2292 n_rows=4 order_ids_sample=['CB0000000000009955', 'CB0000000000009955', 'CB0000000000009955', 'CB0000000000009955']
+cluster_root_row_index=2293 n_rows=3 order_ids_sample=['CB0000000000009825', 'CB0000000000009825', 'CB0000000000009825']
+cluster_root_row_index=2296 n_rows=2 order_ids_sample=['CB0000000000008461', 'CB0000000000008461']
+cluster_root_row_index=2297 n_rows=2 order_ids_sample=['CB0000000000008275', 'CB0000000000008275']
+cluster_root_row_index=2301 n_rows=5 order_ids_sample=['CB0000000000007665', 'CB0000000000007665', 'CB0000000000007665', 'CB0000000000007665', 'CB0000000000007665']
+cluster_root_row_index=2304 n_rows=4 order_ids_sample=['CB0000000000007391', 'CB0000000000007391', 'CB0000000000007391', 'CB0000000000007391']
+cluster_root_row_index=2307 n_rows=3 order_ids_sample=['CB0000000000005795', 'CB0000000000005795', 'CB0000000000005795']
+cluster_root_row_index=2317 n_rows=2 order_ids_sample=['CB0000000000003839', 'CB0000000000004559']
+cluster_root_row_index=2319 n_rows=2 order_ids_sample=['CB0000000000003537', 'CB0000000000003537']
+cluster_root_row_index=2325 n_rows=2 order_ids_sample=['CB0000000000002559', 'CB0000000000002559']
+cluster_root_row_index=2327 n_rows=2 order_ids_sample=['CB0000000000001683', 'CB0000000000001683']
+cluster_root_row_index=2330 n_rows=2 order_ids_sample=['CB0000000000132097', 'CB0000000000132097']
+cluster_root_row_index=2331 n_rows=2 order_ids_sample=['CB0000000000116977', 'CB0000000000116977']
+cluster_root_row_index=2343 n_rows=3 order_ids_sample=['CB0000000000057153', 'CB0000000000057153', 'CB0000000000057153']
+cluster_root_row_index=2349 n_rows=2 order_ids_sample=['CB0000000000033261', 'CB0000000000036659']
+cluster_root_row_index=2353 n_rows=2 order_ids_sample=['CB0000000000025101', 'CB0000000000026779']
+cluster_root_row_index=2354 n_rows=2 order_ids_sample=['CB0000000000023851', 'CB0000000000026157']
+cluster_root_row_index=2362 n_rows=2 order_ids_sample=['CB0000000000002651', 'CB0000000000002653']
+cluster_root_row_index=2363 n_rows=2 order_ids_sample=['CB0000000000004317', 'CB0000000000004317']
+cluster_root_row_index=2366 n_rows=3 order_ids_sample=['CB0000000000073025', 'CB0000000000073025', 'CB0000000000073025']
+cluster_root_row_index=2372 n_rows=2 order_ids_sample=['CB0000000000031819', 'CB0000000000031819']
+cluster_root_row_index=2388 n_rows=3 order_ids_sample=['CB0000000000131495', 'CB0000000000131495', 'CB0000000000131495']
+cluster_root_row_index=2392 n_rows=3 order_ids_sample=['CB0000000000108213', 'CB0000000000108213', 'CB0000000000108213']
+cluster_root_row_index=2396 n_rows=3 order_ids_sample=['CB0000000000094001', 'CB0000000000094001', 'CB0000000000094001']
+cluster_root_row_index=2398 n_rows=2 order_ids_sample=['CB0000000000078871', 'CB0000000000078873']
+cluster_root_row_index=2403 n_rows=6 order_ids_sample=['CB0000000000065691', 'CB0000000000065691', 'CB0000000000065691', 'CB0000000000065691', 'CB0000000000065691', 'CB0000000000065691']
+cluster_root_row_index=2423 n_rows=3 order_ids_sample=['CB0000000000026877', 'CB0000000000026877', 'CB0000000000026877']
+cluster_root_row_index=2432 n_rows=3 order_ids_sample=['CB0000000000008335', 'CB0000000000008335', 'CB0000000000008335']
+cluster_root_row_index=2434 n_rows=2 order_ids_sample=['CB0000000000007223', 'CB0000000000007225']
+cluster_root_row_index=2438 n_rows=2 order_ids_sample=['CB0000000000006449', 'CB0000000000006449']
+cluster_root_row_index=2439 n_rows=3 order_ids_sample=['CB0000000000005975', 'CB0000000000005975', 'CB0000000000005975']
+cluster_root_row_index=2449 n_rows=2 order_ids_sample=['CB0000000000011003', 'CB0000000000011003']
+cluster_root_row_index=2450 n_rows=2 order_ids_sample=['CB0000000000001751', 'CB0000000000001751']
+cluster_root_row_index=2452 n_rows=2 order_ids_sample=['CB0000000000084651', 'CB0000000000084651']
+cluster_root_row_index=2459 n_rows=3 order_ids_sample=['CB0000000000053465', 'CB0000000000053465', 'CB0000000000054621']
+cluster_root_row_index=2464 n_rows=3 order_ids_sample=['CB0000000000016961', 'CB0000000000016961', 'CB0000000000016961']
+cluster_root_row_index=2470 n_rows=2 order_ids_sample=['CB0000000000010841', 'CB0000000000010841']
+cluster_root_row_index=2477 n_rows=2 order_ids_sample=['CB0000000000004331', 'CB0000000000004331']
+cluster_root_row_index=2486 n_rows=4 order_ids_sample=['CB0000000000006703', 'CB0000000000007625', 'CB0000000000007645', 'CB0000000000007645']
+cluster_root_row_index=2497 n_rows=3 order_ids_sample=['CB0000000000054553', 'CB0000000000054553', 'CB0000000000054553']
+cluster_root_row_index=2499 n_rows=2 order_ids_sample=['CB0000000000065823', 'CB0000000000065823']
+cluster_root_row_index=2510 n_rows=6 order_ids_sample=['CB0000000000069511', 'CB0000000000069511', 'CB0000000000069511', 'CB0000000000069511', 'CB0000000000069511', 'CB0000000000069511']
+cluster_root_row_index=2521 n_rows=3 order_ids_sample=['CB0000000000076729', 'CB0000000000076733', 'CB0000000000076733']
+cluster_root_row_index=2523 n_rows=3 order_ids_sample=['CB0000000000059651', 'CB0000000000059651', 'CB0000000000059651']
+cluster_root_row_index=2525 n_rows=3 order_ids_sample=['CB0000000000049273', 'CB0000000000049273', 'CB0000000000049273']
+cluster_root_row_index=2528 n_rows=3 order_ids_sample=['CB0000000000049059', 'CB0000000000049059', 'CB0000000000049059']
+cluster_root_row_index=2531 n_rows=3 order_ids_sample=['CB0000000000025459', 'CB0000000000025459', 'CB0000000000025459']
+cluster_root_row_index=2542 n_rows=2 order_ids_sample=['CB0000000000008415', 'CB0000000000008415']
+cluster_root_row_index=2546 n_rows=2 order_ids_sample=['CB0000000000005225', 'CB0000000000005225']
+cluster_root_row_index=2551 n_rows=2 order_ids_sample=['CB0000000000001849', 'CB0000000000001849']
+cluster_root_row_index=2556 n_rows=2 order_ids_sample=['CB0000000000091801', 'CB0000000000091801']
+cluster_root_row_index=2558 n_rows=3 order_ids_sample=['CB0000000000077869', 'CB0000000000077869', 'CB0000000000080851']
+cluster_root_row_index=2560 n_rows=2 order_ids_sample=['CB0000000000057229', 'CB0000000000061389']
+cluster_root_row_index=2568 n_rows=2 order_ids_sample=['CB0000000000032181', 'CB0000000000032181']
+cluster_root_row_index=2570 n_rows=3 order_ids_sample=['CB0000000000021567', 'CB0000000000021567', 'CB0000000000021567']
+cluster_root_row_index=2577 n_rows=2 order_ids_sample=['CB0000000000112293', 'CB0000000000112293']
+cluster_root_row_index=2579 n_rows=5 order_ids_sample=['CB0000000000099735', 'CB0000000000099735', 'CB0000000000099801', 'CB0000000000099801', 'CB0000000000099801']
+cluster_root_row_index=2584 n_rows=2 order_ids_sample=['CB0000000000078865', 'CB0000000000078865']
+cluster_root_row_index=2588 n_rows=2 order_ids_sample=['CB0000000000004563', 'CB0000000000065689']
+cluster_root_row_index=2590 n_rows=2 order_ids_sample=['CB0000000000064941', 'CB0000000000064941']
+cluster_root_row_index=2593 n_rows=4 order_ids_sample=['CB0000000000044411', 'CB0000000000044411', 'CB0000000000044411', 'CB0000000000044411']
+cluster_root_row_index=2598 n_rows=3 order_ids_sample=['CB0000000000041695', 'CB0000000000041695', 'CB0000000000041695']
+cluster_root_row_index=2603 n_rows=3 order_ids_sample=['CB0000000000038729', 'CB0000000000038729', 'CB0000000000038729']
+cluster_root_row_index=2608 n_rows=2 order_ids_sample=['CB0000000000026869', 'CB0000000000026869']
+cluster_root_row_index=2618 n_rows=2 order_ids_sample=['CB0000000000009775', 'CB0000000000010491']
+cluster_root_row_index=2627 n_rows=6 order_ids_sample=['CB0000000000006365', 'CB0000000000006365', 'CB0000000000006365', 'CB0000000000006365', 'CB0000000000006365', 'CB0000000000006365']
+cluster_root_row_index=2641 n_rows=3 order_ids_sample=['CB0000000000133101', 'CB0000000000133101', 'CB0000000000133101']
+cluster_root_row_index=2656 n_rows=3 order_ids_sample=['CB0000000000043669', 'CB0000000000043669', 'CB0000000000043669']
+cluster_root_row_index=2669 n_rows=2 order_ids_sample=['CB0000000000026863', 'CB0000000000026863']
+cluster_root_row_index=2670 n_rows=2 order_ids_sample=['CB0000000000026227', 'CB0000000000026227']
+cluster_root_row_index=2677 n_rows=2 order_ids_sample=['CB0000000000123155', 'CB0000000000123155']
+cluster_root_row_index=2679 n_rows=5 order_ids_sample=['CB0000000000064211', 'CB0000000000076447', 'CB0000000000076447', 'CB0000000000076447', 'CB0000000000076447']
+cluster_root_row_index=2692 n_rows=3 order_ids_sample=['CB0000000000030747', 'CB0000000000030747', 'CB0000000000030747']
+cluster_root_row_index=2696 n_rows=2 order_ids_sample=['CB0000000000011071', 'CB0000000000121131']
+cluster_root_row_index=2697 n_rows=2 order_ids_sample=['CB0000000000125769', 'CB0000000000125771']
+cluster_root_row_index=2699 n_rows=2 order_ids_sample=['CB0000000000064079', 'CB0000000000064079']
+cluster_root_row_index=2721 n_rows=5 order_ids_sample=['CB0000000000097059', 'CB0000000000097059', 'CB0000000000097059', 'CB0000000000097191', 'CB0000000000097191']
+cluster_root_row_index=2723 n_rows=3 order_ids_sample=['CB0000000000018195', 'CB0000000000018195', 'CB0000000000018195']
+cluster_root_row_index=2727 n_rows=2 order_ids_sample=['CB0000000000001535', 'CB0000000000001535']
+cluster_root_row_index=2732 n_rows=2 order_ids_sample=['CB0000000000006145', 'CB0000000000006145']
+cluster_root_row_index=2752 n_rows=2 order_ids_sample=['CB0000000000023335', 'CB0000000000023405']
+cluster_root_row_index=2755 n_rows=2 order_ids_sample=['CB0000000000023783', 'CB0000000000023783']
+cluster_root_row_index=2765 n_rows=2 order_ids_sample=['CB0000000000129613', 'CB0000000000129613']
+cluster_root_row_index=2768 n_rows=3 order_ids_sample=['CB0000000000115911', 'CB0000000000115911', 'CB0000000000115911']
+cluster_root_row_index=2780 n_rows=2 order_ids_sample=['CB0000000000041257', 'CB0000000000041259']
+cluster_root_row_index=2782 n_rows=3 order_ids_sample=['CB0000000000031821', 'CB0000000000031821', 'CB0000000000031823']
+cluster_root_row_index=2787 n_rows=2 order_ids_sample=['CB0000000000007069', 'CB0000000000009787']
+cluster_root_row_index=2790 n_rows=2 order_ids_sample=['CB0000000000008945', 'CB0000000000008947']
+cluster_root_row_index=2791 n_rows=2 order_ids_sample=['CB0000000000008589', 'CB0000000000008671']
+cluster_root_row_index=2794 n_rows=2 order_ids_sample=['CB0000000000003631', 'CB0000000000003631']
+cluster_root_row_index=2797 n_rows=2 order_ids_sample=['CB0000000000001857', 'CB0000000000001857']
+cluster_root_row_index=2799 n_rows=2 order_ids_sample=['CB0000000000001773', 'CB0000000000003113']
+cluster_root_row_index=2812 n_rows=2 order_ids_sample=['CB0000000000034651', 'CB0000000000034653']
+cluster_root_row_index=2814 n_rows=2 order_ids_sample=['CB0000000000028247', 'CB0000000000028247']
+cluster_root_row_index=2815 n_rows=2 order_ids_sample=['CB0000000000015597', 'CB0000000000015597']
+cluster_root_row_index=2816 n_rows=2 order_ids_sample=['CB0000000000012555', 'CB0000000000012561']
+cluster_root_row_index=2819 n_rows=2 order_ids_sample=['CB0000000000009161', 'CB0000000000009441']
+cluster_root_row_index=2822 n_rows=2 order_ids_sample=['CB0000000000007931', 'CB0000000000035181']
+cluster_root_row_index=2827 n_rows=2 order_ids_sample=['CB0000000000003027', 'CB0000000000003027']
+cluster_root_row_index=2829 n_rows=2 order_ids_sample=['CB0000000000002667', 'CB0000000000002667']
+cluster_root_row_index=2830 n_rows=2 order_ids_sample=['CB0000000000001943', 'CB0000000000023339']
+cluster_root_row_index=2831 n_rows=2 order_ids_sample=['CB0000000000000963', 'CB0000000000000963']
+cluster_root_row_index=2834 n_rows=3 order_ids_sample=['CB0000000000008611', 'CB0000000000008611', 'CB0000000000008611']
+cluster_root_row_index=2838 n_rows=2 order_ids_sample=['CB0000000000057777', 'CB0000000000057777']
+cluster_root_row_index=2843 n_rows=2 order_ids_sample=['CB0000000000009139', 'CB0000000000009139']
+cluster_root_row_index=2844 n_rows=3 order_ids_sample=['CB0000000000010997', 'CB0000000000010997', 'CB0000000000010997']
+cluster_root_row_index=2846 n_rows=2 order_ids_sample=['CB0000000000006169', 'CB0000000000006169']
+cluster_root_row_index=2849 n_rows=2 order_ids_sample=['CB0000000000007527', 'CB0000000000007527']
+cluster_root_row_index=2853 n_rows=2 order_ids_sample=['CB0000000000125431', 'CB0000000000125431']
+cluster_root_row_index=2858 n_rows=3 order_ids_sample=['CB0000000000100867', 'CB0000000000100867', 'CB0000000000100867']
+cluster_root_row_index=2866 n_rows=2 order_ids_sample=['CB0000000000019237', 'CB0000000000019237']
+cluster_root_row_index=2874 n_rows=2 order_ids_sample=['CB0000000000008579', 'CB0000000000008579']
+cluster_root_row_index=2884 n_rows=2 order_ids_sample=['CB0000000000002953', 'CB0000000000002953']
+cluster_root_row_index=2885 n_rows=2 order_ids_sample=['CB0000000000002879', 'CB0000000000002879']
+cluster_root_row_index=2887 n_rows=2 order_ids_sample=['CB0000000000002145', 'CB0000000000002145']
+cluster_root_row_index=2890 n_rows=2 order_ids_sample=['CB0000000000000957', 'CB0000000000000957']
+cluster_root_row_index=2893 n_rows=4 order_ids_sample=['CB0000000000101739', 'CB0000000000101739', 'CB0000000000101739', 'CB0000000000101739']
+cluster_root_row_index=2895 n_rows=5 order_ids_sample=['CB0000000000101133', 'CB0000000000101133', 'CB0000000000101133', 'CB0000000000101133', 'CB0000000000101133']
+cluster_root_row_index=2900 n_rows=2 order_ids_sample=['CB0000000000097723', 'CB0000000000097723']
+cluster_root_row_index=2901 n_rows=2 order_ids_sample=['CB0000000000096861', 'CB0000000000096861']
+cluster_root_row_index=2906 n_rows=3 order_ids_sample=['CB0000000000035171', 'CB0000000000035171', 'CB0000000000035171']
+cluster_root_row_index=2909 n_rows=2 order_ids_sample=['CB0000000000016165', 'CB0000000000016165']
+cluster_root_row_index=2922 n_rows=2 order_ids_sample=['CB0000000000094605', 'CB0000000000094605']
+cluster_root_row_index=2923 n_rows=5 order_ids_sample=['CB0000000000091805', 'CB0000000000091805', 'CB0000000000091805', 'CB0000000000094537', 'CB0000000000094537']
+cluster_root_row_index=2926 n_rows=2 order_ids_sample=['CB0000000000092599', 'CB0000000000092599']
+cluster_root_row_index=2927 n_rows=2 order_ids_sample=['CB0000000000091871', 'CB0000000000093601']
+cluster_root_row_index=2936 n_rows=2 order_ids_sample=['CB0000000000045381', 'CB0000000000045381']
+cluster_root_row_index=2939 n_rows=2 order_ids_sample=['CB0000000000024383', 'CB0000000000024383']
+cluster_root_row_index=2944 n_rows=2 order_ids_sample=['CB0000000000016891', 'CB0000000000016891']
+cluster_root_row_index=2952 n_rows=2 order_ids_sample=['CB0000000000008173', 'CB0000000000008173']
+cluster_root_row_index=2957 n_rows=2 order_ids_sample=['CB0000000000003539', 'CB0000000000003539']
+cluster_root_row_index=2958 n_rows=2 order_ids_sample=['CB0000000000003209', 'CB0000000000003209']
+cluster_root_row_index=2963 n_rows=2 order_ids_sample=['CB0000000000002647', 'CB0000000000002647']
+cluster_root_row_index=2968 n_rows=2 order_ids_sample=['CB0000000000000703', 'CB0000000000000703']
+cluster_root_row_index=2969 n_rows=2 order_ids_sample=['CB0000000000135109', 'CB0000000000135109']
+cluster_root_row_index=2972 n_rows=2 order_ids_sample=['CB0000000000096993', 'CB0000000000096993']
+cluster_root_row_index=2973 n_rows=3 order_ids_sample=['CB0000000000003121', 'CB0000000000093869', 'CB0000000000093935']
+cluster_root_row_index=2977 n_rows=2 order_ids_sample=['CB0000000000039069', 'CB0000000000039069']
+cluster_root_row_index=2980 n_rows=2 order_ids_sample=['CB0000000000032147', 'CB0000000000107347']
+cluster_root_row_index=2991 n_rows=16 order_ids_sample=['CB0000000000000133', 'CB0000000000000137', 'CB0000000000000269', 'CB0000000000000337', 'CB0000000000000407', 'CB0000000000000413', 'CB0000000000000415', 'CB0000000000000417', 'CB0000000000000483', 'CB0000000000000485', 'CB0000000000000487', 'CB0000000000000489', 'CB0000000000000555', 'CB0000000000000557', 'CB0000000000000561', 'CB0000000000001393']
+cluster_root_row_index=2999 n_rows=51 order_ids_sample=['CB0000000000067097', 'CB0000000000067097', 'CB0000000000067097', 'CB0000000000067097', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000092731', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537', 'CB0000000000099537']...
+cluster_root_row_index=3011 n_rows=2 order_ids_sample=['CB0000000000068367', 'CB0000000000068367']
+cluster_root_row_index=3019 n_rows=2 order_ids_sample=['CB0000000000003217', 'CB0000000000003217']
+cluster_root_row_index=3021 n_rows=2 order_ids_sample=['CB0000000000119459', 'CB0000000000119459']
+cluster_root_row_index=3023 n_rows=2 order_ids_sample=['CB0000000000011069', 'CB0000000000011069']
+cluster_root_row_index=3035 n_rows=3 order_ids_sample=['CB0000000000112225', 'CB0000000000112225', 'CB0000000000112225']
+cluster_root_row_index=3041 n_rows=7 order_ids_sample=['CB0000000000023085', 'CB0000000000023085', 'CB0000000000058943', 'CB0000000000062201', 'CB0000000000062201', 'CB0000000000068301', 'CB0000000000068301']
+cluster_root_row_index=3054 n_rows=2 order_ids_sample=['CB0000000000009993', 'CB0000000000121543']
+cluster_root_row_index=3061 n_rows=4 order_ids_sample=['CB0000000000114705', 'CB0000000000114705', 'CB0000000000132231', 'CB0000000000132231']
+cluster_root_row_index=3070 n_rows=2 order_ids_sample=['CB0000000000038289', 'CB0000000000038293']
+cluster_root_row_index=3072 n_rows=3 order_ids_sample=['CB0000000000087939', 'CB0000000000087939', 'CB0000000000109219']
+cluster_root_row_index=3087 n_rows=2 order_ids_sample=['CB0000000000126431', 'CB0000000000126431']
+cluster_root_row_index=3093 n_rows=5 order_ids_sample=['CB0000000000105939', 'CB0000000000105939', 'CB0000000000105939', 'CB0000000000105939', 'CB0000000000105939']
+cluster_root_row_index=3098 n_rows=4 order_ids_sample=['CB0000000000110685', 'CB0000000000110685', 'CB0000000000110685', 'CB0000000000110687']
+cluster_root_row_index=3099 n_rows=2 order_ids_sample=['CB0000000000108143', 'CB0000000000108145']
+cluster_root_row_index=3100 n_rows=2 order_ids_sample=['CB0000000000060839', 'CB0000000000060839']
+cluster_root_row_index=3104 n_rows=2 order_ids_sample=['CB0000000000108077', 'CB0000000000108077']
+cluster_root_row_index=3112 n_rows=2 order_ids_sample=['CB0000000000097125', 'CB0000000000097125']
+cluster_root_row_index=3121 n_rows=4 order_ids_sample=['CB0000000000105471', 'CB0000000000105471', 'CB0000000000105539', 'CB0000000000117713']
+cluster_root_row_index=3122 n_rows=2 order_ids_sample=['CB0000000000101541', 'CB0000000000101541']
+cluster_root_row_index=3126 n_rows=2 order_ids_sample=['CB0000000000104941', 'CB0000000000104941']
+cluster_root_row_index=3130 n_rows=13 order_ids_sample=['CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000073565', 'CB0000000000122349']
+cluster_root_row_index=3131 n_rows=2 order_ids_sample=['CB0000000000102803', 'CB0000000000102803']
+cluster_root_row_index=3132 n_rows=2 order_ids_sample=['CB0000000000106007', 'CB0000000000106007']
+cluster_root_row_index=3142 n_rows=5 order_ids_sample=['CB0000000000102669', 'CB0000000000102669', 'CB0000000000102669', 'CB0000000000102669', 'CB0000000000102669']
+cluster_root_row_index=3162 n_rows=2 order_ids_sample=['CB0000000000134713', 'CB0000000000134713']
+cluster_root_row_index=3164 n_rows=2 order_ids_sample=['CB0000000000125433', 'CB0000000000125433']
+cluster_root_row_index=3166 n_rows=3 order_ids_sample=['CB0000000000124095', 'CB0000000000124095', 'CB0000000000124095']
+cluster_root_row_index=3174 n_rows=3 order_ids_sample=['CB0000000000096333', 'CB0000000000096333', 'CB0000000000096333']
+cluster_root_row_index=3177 n_rows=2 order_ids_sample=['CB0000000000077207', 'CB0000000000077207']
+cluster_root_row_index=3187 n_rows=2 order_ids_sample=['CB0000000000002355', 'CB0000000000002355']
+cluster_root_row_index=3200 n_rows=2 order_ids_sample=['CB0000000000009811', 'CB0000000000009811']
+cluster_root_row_index=3204 n_rows=2 order_ids_sample=['CB0000000000072485', 'CB0000000000072485']
+cluster_root_row_index=3211 n_rows=2 order_ids_sample=['CB0000000000070263', 'CB0000000000070263']
+cluster_root_row_index=3212 n_rows=3 order_ids_sample=['CB0000000000088883', 'CB0000000000088883', 'CB0000000000093737']
+cluster_root_row_index=3214 n_rows=2 order_ids_sample=['CB0000000000076805', 'CB0000000000076805']
+cluster_root_row_index=3219 n_rows=2 order_ids_sample=['CB0000000000011375', 'CB0000000000011375']
+cluster_root_row_index=3220 n_rows=2 order_ids_sample=['CB0000000000007061', 'CB0000000000007061']
+cluster_root_row_index=3222 n_rows=2 order_ids_sample=['CB0000000000004565', 'CB0000000000004565']
+cluster_root_row_index=3225 n_rows=2 order_ids_sample=['CB0000000000002281', 'CB0000000000004249']
+cluster_root_row_index=3227 n_rows=2 order_ids_sample=['CB0000000000003295', 'CB0000000000003295']
+cluster_root_row_index=3231 n_rows=2 order_ids_sample=['CB0000000000000713', 'CB0000000000000713']
+cluster_root_row_index=3233 n_rows=2 order_ids_sample=['CB0000000000002555', 'CB0000000000002555']
+cluster_root_row_index=3239 n_rows=4 order_ids_sample=['CB0000000000007629', 'CB0000000000007629', 'CB0000000000007629', 'CB0000000000007629']
+cluster_root_row_index=3246 n_rows=2 order_ids_sample=['CB0000000000088007', 'CB0000000000088007']
+cluster_root_row_index=3251 n_rows=2 order_ids_sample=['CB0000000000045179', 'CB0000000000045179']
+cluster_root_row_index=3256 n_rows=2 order_ids_sample=['CB0000000000002573', 'CB0000000000002573']
+cluster_root_row_index=3259 n_rows=3 order_ids_sample=['CB0000000000000339', 'CB0000000000000341', 'CB0000000000001459']
+cluster_root_row_index=3277 n_rows=2 order_ids_sample=['CB0000000000051919', 'CB0000000000051919']
+cluster_root_row_index=3278 n_rows=2 order_ids_sample=['CB0000000000037363', 'CB0000000000037363']
+cluster_root_row_index=3280 n_rows=2 order_ids_sample=['CB0000000000026085', 'CB0000000000026085']
+cluster_root_row_index=3281 n_rows=4 order_ids_sample=['CB0000000000011599', 'CB0000000000011599', 'CB0000000000011599', 'CB0000000000011599']

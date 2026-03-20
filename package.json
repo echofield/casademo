@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "npx tsx scripts/seed.ts"
+    "seed": "npx tsx scripts/seed.ts",
+    "seed:casablanca-team": "npx tsx scripts/seed-casablanca-team.ts",
+    "import:casablanca": "npx tsx scripts/import-casablanca.ts",
+    "import:casablanca:dry": "npx tsx scripts/import-casablanca.ts --dry-run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
