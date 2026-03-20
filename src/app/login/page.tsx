@@ -41,13 +41,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#003D2B] flex flex-col">
+    <main className="min-h-screen bg-[#F7F4EE] flex flex-col">
       {/* Top Bar */}
       <header className="flex items-center justify-between px-8 py-6">
-        <span className="text-white/90 text-sm font-medium tracking-[0.2em] uppercase">
+        <span className="text-[#003D2B]/90 text-sm font-medium tracking-[0.2em] uppercase">
           Casa One
         </span>
-        <span className="text-white/60 text-sm">
+        <span className="text-[#003D2B]/50 text-sm">
           English
         </span>
       </header>
@@ -56,10 +56,10 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
         {/* Brand */}
         <div className="text-center mb-16">
-          <h1 className="font-serif text-white text-5xl md:text-6xl tracking-tight mb-4">
+          <h1 className="font-serif text-[#003D2B] text-5xl md:text-6xl tracking-tight mb-4">
             Casa One
           </h1>
-          <p className="text-white/70 text-lg tracking-wide">
+          <p className="text-[#003D2B]/60 text-lg tracking-wide">
             One Client. One Experience.
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-white/80 text-sm tracking-wide mb-2"
+                className="block text-[#003D2B]/70 text-sm tracking-wide mb-2"
               >
                 Email
               </label>
@@ -85,10 +85,10 @@ export default function LoginPage() {
                 className="
                   w-full px-0 py-3
                   bg-transparent
-                  border-0 border-b border-white/30
-                  text-white text-base
-                  placeholder:text-white/30
-                  focus:outline-none focus:border-white/60
+                  border-0 border-b border-[#003D2B]/20
+                  text-[#003D2B] text-base
+                  placeholder:text-[#003D2B]/30
+                  focus:outline-none focus:border-[#003D2B]/50
                   transition-colors duration-200
                 "
                 placeholder="your@email.com"
@@ -98,7 +98,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-white/80 text-sm tracking-wide mb-2"
+                className="block text-[#003D2B]/70 text-sm tracking-wide mb-2"
               >
                 Password
               </label>
@@ -113,10 +113,10 @@ export default function LoginPage() {
                 className="
                   w-full px-0 py-3
                   bg-transparent
-                  border-0 border-b border-white/30
-                  text-white text-base
-                  placeholder:text-white/30
-                  focus:outline-none focus:border-white/60
+                  border-0 border-b border-[#003D2B]/20
+                  text-[#003D2B] text-base
+                  placeholder:text-[#003D2B]/30
+                  focus:outline-none focus:border-[#003D2B]/50
                   transition-colors duration-200
                 "
                 placeholder="Enter password"
@@ -125,7 +125,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="mt-4 text-sm text-red-300">{error}</p>
+            <p className="mt-4 text-sm text-red-600">{error}</p>
           )}
 
           <button
@@ -133,11 +133,11 @@ export default function LoginPage() {
             disabled={loading}
             className="
               w-full mt-10 py-4
-              bg-transparent
-              border border-white/40
+              bg-[#003D2B]
+              border border-[#003D2B]
               text-white text-sm tracking-[0.15em] uppercase
-              hover:bg-white/10 hover:border-white/60
-              focus:outline-none focus:border-white
+              hover:bg-[#004D38]
+              focus:outline-none focus:ring-2 focus:ring-[#003D2B]/50
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed
             "
@@ -148,7 +148,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <button
               type="button"
-              className="text-white/50 text-sm hover:text-white/80 transition-colors"
+              className="text-[#003D2B]/40 text-sm hover:text-[#003D2B]/70 transition-colors"
             >
               Forgot password
             </button>
@@ -158,7 +158,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="px-8 py-6 text-center">
-        <p className="text-white/30 text-xs tracking-wide">
+        <p className="text-[#003D2B]/30 text-xs tracking-wide">
           2026 Casa One. Private clienteling system.
         </p>
       </footer>
