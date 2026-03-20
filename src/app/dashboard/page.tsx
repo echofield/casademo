@@ -6,7 +6,6 @@ import {
   ProgressionChart,
   SellerActivityRadar,
   QuickActions,
-  LivingWave,
   ComplexionDots,
   RhythmIndicator,
   HealthBar,
@@ -98,9 +97,6 @@ export default async function DashboardPage() {
   const contactsWeek = contactsThisWeek || 0
   const overdueTotal = totalOverdue || 0
 
-  // Calculate stress level for wave (0 = calm, 1 = stressed)
-  const stressLevel = Math.min(overdueTotal / 50, 1)
-
   // Mock progression data
   const progressionData = [
     { month: 'Jan', value: 45, target: 50 },
@@ -119,25 +115,14 @@ export default async function DashboardPage() {
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
       <div className="mx-auto max-w-7xl">
-        {/* Living Wave - breathing header */}
-        <div className="relative -mx-6 md:-mx-8 -mt-6">
-          <LivingWave
-            stress={stressLevel}
-            color="#0D4A3A"
-            colorSecondary="#2F6B4F"
-            height={100}
-          />
-          {/* Greeting overlay */}
-          <div className="absolute inset-0 flex items-center px-8 md:px-12">
-            <div>
-              <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight">
-                {greeting}, <span className="text-primary">{firstName}</span>
-              </h1>
-              <p className="text-text-soft mt-1">
-                Voici le pouls de votre équipe aujourd'hui.
-              </p>
-            </div>
-          </div>
+        {/* Greeting header */}
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight">
+            {greeting}, <span className="text-primary">{firstName}</span>
+          </h1>
+          <p className="text-text-soft mt-1">
+            Voici le pouls de votre équipe aujourd'hui.
+          </p>
         </div>
 
         {/* Essence Summary - the one thing that matters */}
