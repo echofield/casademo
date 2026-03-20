@@ -4,11 +4,15 @@ import { AppShell, TierBadge, PageHeader } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
   ProgressionChart,
-  IconStatCard,
   SellerActivityRadar,
   QuickActions,
+  LivingWave,
+  ComplexionDots,
+  RhythmIndicator,
+  HealthBar,
 } from '@/components/dashboard'
-import { Users, Phone, AlertTriangle, TrendingUp, Activity } from 'lucide-react'
+import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -81,9 +85,9 @@ export default async function DashboardPage() {
     const contacts = activityMap[seller.id] || 0
     const overdue = sellerOverdue[seller.id]?.count || 0
     return {
-      name: seller.full_name.split(' ')[0], // First name only
+      name: seller.full_name.split(' ')[0],
       contacts: contacts,
-      conversions: Math.floor(contacts * 0.3), // Mock conversion rate
+      conversions: Math.floor(contacts * 0.3),
       followUps: Math.floor(contacts * 0.5),
       responsiveness: Math.max(20, 100 - overdue * 10),
       clientSatisfaction: Math.max(40, 95 - overdue * 5),
@@ -93,9 +97,11 @@ export default async function DashboardPage() {
   const maxTierCount = Math.max(...Object.values(clientsByTier), 1)
   const contactsWeek = contactsThisWeek || 0
   const overdueTotal = totalOverdue || 0
-  const avgPerDay = contactsWeek / 7
 
-  // Mock progression data (in production, fetch from contacts history)
+  // Calculate stress level for wave (0 = calm, 1 = stressed)
+  const stressLevel = Math.min(overdueTotal / 50, 1)
+
+  // Mock progression data
   const progressionData = [
     { month: 'Jan', value: 45, target: 50 },
     { month: 'Fév', value: 52, target: 55 },
@@ -105,93 +111,115 @@ export default async function DashboardPage() {
     { month: 'Juin', value: contactsWeek * 4, target: 75 },
   ]
 
-  // Determine trends
-  const contactsTrend = contactsWeek > 20 ? 'up' : contactsWeek > 10 ? 'stable' : 'down'
-  const overdueTrend = overdueTotal > 5 ? 'down' : overdueTotal > 0 ? 'stable' : 'up'
-
-  let headline = ''
-  let subline = ''
-  if (overdueTotal > 0) {
-    headline = `${overdueTotal} client${overdueTotal !== 1 ? 's' : ''} en attente de recontact.`
-    subline = 'Priorisez les recontacts cette semaine — le rythme prime sur le volume.'
-  } else if (contactsWeek === 0) {
-    headline = 'Aucun contact enregistré ces 7 derniers jours.'
-    subline = 'Vérifiez l\'activité des vendeurs avant que la file ne se calme.'
-  } else {
-    headline = `L'équipe a enregistré ${contactsWeek} contact${contactsWeek !== 1 ? 's' : ''} cette semaine.`
-    subline = overdueTotal > 0
-      ? 'Certains vendeurs ont encore des comptes en retard — voir ci-dessous.'
-      : 'Aucun client en retard dans la file actuellement.'
-  }
+  // Greeting based on time
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
+  const firstName = user.profile.full_name.split(' ')[0]
 
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
-      <div className="mx-auto max-w-7xl animate-fade-in">
-        <PageHeader title="Tableau de bord" subtitle="Vision globale et rythme d'équipe" />
-
-        {/* Headline Section - Glassmorphism */}
-        <section
-          className="mb-8 relative overflow-hidden p-6 md:p-8"
-          style={{
-            background: 'linear-gradient(135deg, rgba(252,250,246,0.98) 0%, rgba(247,244,238,0.95) 100%)',
-            border: '1px solid rgba(28, 27, 25, 0.06)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <div
-            className="absolute top-0 left-0 w-1 h-full"
-            style={{
-              background: overdueTotal > 0
-                ? 'linear-gradient(180deg, #C34747 0%, #A48763 100%)'
-                : 'linear-gradient(180deg, #0D4A3A 0%, #2F6B4F 100%)',
-            }}
+      <div className="mx-auto max-w-7xl">
+        {/* Living Wave - breathing header */}
+        <div className="relative -mx-6 md:-mx-8 -mt-6">
+          <LivingWave
+            stress={stressLevel}
+            color="#0D4A3A"
+            colorSecondary="#2F6B4F"
+            height={100}
           />
-          <p className="label mb-3 text-text-muted">CETTE SEMAINE</p>
-          <h2 className="heading-2 mb-2 max-w-3xl text-text">{headline}</h2>
-          <p className="body max-w-2xl text-text-soft">{subline}</p>
-        </section>
-
-        {/* Stats Grid - IconStatCards */}
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <IconStatCard
-            icon={<Users className="w-4 h-4" strokeWidth={1.5} />}
-            label="CLIENTS TOTAL"
-            value={totalClients}
-            subtext="Portefeuille actif"
-            accentColor="#0D4A3A"
-          />
-          <IconStatCard
-            icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
-            label="CONTACTS (7J)"
-            value={contactsWeek}
-            subtext={`~${avgPerDay.toFixed(1)} par jour`}
-            trend={contactsTrend}
-            trendValue={contactsTrend === 'up' ? '+12%' : contactsTrend === 'down' ? '-8%' : '0%'}
-            accentColor="#2F6B4F"
-          />
-          <IconStatCard
-            icon={<AlertTriangle className="w-4 h-4" strokeWidth={1.5} />}
-            label="EN RETARD"
-            value={overdueTotal}
-            subtext="À recontacter"
-            trend={overdueTrend}
-            trendValue={overdueTotal > 0 ? `${overdueTotal}` : '0'}
-            accentColor={overdueTotal > 0 ? '#C34747' : '#6E685F'}
-          />
-          <IconStatCard
-            icon={<TrendingUp className="w-4 h-4" strokeWidth={1.5} />}
-            label="CONVERSION"
-            value={`${Math.round((contactsWeek / Math.max(totalClients, 1)) * 100)}%`}
-            subtext="Taux d'activité"
-            trend="stable"
-            trendValue="~"
-            accentColor="#A48763"
-          />
+          {/* Greeting overlay */}
+          <div className="absolute inset-0 flex items-center px-8 md:px-12">
+            <div>
+              <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight">
+                {greeting}, <span className="text-primary">{firstName}</span>
+              </h1>
+              <p className="text-text-soft mt-1">
+                Voici le pouls de votre équipe aujourd'hui.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          {/* Progression Chart - spans 2 columns */}
+        {/* Essence Summary - the one thing that matters */}
+        <section className="mt-8 mb-10">
+          <div
+            className="p-8 md:p-10 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, rgba(252,250,246,0.98) 0%, rgba(247,244,238,0.95) 100%)',
+              borderRadius: '2px',
+            }}
+          >
+            {/* Subtle accent bar */}
+            <div
+              className="absolute top-0 left-0 w-full h-1"
+              style={{
+                background: overdueTotal > 10
+                  ? 'linear-gradient(90deg, #C34747 0%, #D97706 50%, #A48763 100%)'
+                  : overdueTotal > 0
+                  ? 'linear-gradient(90deg, #A48763 0%, #2F6B4F 100%)'
+                  : 'linear-gradient(90deg, #0D4A3A 0%, #2F6B4F 100%)',
+              }}
+            />
+
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="text-xs tracking-widest text-text-muted uppercase">
+                  Prochaine étape
+                </span>
+                <h2 className="font-serif text-2xl md:text-3xl text-text mt-2 leading-snug">
+                  {overdueTotal > 0 ? (
+                    <>
+                      <span className="text-gold">{overdueTotal}</span> client{overdueTotal !== 1 ? 's' : ''} attend{overdueTotal !== 1 ? 'ent' : ''} votre attention.
+                    </>
+                  ) : (
+                    <>
+                      L'équipe est à jour. <span className="text-primary">Continuez ainsi.</span>
+                    </>
+                  )}
+                </h2>
+                {overdueTotal > 0 && (
+                  <Link
+                    href="/queue"
+                    className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-primary text-white text-sm font-medium tracking-wide transition-all duration-200 hover:bg-primary-soft"
+                    style={{ borderRadius: '2px' }}
+                  >
+                    TRAVAILLER LA FILE
+                  </Link>
+                )}
+              </div>
+
+              {/* Quick stats - dots visualization */}
+              <div className="grid grid-cols-2 gap-6">
+                <StatPill
+                  label="Portefeuille"
+                  value={totalClients}
+                  icon={<Users className="w-4 h-4" strokeWidth={1.5} />}
+                />
+                <StatPill
+                  label="Contacts (7j)"
+                  value={contactsWeek}
+                  icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
+                  subtext={`~${(contactsWeek / 7).toFixed(1)}/jour`}
+                />
+                <StatPill
+                  label="En attente"
+                  value={overdueTotal}
+                  variant={overdueTotal > 10 ? 'warning' : overdueTotal > 0 ? 'caution' : 'good'}
+                />
+                <StatPill
+                  label="Prochain RDV"
+                  value={2}
+                  icon={<Calendar className="w-4 h-4" strokeWidth={1.5} />}
+                  subtext="cette semaine"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Two column layout */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-10">
+          {/* Progression Chart - 2 cols */}
           <div className="lg:col-span-2">
             <ProgressionChart
               data={progressionData}
@@ -204,118 +232,118 @@ export default async function DashboardPage() {
           <QuickActions className="h-full" />
         </div>
 
-        {/* Second Row */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {/* Seller Activity Radar */}
-          {sellerRadarData.length > 0 && (
-            <SellerActivityRadar sellers={sellerRadarData} />
-          )}
+        {/* Seller Rhythm Section */}
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-6">
+            <RhythmIndicator activity={contactsWeek / 50} />
+            <h2 className="font-serif text-xl text-text">Rythme de l'équipe</h2>
+          </div>
 
-          {/* Clients by Tier */}
-          <section
-            className="p-6 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
-              border: '1px solid rgba(28, 27, 25, 0.06)',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <Activity className="w-4 h-4 text-primary" strokeWidth={1.5} />
-              <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
-            </div>
-            <div className="space-y-4">
-              {TIER_ORDER.map((tier) => {
-                const count = clientsByTier[tier]
-                const percentage = (count / maxTierCount) * 100
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Seller Activity Radar */}
+            {sellerRadarData.length > 0 && (
+              <SellerActivityRadar sellers={sellerRadarData} />
+            )}
 
-                return (
-                  <div key={tier} className="flex items-center gap-4">
-                    <div className="w-28 shrink-0">
-                      <TierBadge tier={tier} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div
-                        className="h-2 overflow-hidden bg-bg-soft"
-                        style={{ borderRadius: 2 }}
-                      >
+            {/* Seller Rhythm Cards */}
+            <div
+              className="p-6 relative"
+              style={{
+                background: 'linear-gradient(145deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
+                borderRadius: '2px',
+              }}
+            >
+              <span className="label text-text-muted mb-4 block">ACTIVITÉ INDIVIDUELLE</span>
+              <div className="space-y-4">
+                {(allSellers || []).slice(0, 5).map((seller) => {
+                  const contacts = activityMap[seller.id] || 0
+                  const overdue = sellerOverdue[seller.id]?.count || 0
+                  const maxContacts = 15
+
+                  return (
+                    <div
+                      key={seller.id}
+                      className="flex items-center justify-between py-3"
+                      style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}
+                    >
+                      <div className="flex items-center gap-4">
                         <div
-                          className="h-full transition-all duration-700"
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-lg"
                           style={{
-                            width: `${percentage}%`,
-                            background: 'linear-gradient(90deg, #0D4A3A 0%, #2F6B4F 100%)',
+                            backgroundColor: 'rgba(13, 74, 58, 0.08)',
+                            color: '#0D4A3A',
                           }}
-                        />
+                        >
+                          {seller.full_name.charAt(0)}
+                        </div>
+                        <div>
+                          <span className="font-serif text-text">{seller.full_name}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <ComplexionDots
+                              value={contacts}
+                              max={maxContacts}
+                              dots={6}
+                              size="sm"
+                              color="#0D4A3A"
+                            />
+                            <span className="text-xs text-text-muted">{contacts} contacts</span>
+                          </div>
+                        </div>
                       </div>
+                      {overdue > 0 && (
+                        <div className="flex items-center gap-2">
+                          <ComplexionDots
+                            value={overdue}
+                            max={10}
+                            dots={5}
+                            size="sm"
+                            inverted
+                          />
+                          <span className="text-xs text-gold">{overdue} en retard</span>
+                        </div>
+                      )}
                     </div>
-                    <span className="w-8 shrink-0 text-right text-sm font-medium text-text">
-                      {count}
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
 
-        {/* Seller Table - Enhanced */}
+        {/* Tier Distribution */}
         <section
-          className="p-6 relative overflow-hidden"
+          className="p-6 md:p-8 mb-10"
           style={{
-            background: 'linear-gradient(135deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
-            border: '1px solid rgba(28, 27, 25, 0.06)',
-            backdropFilter: 'blur(8px)',
+            background: 'linear-gradient(145deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
+            borderRadius: '2px',
           }}
         >
           <div className="flex items-center gap-2 mb-6">
-            <Users className="w-4 h-4 text-primary" strokeWidth={1.5} />
-            <span className="label text-text-muted">RYTHME DES VENDEURS</span>
+            <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
+            <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}>
-                  <th className="label py-3 pr-4 text-left font-semibold text-text-muted">Vendeur</th>
-                  <th className="label py-3 px-3 text-center font-semibold text-text-muted">Contacts</th>
-                  <th className="label py-3 px-3 text-center font-semibold text-text-muted">En retard</th>
-                  <th className="label py-3 pl-3 text-center font-semibold text-text-muted">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(allSellers || []).map((seller) => {
-                  const contacts = activityMap[seller.id] || 0
-                  const overdue = sellerOverdue[seller.id]?.count || 0
-                  const isInactive = contacts === 0
-                  const hasOverdue = overdue > 5
-                  const status = isInactive ? 'inactive' : hasOverdue ? 'warning' : 'ok'
+          <div className="grid md:grid-cols-2 gap-6">
+            {TIER_ORDER.map((tier) => {
+              const count = clientsByTier[tier]
 
-                  return (
-                    <tr key={seller.id} style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}>
-                      <td className="py-4 pr-4">
-                        <span className="table-value text-text">{seller.full_name}</span>
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span
-                          className={`metric-small ${contacts === 0 ? 'text-danger' : 'text-primary'}`}
-                        >
-                          {contacts}
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span
-                          className={`metric-small ${overdue > 0 ? 'text-gold' : 'text-text-muted'}`}
-                        >
-                          {overdue}
-                        </span>
-                      </td>
-                      <td className="py-4 pl-3 text-center">
-                        <StatusBadge status={status} />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+              return (
+                <div key={tier} className="flex items-center gap-4">
+                  <div className="w-28 shrink-0">
+                    <TierBadge tier={tier} />
+                  </div>
+                  <div className="flex-1">
+                    <HealthBar
+                      value={count}
+                      max={maxTierCount}
+                      variant="good"
+                    />
+                  </div>
+                  <span className="w-8 shrink-0 text-right font-serif text-lg text-text">
+                    {count}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </section>
       </div>
@@ -323,37 +351,45 @@ export default async function DashboardPage() {
   )
 }
 
-function StatusBadge({ status }: { status: 'inactive' | 'warning' | 'ok' }) {
-  const styles = {
-    inactive: {
-      bg: 'rgba(195, 71, 71, 0.08)',
-      color: '#C34747',
-    },
-    warning: {
-      bg: 'rgba(164, 135, 99, 0.12)',
-      color: '#A48763',
-    },
-    ok: {
-      bg: 'rgba(13, 74, 58, 0.08)',
-      color: '#0D4A3A',
-    },
-  }
-
-  const labels = {
-    inactive: 'Inactif',
-    warning: 'En retard',
-    ok: 'En forme',
+// Minimal stat pill component
+function StatPill({
+  label,
+  value,
+  icon,
+  subtext,
+  variant = 'neutral',
+}: {
+  label: string
+  value: string | number
+  icon?: React.ReactNode
+  subtext?: string
+  variant?: 'neutral' | 'good' | 'caution' | 'warning'
+}) {
+  const colors = {
+    neutral: { text: '#1C1B19', bg: 'rgba(28, 27, 25, 0.03)' },
+    good: { text: '#0D4A3A', bg: 'rgba(13, 74, 58, 0.05)' },
+    caution: { text: '#A48763', bg: 'rgba(164, 135, 99, 0.08)' },
+    warning: { text: '#C34747', bg: 'rgba(195, 71, 71, 0.06)' },
   }
 
   return (
-    <span
-      className="inline-block px-3 py-1.5 text-xs font-medium"
-      style={{
-        backgroundColor: styles[status].bg,
-        color: styles[status].color,
-      }}
+    <div
+      className="p-4 rounded-sm"
+      style={{ backgroundColor: colors[variant].bg }}
     >
-      {labels[status]}
-    </span>
+      <div className="flex items-center gap-2 mb-2">
+        {icon && <span style={{ color: colors[variant].text }}>{icon}</span>}
+        <span className="text-xs tracking-wide text-text-muted uppercase">{label}</span>
+      </div>
+      <div
+        className="font-serif text-2xl"
+        style={{ color: colors[variant].text }}
+      >
+        {value}
+      </div>
+      {subtext && (
+        <span className="text-xs text-text-muted">{subtext}</span>
+      )}
+    </div>
   )
 }
