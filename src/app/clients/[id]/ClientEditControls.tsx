@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
+import { ModalPortal } from '@/components/ModalPortal'
 
 export interface SellerOption {
   id: string
@@ -123,10 +124,10 @@ export function ClientEditControls({
 
   return (
     <>
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3">
         {canEdit && (
           <Button variant="secondary" onClick={openEdit}>
-            Edit client
+            Modifier la fiche
           </Button>
         )}
         {userRole === 'supervisor' && otherSellers.length > 0 && (
@@ -144,12 +145,20 @@ export function ClientEditControls({
       </div>
 
       {showEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+        <ModalPortal>
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/40 p-4 py-10"
+          onClick={() => setShowEdit(false)}
+          role="presentation"
+        >
           <div
-            className="max-h-[90vh] w-full max-w-md overflow-y-auto border bg-surface p-6"
+            className="my-auto max-h-[min(90vh,720px)] w-full max-w-md overflow-y-auto border bg-surface p-6 shadow-lg"
             style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
           >
-            <h3 className="font-serif text-xl mb-4">Edit client</h3>
+            <h3 className="mb-4 font-serif text-xl text-text">Modifier la fiche</h3>
             <form onSubmit={submitEdit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -211,11 +220,23 @@ export function ClientEditControls({
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {showReassign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
-          <div className="w-full max-w-md border bg-surface p-6" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+        <ModalPortal>
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/40 p-4 py-10"
+          onClick={() => setShowReassign(false)}
+          role="presentation"
+        >
+          <div
+            className="my-auto w-full max-w-md border bg-surface p-6 shadow-lg"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
             <h3 className="font-serif text-xl mb-2">Assign to another seller</h3>
             <p className="body-small mb-4 text-text-muted">
               Current: <span className="text-text">{sellerName}</span>. Only supervisors can move a
@@ -250,6 +271,7 @@ export function ClientEditControls({
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   )

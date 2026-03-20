@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ModalPortal } from '@/components/ModalPortal'
 
 export interface SellerPick {
   id: string
@@ -84,21 +85,37 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-ink/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-paper w-full max-w-md p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl">Add Client</h2>
+    <ModalPortal>
+      <div
+        className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/40 p-4 py-10"
+        onClick={onClose}
+        role="presentation"
+      >
+        <div
+          className="my-auto w-full max-w-md border bg-surface p-6 shadow-lg"
+          style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-client-title"
+        >
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 id="add-client-title" className="font-serif text-xl text-text">
+            Nouveau client
+          </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-ink/50 hover:text-ink"
+            className="shrink-0 p-1 text-text-muted transition-colors hover:text-text"
+            aria-label="Fermer"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="max-h-[min(70vh,640px)] space-y-4 overflow-y-auto pr-1">
           {isSupervisor && sellers.length === 0 && (
             <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2">
               No active sellers found. Add seller accounts in Supabase before creating clients for them.
@@ -175,7 +192,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
               className="input-field"
               placeholder="0"
             />
-            <p className="text-xs text-ink/50 mt-1">Sets starting tier automatically</p>
+            <p className="body-small mt-1 text-text-muted">Définit le palier initial (total dépensé).</p>
           </div>
 
           <div>
@@ -192,24 +209,25 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
             <p className="text-sm text-red-600">{error}</p>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 pb-1">
             <button
               type="button"
               onClick={onClose}
               className="btn-secondary flex-1"
             >
-              Cancel
+              Annuler
             </button>
             <button
               type="submit"
               disabled={loading}
               className="btn-primary flex-1"
             >
-              {loading ? 'Creating...' : 'Create Client'}
+              {loading ? 'Création…' : 'Créer le client'}
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

@@ -14,10 +14,11 @@ export function AddClientButton({ isSupervisor, sellers }: Props) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowModal(true)}
         className="btn-primary"
       >
-        Add Client
+        Ajouter un client
       </button>
 
       {showModal && (
