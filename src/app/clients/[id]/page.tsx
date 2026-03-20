@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { AppShell, TierBadge } from '@/components'
-import type { Client360, ContactHistoryItem, PurchaseHistoryItem } from '@/lib/types'
+import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel } from '@/lib/types'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
 import { ClientActions } from './ClientActions'
@@ -42,13 +42,89 @@ export default async function Client360Page({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: client, error } = await supabase.rpc('get_client_360', { client_id: id }).single()
+  // Fetch client with seller name
+  const { data: client, error: clientError } = await supabase
+    .from('clients')
+    .select(`
+      *,
+      seller:profiles!clients_seller_id_fkey(full_name)
+    `)
+    .eq('id', id)
+    .single()
 
-  if (error || !client) {
+  if (clientError || !client) {
     notFound()
   }
 
-  const clientData = client as Client360
+  // Fetch interests
+  const { data: interests } = await supabase
+    .from('client_interests')
+    .select('id, category, value, detail')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
+
+  // Fetch contacts with seller name
+  const { data: contacts } = await supabase
+    .from('contacts')
+    .select(`
+      id,
+      contact_date,
+      channel,
+      comment,
+      seller:profiles!contacts_seller_id_fkey(full_name)
+    `)
+    .eq('client_id', id)
+    .order('contact_date', { ascending: false })
+    .limit(20)
+
+  // Fetch purchases
+  const { data: purchases } = await supabase
+    .from('purchases')
+    .select('id, purchase_date, amount, description')
+    .eq('client_id', id)
+    .order('purchase_date', { ascending: false })
+    .limit(20)
+
+  // Build Client360 object
+  const clientData: Client360 = {
+    id: client.id,
+    first_name: client.first_name,
+    last_name: client.last_name,
+    email: client.email,
+    phone: client.phone,
+    seller_id: client.seller_id,
+    tier: client.tier as ClientTier,
+    total_spend: client.total_spend || 0,
+    first_contact_date: client.first_contact_date,
+    last_contact_date: client.last_contact_date,
+    next_recontact_date: client.next_recontact_date,
+    notes: client.notes,
+    created_at: client.created_at,
+    updated_at: client.updated_at,
+    seller_name: (() => {
+      const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
+      return Array.isArray(s) ? s[0]?.full_name : s?.full_name
+    })() || 'Non assigné',
+    interests: interests || [],
+    contact_history: (contacts || []).map(c => {
+      const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
+      const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
+      return {
+        id: c.id,
+        date: c.contact_date,
+        channel: c.channel as ContactChannel,
+        comment: c.comment,
+        seller: sellerName || 'Inconnu',
+      }
+    }),
+    purchase_history: (purchases || []).map(p => ({
+      id: p.id,
+      date: p.purchase_date,
+      amount: p.amount,
+      description: p.description,
+    })),
+  }
+
   const canEdit = user.profile.role === 'supervisor' || clientData.seller_id === user.id
 
   let sellerOptions: { id: string; full_name: string }[] | undefined
@@ -235,7 +311,7 @@ export default async function Client360Page({ params }: Props) {
             <p className="body-small mb-6 text-text-muted">{nextMove.detail}</p>
             <p className="label mb-2 text-text-muted">Actions rapides</p>
             <p className="body-small text-text-muted">
-              En bas d’écran : enregistrer un contact (met à jour les dates) ou{' '}
+              En bas d'écran : enregistrer un contact (met à jour les dates) ou{' '}
               <strong className="font-medium text-text">ajouter un achat</strong> (ex. chemise en soie + montant) pour
               faire évoluer le total et le palier.
             </p>
@@ -248,10 +324,10 @@ export default async function Client360Page({ params }: Props) {
           </section>
         </div>
 
-        {/* Centres d’intérêt */}
+        {/* Centres d'intérêt */}
         <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Centres d’intérêt</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Ce qu’il ou elle aime</h2>
+          <p className="label mb-2 text-text-muted">Centres d'intérêt</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Ce qu'il ou elle aime</h2>
           {clientData.interests && clientData.interests.length > 0 ? (
             <ul className="flex flex-wrap gap-2">
               {clientData.interests.map((interest) => (
@@ -266,7 +342,7 @@ export default async function Client360Page({ params }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="body-small text-text-muted">Aucun centre d’intérêt enregistré pour l’instant.</p>
+            <p className="body-small text-text-muted">Aucun centre d'intérêt enregistré pour l'instant.</p>
           )}
           <ClientInterestAdd clientId={id} canEdit={canEdit} />
         </section>
@@ -277,7 +353,7 @@ export default async function Client360Page({ params }: Props) {
           <h2 className="mb-6 font-serif text-2xl text-text">Contacts & achats</h2>
           {timeline.length === 0 ? (
             <p className="body-small text-text-muted">
-              Rien encore dans l’historique. Utilisez les actions ci-dessous pour enregistrer un contact ou un achat.
+              Rien encore dans l'historique. Utilisez les actions ci-dessous pour enregistrer un contact ou un achat.
             </p>
           ) : (
             <ol className="space-y-0">
@@ -330,6 +406,7 @@ export default async function Client360Page({ params }: Props) {
         </section>
 
         <div
+          id="vendor-actions"
           className="fixed bottom-0 left-0 right-0 z-30 border-t bg-bg/95 px-4 py-3 backdrop-blur-sm md:static md:z-0 md:mt-8 md:border md:border-t-0 md:bg-surface md:px-6 md:py-4 md:backdrop-blur-none"
           style={cardBorder}
         >
