@@ -3,14 +3,22 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface Props {
-  onClose: () => void
+export interface SellerPick {
+  id: string
+  full_name: string
 }
 
-export function AddClientModal({ onClose }: Props) {
+interface Props {
+  onClose: () => void
+  isSupervisor?: boolean
+  sellers?: SellerPick[]
+}
+
+export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sellerId, setSellerId] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -20,12 +28,22 @@ export function AddClientModal({ onClose }: Props) {
     const form = e.currentTarget
     const fd = new FormData(form)
 
-    const data = {
+    const data: Record<string, unknown> = {
       first_name: String(fd.get('first_name') ?? '').trim(),
       last_name: String(fd.get('last_name') ?? '').trim(),
       phone: String(fd.get('phone') ?? '').trim() || null,
       email: String(fd.get('email') ?? '').trim() || null,
       notes: String(fd.get('notes') ?? '').trim() || null,
+    }
+
+    if (isSupervisor) {
+      const sid = String(fd.get('seller_id') ?? '').trim()
+      if (!sid) {
+        setError('Select the seller who owns this client')
+        setLoading(false)
+        return
+      }
+      data.seller_id = sid
     }
 
     try {
@@ -81,6 +99,31 @@ export function AddClientModal({ onClose }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSupervisor && sellers.length === 0 && (
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2">
+              No active sellers found. Add seller accounts in Supabase before creating clients for them.
+            </p>
+          )}
+          {isSupervisor && sellers.length > 0 && (
+            <div>
+              <label className="small-caps block mb-1">Assigned seller *</label>
+              <select
+                name="seller_id"
+                className="input-field"
+                value={sellerId}
+                onChange={(e) => setSellerId(e.target.value)}
+                required
+              >
+                <option value="">Select seller…</option>
+                {sellers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="small-caps block mb-1">First Name *</label>

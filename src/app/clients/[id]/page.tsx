@@ -5,6 +5,7 @@ import { AppShell, TierBadge } from '@/components'
 import { Client360 } from '@/lib/types'
 import Link from 'next/link'
 import { ClientActions } from './ClientActions'
+import { ClientEditControls } from './ClientEditControls'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -26,6 +27,17 @@ export default async function Client360Page({ params }: Props) {
   }
 
   const clientData = client as Client360
+
+  let sellerOptions: { id: string; full_name: string }[] | undefined
+  if (user.profile.role === 'supervisor') {
+    const { data: sellers } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('role', 'seller')
+      .eq('active', true)
+      .order('full_name')
+    sellerOptions = sellers || []
+  }
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '—'
@@ -140,6 +152,22 @@ export default async function Client360Page({ params }: Props) {
             </div>
           </div>
         </header>
+
+        <ClientEditControls
+          clientId={id}
+          currentUserId={user.id}
+          userRole={user.profile.role}
+          sellerId={clientData.seller_id}
+          sellerName={clientData.seller_name}
+          initial={{
+            first_name: clientData.first_name,
+            last_name: clientData.last_name,
+            email: clientData.email,
+            phone: clientData.phone,
+            notes: clientData.notes,
+          }}
+          sellerOptions={sellerOptions}
+        />
 
         {/* Actions */}
         <ClientActions clientId={id} />

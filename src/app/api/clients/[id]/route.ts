@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 import type { Client360, InterestItem, ContactHistoryItem, PurchaseHistoryItem } from '@/lib/types'
-
-const updateClientSchema = z.object({
-  first_name: z.string().min(1).optional(),
-  last_name: z.string().min(1).optional(),
-  email: z.string().email().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-})
+import { updateClientBodySchema } from '@/lib/validation/clientForms'
 
 // GET /api/clients/[id] - Client 360 detail
 export async function GET(
@@ -58,12 +50,19 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
     const supabase = await createClient()
     const { id } = await params
 
     const body = await request.json()
-    const parsed = updateClientSchema.safeParse(body)
+    if (body && typeof body === 'object' && 'seller_id' in body) {
+      return NextResponse.json(
+        { error: 'Use PATCH /api/clients/[id]/reassign to change seller (supervisor only)' },
+        { status: 400 }
+      )
+    }
+
+    const parsed = updateClientBodySchema.safeParse(body)
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -72,9 +71,34 @@ export async function PATCH(
       )
     }
 
+    const { data: existing, error: fetchErr } = await supabase
+      .from('clients')
+      .select('seller_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchErr || !existing) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    }
+
+    if (user.profile.role !== 'supervisor' && existing.seller_id !== user.id) {
+      return NextResponse.json(
+        { error: 'You can only edit clients assigned to you' },
+        { status: 403 }
+      )
+    }
+
+    const updates = Object.fromEntries(
+      Object.entries(parsed.data).filter(([, v]) => v !== undefined)
+    ) as Record<string, unknown>
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+    }
+
     const { data, error } = await supabase
       .from('clients')
-      .update(parsed.data as any)
+      .update(updates as any)
       .eq('id', id)
       .select()
       .single()

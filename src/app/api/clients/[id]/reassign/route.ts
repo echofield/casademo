@@ -32,6 +32,7 @@ export async function PATCH(
       .from('profiles')
       .select('id, full_name')
       .eq('id', parsed.data.new_seller_id)
+      .eq('role', 'seller')
       .eq('active', true)
       .single()
 

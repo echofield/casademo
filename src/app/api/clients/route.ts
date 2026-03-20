@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 import type { ClientTier } from '@/lib/types'
-
-const createClientSchema = z.object({
-  first_name: z.string().min(1, 'First name is required'),
-  last_name: z.string().min(1, 'Last name is required'),
-  email: z.string().email().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-})
+import { createClientBodySchema } from '@/lib/validation/clientForms'
 
 // GET /api/clients - List clients
 export async function GET(request: NextRequest) {
@@ -72,7 +64,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     const body = await request.json()
-    const parsed = createClientSchema.safeParse(body)
+    const parsed = createClientBodySchema.safeParse(body)
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -81,11 +73,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const { seller_id: bodySellerId, ...clientFields } = parsed.data
+    let seller_id = user.id
+
+    if (bodySellerId) {
+      if (user.profile.role !== 'supervisor') {
+        return NextResponse.json(
+          { error: 'Only a supervisor can assign a client to another seller' },
+          { status: 403 }
+        )
+      }
+      const { data: targetSeller, error: seErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', bodySellerId)
+        .eq('role', 'seller')
+        .eq('active', true)
+        .maybeSingle()
+
+      if (seErr || !targetSeller) {
+        return NextResponse.json({ error: 'Invalid or inactive seller' }, { status: 400 })
+      }
+      seller_id = bodySellerId
+    }
+
     const { data, error } = await supabase
       .from('clients')
       .insert({
-        ...parsed.data,
-        seller_id: user.id,
+        ...clientFields,
+        seller_id,
       } as any)
       .select()
       .single()

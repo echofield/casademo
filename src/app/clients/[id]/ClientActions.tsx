@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   clientId: string
