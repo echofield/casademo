@@ -20,6 +20,9 @@ export default async function TeamPage() {
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
+  // Demo mode filter
+  const DEMO_MODE = true
+
   // Fetch all active sellers
   const { data: allSellers } = await supabase
     .from('profiles')
@@ -32,6 +35,7 @@ export default async function TeamPage() {
   const { data: clientsData } = await supabase
     .from('clients')
     .select('id, seller_id, tier, total_spend')
+    .eq('is_demo', DEMO_MODE)
 
   // Fetch recent contacts (last 7 days)
   const weekAgo = new Date()
@@ -45,6 +49,7 @@ export default async function TeamPage() {
   const { data: overdueData } = await supabase
     .from('recontact_queue')
     .select('seller_id, days_overdue')
+    .eq('is_demo', DEMO_MODE)
     .gt('days_overdue', 0)
 
   // Build seller stats with REAL data only

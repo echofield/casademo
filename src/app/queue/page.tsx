@@ -9,9 +9,14 @@ export default async function QueuePage() {
   if (!user) redirect('/login')
 
   const supabase = await createClient()
+
+  // Demo mode filter
+  const DEMO_MODE = true
+
   const { data: queue } = await supabase
     .from('recontact_queue')
     .select('*')
+    .eq('is_demo', DEMO_MODE)
     .order('days_overdue', { ascending: false })
 
   const items = (queue || []) as RecontactQueueItem[]
