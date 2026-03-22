@@ -6,11 +6,15 @@ import { Client, ClientTier, TIER_LABELS, TIER_ORDER } from '@/lib/types'
 import { ClientListFilters } from './ClientListFilters'
 import { AddClientButton } from './AddClientButton'
 
+type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
+
 interface Props {
   searchParams: Promise<{
     search?: string
     tier?: ClientTier
     seller?: string
+    sort?: SortOption
+    interest?: string
     page?: string
   }>
 }
@@ -23,6 +27,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const search = params.search || ''
   const tier = params.tier
   const sellerId = params.seller
+  const interestFilter = params.interest
   const page = parseInt(params.page || '1', 10)
   const limit = 24
 
@@ -54,11 +59,56 @@ export default async function ClientsPage({ searchParams }: Props) {
   // Build seller lookup map
   const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
 
+  // Fetch distinct interest categories for filter
+  const { data: interestCategories } = await supabase
+    .from('client_interests')
+    .select('category')
+    .order('category')
+
+  const uniqueInterests = [...new Set((interestCategories || []).map(i => i.category))].filter(Boolean)
+
+  // If interest filter is active, get matching client IDs
+  let interestClientIds: string[] | null = null
+  if (interestFilter) {
+    const { data: matchingInterests } = await supabase
+      .from('client_interests')
+      .select('client_id')
+      .eq('category', interestFilter)
+    interestClientIds = matchingInterests?.map(i => i.client_id) || []
+  }
+
+  const sort = params.sort || 'alpha'
+
   let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
-    .order('last_contact_date', { ascending: false, nullsFirst: true })
-    .range((page - 1) * limit, page * limit - 1)
+
+  // Apply sorting
+  switch (sort) {
+    case 'alpha':
+      query = query.order('last_name', { ascending: true }).order('first_name', { ascending: true })
+      break
+    case 'alpha_desc':
+      query = query.order('last_name', { ascending: false }).order('first_name', { ascending: false })
+      break
+    case 'spend':
+      query = query.order('total_spend', { ascending: true })
+      break
+    case 'spend_desc':
+      query = query.order('total_spend', { ascending: false })
+      break
+    case 'last_contact':
+      query = query.order('last_contact_date', { ascending: false, nullsFirst: true })
+      break
+    case 'tier':
+      // Order by tier priority (grand_prix first = descending since enum order is rainbow→grand_prix)
+      query = query.order('tier', { ascending: false })
+      break
+    default:
+      query = query.order('last_name', { ascending: true })
+  }
+
+  query = query.range((page - 1) * limit, page * limit - 1)
 
   if (search) {
     query = query.or(
@@ -72,6 +122,15 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   if (sellerId && isSupervisor) {
     query = query.eq('seller_id', sellerId)
+  }
+
+  if (interestClientIds !== null) {
+    if (interestClientIds.length > 0) {
+      query = query.in('id', interestClientIds)
+    } else {
+      // No clients have this interest, return empty
+      query = query.eq('id', '00000000-0000-0000-0000-000000000000')
+    }
   }
 
   const { data: clients, count } = await query
@@ -101,6 +160,8 @@ export default async function ClientsPage({ searchParams }: Props) {
     if (search) sp.set('search', search)
     if (tier) sp.set('tier', tier)
     if (sellerId) sp.set('seller', sellerId)
+    if (interestFilter) sp.set('interest', interestFilter)
+    if (sort && sort !== 'alpha') sp.set('sort', sort)
     if (p > 1) sp.set('page', String(p))
     const q = sp.toString()
     return q ? `/clients?${q}` : '/clients'
@@ -124,9 +185,12 @@ export default async function ClientsPage({ searchParams }: Props) {
           currentSearch={search}
           currentTier={tier}
           currentSeller={sellerId}
+          currentSort={sort}
+          currentInterest={interestFilter}
           tiers={TIER_ORDER}
           tierLabels={TIER_LABELS}
           sellers={sellers}
+          interests={uniqueInterests}
           isSupervisor={isSupervisor}
         />
 

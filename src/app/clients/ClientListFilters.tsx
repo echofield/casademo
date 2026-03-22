@@ -4,13 +4,27 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { ClientTier } from '@/lib/types'
 
+type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
+
+const SORT_LABELS: Record<SortOption, string> = {
+  alpha: 'Nom A→Z',
+  alpha_desc: 'Nom Z→A',
+  spend: 'Dépenses ↑',
+  spend_desc: 'Dépenses ↓',
+  last_contact: 'Dernier contact',
+  tier: 'Palier',
+}
+
 interface Props {
   currentSearch: string
   currentTier?: ClientTier
   currentSeller?: string
+  currentSort?: string
+  currentInterest?: string
   tiers: ClientTier[]
   tierLabels: Record<ClientTier, string>
   sellers?: { id: string; full_name: string }[]
+  interests?: string[]
   isSupervisor?: boolean
 }
 
@@ -18,9 +32,12 @@ export function ClientListFilters({
   currentSearch,
   currentTier,
   currentSeller,
+  currentSort = 'alpha',
+  currentInterest,
   tiers,
   tierLabels,
   sellers = [],
+  interests = [],
   isSupervisor = false,
 }: Props) {
   const router = useRouter()
@@ -82,6 +99,33 @@ export function ClientListFilters({
         ))}
       </select>
 
+      <select
+        value={currentSort}
+        onChange={(e) => updateParams('sort', e.target.value === 'alpha' ? undefined : e.target.value)}
+        className="input-field md:w-44"
+      >
+        {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+          <option key={opt} value={opt}>
+            {SORT_LABELS[opt]}
+          </option>
+        ))}
+      </select>
+
+      {interests.length > 0 && (
+        <select
+          value={currentInterest || ''}
+          onChange={(e) => updateParams('interest', e.target.value || undefined)}
+          className="input-field md:w-44"
+        >
+          <option value="">Tous les intérêts</option>
+          {interests.map((interest) => (
+            <option key={interest} value={interest}>
+              {interest.charAt(0).toUpperCase() + interest.slice(1)}
+            </option>
+          ))}
+        </select>
+      )}
+
       {isSupervisor && sellers.length > 0 && (
         <select
           value={currentSeller || ''}
@@ -97,7 +141,7 @@ export function ClientListFilters({
         </select>
       )}
 
-      {(currentSearch || currentTier || currentSeller) && (
+      {(currentSearch || currentTier || currentSeller || currentSort !== 'alpha' || currentInterest) && (
         <button
           onClick={() => {
             setSearch('')
@@ -105,7 +149,7 @@ export function ClientListFilters({
           }}
           className="btn-secondary px-4"
         >
-          Clear
+          Réinitialiser
         </button>
       )}
     </div>
