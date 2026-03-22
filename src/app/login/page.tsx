@@ -84,7 +84,7 @@ export default function LoginPage() {
           </button>
 
           <p className="mt-6 text-center text-[#003D2B]/40 text-xs">
-            Utilisez votre compte Microsoft professionnel
+            Espace vendeurs et superviseurs
           </p>
         </div>
       </div>
