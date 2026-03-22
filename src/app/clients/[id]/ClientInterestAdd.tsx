@@ -4,6 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 
+// Casablanca-aligned interest templates
+const INTEREST_OPTIONS: Record<string, string[]> = {
+  Products: ['Silk shirts', 'T-shirts', 'Knitwear', 'Shorts', 'Tracksuits', 'Sneakers', 'Accessories', 'Trousers', 'Outerwear'],
+  Collections: ['Tennis Club', 'Maison De Rêve', 'Gradient Wave', 'Monogram', 'Sunset Landscape'],
+  Styles: ['Printed', 'Crochet', 'Knitted', 'Tailored', 'Graphic', 'Relaxed'],
+  Colors: ['Green', 'Gold', 'Navy', 'White', 'Multicolor', 'Black', 'Red'],
+  Occasions: ['Resort', 'Leisure', 'Evening', 'Travel', 'Sport'],
+  Lifestyle: ['Tennis', 'Golf', 'Motorsport', 'Yachting', 'Art', 'Music', 'Wine', 'Watches', 'Travel', 'Fitness'],
+}
+
+const CATEGORIES = Object.keys(INTEREST_OPTIONS)
+
 interface Props {
   clientId: string
   canEdit: boolean
@@ -19,6 +31,13 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   if (!canEdit) return null
+
+  const availableValues = category ? INTEREST_OPTIONS[category] || [] : []
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory)
+    setValue('') // Reset value when category changes
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,23 +82,32 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="label mb-1 block text-text-muted">Category</label>
-              <input
-                className="input-field"
+              <select
+                className="input-field w-full"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Products"
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select category</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="label mb-1 block text-text-muted">Value</label>
-              <input
-                className="input-field"
+              <select
+                className="input-field w-full"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="e.g. Silk shirts"
                 required
-              />
+                disabled={!category}
+              >
+                <option value="">{category ? 'Select value' : 'Select category first'}</option>
+                {availableValues.map((val) => (
+                  <option key={val} value={val}>{val}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div>
@@ -88,7 +116,7 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
               className="input-field"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
-              placeholder="Size, color, collection..."
+              placeholder="Prefers seasonal releases, specific sizes..."
             />
           </div>
           {error && <p className="body-small text-danger">{error}</p>}

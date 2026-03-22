@@ -16,11 +16,24 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: 'Casa One',
-  description: 'Boutique Clienteling CRM',
+  description: 'Luxury clienteling for Casablanca',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Casa One',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FAF8F2',
+  themeColor: '#1B4332',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
