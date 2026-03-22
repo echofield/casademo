@@ -10,6 +10,7 @@ interface Props {
   searchParams: Promise<{
     search?: string
     tier?: ClientTier
+    seller?: string
     page?: string
   }>
 }
@@ -21,10 +22,37 @@ export default async function ClientsPage({ searchParams }: Props) {
   const params = await searchParams
   const search = params.search || ''
   const tier = params.tier
+  const sellerId = params.seller
   const page = parseInt(params.page || '1', 10)
   const limit = 24
 
   const supabase = await createClient()
+  const isSupervisor = user.profile.role === 'supervisor'
+
+  // Fetch sellers for filter (supervisors only)
+  let sellers: { id: string; full_name: string }[] = []
+  if (isSupervisor) {
+    // Get all profiles that have seller role (via profiles_roles table)
+    const { data: sellerRoles } = await supabase
+      .from('profiles_roles')
+      .select('user_id')
+      .eq('role', 'seller')
+
+    const sellerIds = sellerRoles?.map(r => r.user_id) || []
+
+    if (sellerIds.length > 0) {
+      const { data: s } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', sellerIds)
+        .eq('active', true)
+        .order('full_name')
+      sellers = s || []
+    }
+  }
+
+  // Build seller lookup map
+  const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
 
   let query = supabase
     .from('clients')
@@ -42,18 +70,11 @@ export default async function ClientsPage({ searchParams }: Props) {
     query = query.eq('tier', tier)
   }
 
-  const { data: clients, count } = await query
-
-  let sellersForAdd: { id: string; full_name: string }[] = []
-  if (user.profile.role === 'supervisor') {
-    const { data: s } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('role', 'seller')
-      .eq('active', true)
-      .order('full_name')
-    sellersForAdd = s || []
+  if (sellerId && isSupervisor) {
+    query = query.eq('seller_id', sellerId)
   }
+
+  const { data: clients, count } = await query
 
   const totalPages = Math.ceil((count || 0) / limit)
 
@@ -79,6 +100,7 @@ export default async function ClientsPage({ searchParams }: Props) {
     const sp = new URLSearchParams()
     if (search) sp.set('search', search)
     if (tier) sp.set('tier', tier)
+    if (sellerId) sp.set('seller', sellerId)
     if (p > 1) sp.set('page', String(p))
     const q = sp.toString()
     return q ? `/clients?${q}` : '/clients'
@@ -92,8 +114,8 @@ export default async function ClientsPage({ searchParams }: Props) {
           subtitle={`${count || 0} in your portfolio`}
           actions={
             <AddClientButton
-              isSupervisor={user.profile.role === 'supervisor'}
-              sellers={sellersForAdd}
+              isSupervisor={isSupervisor}
+              sellers={sellers}
             />
           }
         />
@@ -101,8 +123,11 @@ export default async function ClientsPage({ searchParams }: Props) {
         <ClientListFilters
           currentSearch={search}
           currentTier={tier}
+          currentSeller={sellerId}
           tiers={TIER_ORDER}
           tierLabels={TIER_LABELS}
+          sellers={sellers}
+          isSupervisor={isSupervisor}
         />
 
         {list.length === 0 ? (
@@ -122,6 +147,7 @@ export default async function ClientsPage({ searchParams }: Props) {
                   spendLabel={formatCurrency(client.total_spend)}
                   lastContactLabel={formatDate(client.last_contact_date)}
                   nextRecontactLabel={formatDate(client.next_recontact_date)}
+                  sellerName={isSupervisor ? sellerMap.get(client.seller_id) : undefined}
                 />
               </li>
             ))}

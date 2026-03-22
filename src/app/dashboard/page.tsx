@@ -108,19 +108,28 @@ export default async function DashboardPage() {
     .filter(s => s.total > 0)
     .sort((a, b) => b.total - a.total)
 
-  // Build seller data for radar
+  // Fetch clients with total_spend for CA calculation
+  const { data: clientsForCA } = await supabase
+    .from('clients')
+    .select('seller_id, total_spend')
+
+  // Build seller data for radar - ALL REAL DATA
   const sellerRadarData = (allSellers || []).slice(0, 4).map((seller) => {
     const contacts = activityMap[seller.id] || 0
     const overdue = sellerOverdue[seller.id]?.count || 0
+    const sellerClients = (clientsForCA || []).filter(c => c.seller_id === seller.id)
+    const clientCount = sellerClients.length
+    const totalCA = sellerClients.reduce((sum, c) => sum + (c.total_spend || 0), 0)
+    const aJourPct = clientCount > 0 ? Math.round(((clientCount - overdue) / clientCount) * 100) : 100
+
     return {
       name: seller.full_name.split(' ')[0],
       contacts: contacts,
-      conversions: Math.floor(contacts * 0.3),
-      followUps: Math.floor(contacts * 0.5),
-      responsiveness: Math.max(20, 100 - overdue * 10),
-      clientSatisfaction: Math.max(40, 95 - overdue * 5),
+      clients: clientCount,
+      ca: totalCA,
+      aJour: aJourPct,
     }
-  })
+  }).filter(s => s.clients > 0)
 
   const maxTierCount = Math.max(...Object.values(clientsByTier), 1)
   const contactsWeek = contactsThisWeek || 0

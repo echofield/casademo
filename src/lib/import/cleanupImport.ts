@@ -3,6 +3,17 @@ import type { ClientTier } from '@/lib/types'
 import { TIER_RECONTACT_DAYS } from '@/lib/types'
 
 export const CASABLANCA_IMPORT_TAG = '[import:casablanca-cleanup]'
+export const NO_CONTACT_TAG = '[no-contact]'
+
+/** Redirect sellers who left to another seller (lowercase name → lowercase name) */
+export const SELLER_REDIRECT: Record<string, string> = {
+  'kevin pastrana': 'hasael moussa',
+  'oriane adjourouvi': 'hasael moussa',
+  'amadou diop': 'hasael moussa',
+  'naima mastour': 'hasael moussa',
+  'julane moussa': 'hasael moussa',  // Same person, name change
+  'hasael moussa': 'hasael moussa',  // Ensure correct mapping
+}
 
 export type CsvRow = Record<string, string | undefined>
 
@@ -157,10 +168,14 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
     if (!last) last = '—'
   }
 
-  const sellerName = findColumn(row, 'seller')
-  if (!sellerName) {
+  const sellerNameRaw = findColumn(row, 'seller')
+  if (!sellerNameRaw) {
     return { ok: false, rowNum, message: 'Missing seller' }
   }
+
+  // Apply seller redirect (e.g., Kevin → Hasael)
+  const sellerNameLower = sellerNameRaw.trim().toLowerCase()
+  const sellerName = SELLER_REDIRECT[sellerNameLower] || sellerNameRaw
 
   const totalSpendRaw = findColumn(row, 'total_spend')
   let totalSpend = 0
@@ -177,7 +192,11 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
 
   const userNotes = findColumn(row, 'notes')
   const tag = CASABLANCA_IMPORT_TAG
-  const notes = userNotes ? `${tag} ${userNotes}` : tag
+  const noContactTag = (!emailRaw && !phoneRaw) ? ` ${NO_CONTACT_TAG}` : ''
+  const redirectTag = SELLER_REDIRECT[sellerNameLower] ? ` [ex:${sellerNameRaw}]` : ''
+  const notes = userNotes
+    ? `${tag}${noContactTag}${redirectTag} ${userNotes}`
+    : `${tag}${noContactTag}${redirectTag}`
 
   const purchaseRaw = findColumn(row, 'purchase_history')
   const purchaseDescription = purchaseRaw

@@ -44,9 +44,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect app routes (except login)
+  // Protect app routes (except login and setup-mfa)
   if (
     !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/setup-mfa') &&
     !request.nextUrl.pathname.startsWith('/api') &&
     !request.nextUrl.pathname.startsWith('/_next') &&
     !user

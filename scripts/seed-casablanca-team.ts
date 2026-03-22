@@ -20,32 +20,32 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-/** full_name must match CSV `seller` column exactly (case-insensitive match uses trim) */
+/** Supervisors */
+const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
+  { email: 'julane.moussa@casaone.fr', full_name: 'Hasael Moussa', password: 'casablanca-supervisor' },
+  { email: 'hicham.elhimar@casaone.fr', full_name: 'Hicham EL Himar', password: 'casablanca-supervisor' },
+]
+
+/** Sellers (full_name must match CSV `seller` column exactly) */
 const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'amadou.diop@casaone.fr', full_name: 'Amadou Diop', password: 'casablanca-seller' },
-  { email: 'elliott.nowack@casaone.fr', full_name: 'Elliott nowack', password: 'casablanca-seller' },
+  { email: 'elliott.nowack@casaone.fr', full_name: 'Elliott Nowack', password: 'casablanca-seller' },
   { email: 'hamza.said@casaone.fr', full_name: 'Hamza Said', password: 'casablanca-seller' },
-  { email: 'hasael.moussa@casaone.fr', full_name: 'Hasael Moussa', password: 'casablanca-seller' },
-  { email: 'helen.kidane@casaone.fr', full_name: 'Helen kidane', password: 'casablanca-seller' },
-  { email: 'hicham.elhimar@casaone.fr', full_name: 'Hicham EL Himar', password: 'casablanca-seller' },
-  { email: 'julane.moussa@casaone.fr', full_name: 'Julane moussa', password: 'casablanca-seller' },
-  { email: 'kevin.pastrana@casaone.fr', full_name: 'Kevin pastrana', password: 'casablanca-seller' },
-  { email: 'maxime.hudzevych@casaone.fr', full_name: 'Maxime hudzevych', password: 'casablanca-seller' },
-  { email: 'naima.mastour@casaone.fr', full_name: 'Naima mastour', password: 'casablanca-seller' },
-  { email: 'oriane.adjourouvi@casaone.fr', full_name: 'Oriane Adjourouvi', password: 'casablanca-seller' },
+  { email: 'helen.kidane@casaone.fr', full_name: 'Helen Kidane', password: 'casablanca-seller' },
+  { email: 'julane.moussa@casaone.fr', full_name: 'Hasael Moussa', password: 'casablanca-seller' }, // Also supervisor
+  { email: 'maxime.hudzevych@casaone.fr', full_name: 'Maxime Hudzevych', password: 'casablanca-seller' },
   { email: 'raphael.rivera@casaone.fr', full_name: 'Raphael Rivera', password: 'casablanca-seller' },
   { email: 'ryan.jackson@casaone.fr', full_name: 'Ryan Jackson', password: 'casablanca-seller' },
   { email: 'yassmine.moutaouakil@casaone.fr', full_name: 'Yassmine Moutaouakil', password: 'casablanca-seller' },
 ]
 
-async function ensureUser(row: typeof CASABLANCA_TEAM[0]) {
+async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supervisor' = 'seller') {
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email: row.email,
     password: row.password,
     email_confirm: true,
     user_metadata: {
       full_name: row.full_name,
-      role: 'seller',
+      role,
     },
   })
 
@@ -60,7 +60,7 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0]) {
             id: existing.id,
             email: row.email,
             full_name: row.full_name,
-            role: 'seller',
+            role,
             active: true,
           })
         console.log(`Exists (synced profile): ${row.email}`)
@@ -76,7 +76,7 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0]) {
     id: userId,
     email: row.email,
     full_name: row.full_name,
-    role: 'seller',
+    role,
     active: true,
   })
 
@@ -88,10 +88,18 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0]) {
 }
 
 async function main() {
-  console.log('Seeding Casablanca team sellers (14 profiles)...\n')
-  for (const row of CASABLANCA_TEAM) {
-    await ensureUser(row)
+  console.log('Seeding Casablanca team...\n')
+
+  console.log('--- Supervisors ---')
+  for (const row of SUPERVISORS) {
+    await ensureUser(row, 'supervisor')
   }
+
+  console.log('\n--- Sellers ---')
+  for (const row of CASABLANCA_TEAM) {
+    await ensureUser(row, 'seller')
+  }
+
   console.log('\nDone. Set real passwords in Supabase Auth if needed.')
 }
 

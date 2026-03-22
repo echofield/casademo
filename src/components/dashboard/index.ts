@@ -3,7 +3,7 @@
 
 export { ProgressionChart } from './ProgressionChart'
 export { IconStatCard } from './IconStatCard'
-export { SellerActivityRadar } from './SellerActivityRadar'
+export { SellerActivityRadar, type SellerRadarData } from './SellerActivityRadar'
 export { QuickActions } from './QuickActions'
 export { LivingWave } from './LivingWave'
 export { ComplexionDots, RhythmIndicator, HealthBar } from './ComplexionDots'

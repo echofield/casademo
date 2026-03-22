@@ -7,6 +7,7 @@ interface ClientGridCardProps {
   spendLabel: string
   lastContactLabel: string
   nextRecontactLabel: string
+  sellerName?: string
 }
 
 const HIGH_VALUE: ClientTier[] = ['grand_prix', 'diplomatico']
@@ -16,6 +17,7 @@ export function ClientGridCard({
   spendLabel,
   lastContactLabel,
   nextRecontactLabel,
+  sellerName,
 }: ClientGridCardProps) {
   const isHighValue = HIGH_VALUE.includes(client.tier)
 
@@ -31,6 +33,11 @@ export function ClientGridCard({
             {client.first_name} {client.last_name}
           </h2>
           {client.phone && <p className="body-small mt-1 text-text-muted">{client.phone}</p>}
+          {sellerName && (
+            <p className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              {sellerName}
+            </p>
+          )}
         </div>
         <TierBadge tier={client.tier} />
       </div>

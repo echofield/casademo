@@ -4,12 +4,10 @@ import { AppShell, TierBadge, CornerBrackets } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
   SellerActivityRadar,
-  ComplexionDots,
-  HealthBar,
   SellerTierBreakdown,
 } from '@/components/dashboard'
-import { Users, AlertCircle, TrendingUp, Activity } from 'lucide-react'
-import Link from 'next/link'
+import type { SellerRadarData } from '@/components/dashboard/SellerActivityRadar'
+import { Users, AlertCircle, TrendingUp, Activity, Euro } from 'lucide-react'
 
 export default async function TeamPage() {
   const user = await getCurrentUser()
@@ -30,70 +28,78 @@ export default async function TeamPage() {
     .eq('active', true)
     .order('full_name')
 
-  // Fetch clients with seller assignment
+  // Fetch all clients with their seller
   const { data: clientsData } = await supabase
     .from('clients')
-    .select('id, seller_id, tier, total_spend, heat_score')
+    .select('id, seller_id, tier, total_spend')
 
   // Fetch recent contacts (last 7 days)
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
   const { data: recentContacts } = await supabase
     .from('contacts')
-    .select('seller_id, contact_date')
+    .select('seller_id')
     .gte('contact_date', weekAgo.toISOString())
 
-  // Fetch overdue clients
+  // Fetch overdue clients from recontact_queue
   const { data: overdueData } = await supabase
     .from('recontact_queue')
-    .select('seller_id, seller_name, days_overdue')
+    .select('seller_id, days_overdue')
     .gt('days_overdue', 0)
 
-  // Build seller stats
+  // Build seller stats with REAL data only
   const sellerStats = (allSellers || []).map(seller => {
     const clients = (clientsData || []).filter(c => c.seller_id === seller.id)
     const contacts = (recentContacts || []).filter(c => c.seller_id === seller.id).length
-    const overdue = (overdueData || []).filter(c => c.seller_id === seller.id).length
+    const overdueClients = (overdueData || []).filter(c => c.seller_id === seller.id)
+    const overdueCount = overdueClients.length
     const totalSpend = clients.reduce((sum, c) => sum + (c.total_spend || 0), 0)
-    const avgHeat = clients.length > 0
-      ? Math.round(clients.reduce((sum, c) => sum + (c.heat_score || 50), 0) / clients.length)
-      : 50
+
+    // % of clients that are NOT overdue
+    const aJourPct = clients.length > 0
+      ? Math.round(((clients.length - overdueCount) / clients.length) * 100)
+      : 100
 
     // Tier breakdown
     const tiers: Record<ClientTier, number> = {
       rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0
     }
-    clients.forEach(c => { if (c.tier) tiers[c.tier as ClientTier]++ })
+    clients.forEach(c => {
+      if (c.tier && tiers[c.tier as ClientTier] !== undefined) {
+        tiers[c.tier as ClientTier]++
+      }
+    })
 
     return {
       id: seller.id,
       name: seller.full_name,
       clientCount: clients.length,
       contactsWeek: contacts,
-      overdueCount: overdue,
+      overdueCount,
       totalSpend,
-      avgHeat,
+      aJourPct,
       tiers,
     }
   })
 
-  // Build radar data (top 4 sellers by client count)
-  const topSellers = [...sellerStats].sort((a, b) => b.clientCount - a.clientCount).slice(0, 4)
-  const radarData = topSellers.map(s => ({
-    name: s.name.split(' ')[0],
-    contacts: s.contactsWeek,
-    conversions: Math.floor(s.contactsWeek * 0.3),
-    followUps: Math.floor(s.contactsWeek * 0.5),
-    responsiveness: Math.max(20, 100 - s.overdueCount * 10),
-    clientSatisfaction: Math.max(40, 95 - s.overdueCount * 5),
-  }))
+  // Build radar data with REAL metrics only
+  const radarData: SellerRadarData[] = sellerStats
+    .filter(s => s.clientCount > 0)
+    .sort((a, b) => b.clientCount - a.clientCount)
+    .slice(0, 4)
+    .map(s => ({
+      name: s.name.split(' ')[0],
+      contacts: s.contactsWeek,
+      clients: s.clientCount,
+      ca: s.totalSpend,
+      aJour: s.aJourPct,
+    }))
 
-  // Alerts
+  // Alerts - only factual issues
   const inactiveSellers = sellerStats.filter(s => s.contactsWeek === 0 && s.clientCount > 0)
   const highOverdueSellers = sellerStats.filter(s => s.overdueCount >= 5)
-  const coldPortfolios = sellerStats.filter(s => s.avgHeat < 30 && s.clientCount > 0)
 
-  // Seller breakdown for component
+  // Seller breakdown for the component
   const sellerBreakdownData = sellerStats
     .filter(s => s.clientCount > 0)
     .map(s => ({
@@ -107,6 +113,14 @@ export default async function TeamPage() {
   const totalClients = clientsData?.length || 0
   const totalOverdue = overdueData?.length || 0
   const totalContacts = recentContacts?.length || 0
+  const totalCA = sellerStats.reduce((sum, s) => sum + s.totalSpend, 0)
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(0)}k€`
+    }
+    return `${amount}€`
+  }
 
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
@@ -117,11 +131,11 @@ export default async function TeamPage() {
             Vue d'équipe
           </h1>
           <p className="text-text-soft mt-1">
-            Performance et répartition des vendeurs
+            {allSellers?.length || 0} vendeurs · {totalClients} clients
           </p>
         </div>
 
-        {/* Quick stats */}
+        {/* Quick stats - all factual */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <QuickStat
             label="Vendeurs actifs"
@@ -146,8 +160,8 @@ export default async function TeamPage() {
           />
         </div>
 
-        {/* Alerts section */}
-        {(inactiveSellers.length > 0 || highOverdueSellers.length > 0 || coldPortfolios.length > 0) && (
+        {/* Alerts section - only if there are real issues */}
+        {(inactiveSellers.length > 0 || highOverdueSellers.length > 0) && (
           <section
             className="p-6 mb-8 relative"
             style={{
@@ -163,29 +177,22 @@ export default async function TeamPage() {
             <div className="space-y-2">
               {inactiveSellers.map(s => (
                 <p key={s.id} className="text-sm text-text">
-                  <strong>{s.name}</strong> n'a fait aucun contact cette semaine ({s.clientCount} clients)
+                  <strong>{s.name}</strong> — 0 contact cette semaine ({s.clientCount} clients)
                 </p>
               ))}
               {highOverdueSellers.map(s => (
                 <p key={s.id} className="text-sm text-text">
-                  <strong>{s.name}</strong> a {s.overdueCount} clients en retard
-                </p>
-              ))}
-              {coldPortfolios.map(s => (
-                <p key={s.id} className="text-sm text-text">
-                  <strong>{s.name}</strong> a un portefeuille froid (score moyen: {s.avgHeat})
+                  <strong>{s.name}</strong> — {s.overdueCount} clients en retard
                 </p>
               ))}
             </div>
           </section>
         )}
 
-        {/* Two column layout */}
+        {/* Two column layout: Radar + Breakdown */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          {/* Radar chart */}
-          {radarData.length > 0 && (
-            <SellerActivityRadar sellers={radarData} />
-          )}
+          {/* Radar chart - factual data */}
+          <SellerActivityRadar sellers={radarData} />
 
           {/* Seller breakdown */}
           <SellerTierBreakdown sellers={sellerBreakdownData} />
@@ -227,56 +234,69 @@ export default async function TeamPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-3 gap-2 mb-4">
                   <div>
-                    <p className="text-[10px] text-text-muted uppercase">Contacts (7j)</p>
+                    <p className="text-[10px] text-text-muted uppercase">Contacts</p>
                     <p className="font-serif text-lg text-text">{seller.contactsWeek}</p>
+                    <p className="text-[9px] text-text-muted">cette semaine</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-text-muted uppercase">En retard</p>
-                    <p className={`font-serif text-lg ${seller.overdueCount > 0 ? 'text-gold' : 'text-text'}`}>
+                    <p className={`font-serif text-lg ${seller.overdueCount > 0 ? 'text-danger' : 'text-primary'}`}>
                       {seller.overdueCount}
                     </p>
+                    <p className="text-[9px] text-text-muted">clients</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase">CA</p>
+                    <p className="font-serif text-lg text-gold">{formatCurrency(seller.totalSpend)}</p>
+                    <p className="text-[9px] text-text-muted">total</p>
                   </div>
                 </div>
 
+                {/* À jour indicator */}
                 <div className="mb-3">
-                  <p className="text-[10px] text-text-muted uppercase mb-1">Température moyenne</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] text-text-muted uppercase">Portefeuille à jour</p>
+                    <span className={`text-xs font-medium ${seller.aJourPct >= 80 ? 'text-primary' : seller.aJourPct >= 50 ? 'text-gold' : 'text-danger'}`}>
+                      {seller.aJourPct}%
+                    </span>
+                  </div>
+                  <div
+                    className="h-1.5 overflow-hidden rounded-full"
+                    style={{ backgroundColor: 'var(--faint)' }}
+                  >
                     <div
-                      className="flex-1 h-1.5 overflow-hidden rounded-full"
-                      style={{ backgroundColor: 'var(--faint)' }}
-                    >
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${seller.avgHeat}%`,
-                          backgroundColor: seller.avgHeat >= 60 ? '#D97706' : seller.avgHeat >= 40 ? '#A38767' : '#6E685F',
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-text-muted">{seller.avgHeat}</span>
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${seller.aJourPct}%`,
+                        backgroundColor: seller.aJourPct >= 80 ? 'var(--green)' : seller.aJourPct >= 50 ? 'var(--gold)' : 'var(--danger)',
+                      }}
+                    />
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1">
-                  {TIER_ORDER.map(tier => {
-                    const count = seller.tiers[tier]
-                    if (count === 0) return null
-                    return (
-                      <span
-                        key={tier}
-                        className="text-[10px] px-1.5 py-0.5"
-                        style={{
-                          backgroundColor: 'var(--faint)',
-                          borderRadius: '2px',
-                        }}
-                      >
-                        {tier.charAt(0).toUpperCase()}: {count}
-                      </span>
-                    )
-                  })}
-                </div>
+                {/* Tier breakdown pills */}
+                {seller.clientCount > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {TIER_ORDER.map(tier => {
+                      const count = seller.tiers[tier]
+                      if (count === 0) return null
+                      return (
+                        <span
+                          key={tier}
+                          className="text-[10px] px-1.5 py-0.5"
+                          style={{
+                            backgroundColor: 'var(--faint)',
+                            borderRadius: '2px',
+                          }}
+                        >
+                          {tier.charAt(0).toUpperCase()}: {count}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>

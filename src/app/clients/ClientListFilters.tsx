@@ -7,11 +7,22 @@ import { ClientTier } from '@/lib/types'
 interface Props {
   currentSearch: string
   currentTier?: ClientTier
+  currentSeller?: string
   tiers: ClientTier[]
   tierLabels: Record<ClientTier, string>
+  sellers?: { id: string; full_name: string }[]
+  isSupervisor?: boolean
 }
 
-export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabels }: Props) {
+export function ClientListFilters({
+  currentSearch,
+  currentTier,
+  currentSeller,
+  tiers,
+  tierLabels,
+  sellers = [],
+  isSupervisor = false,
+}: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -63,7 +74,7 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
         onChange={(e) => updateParams('tier', e.target.value || undefined)}
         className="input-field md:w-48"
       >
-        <option value="">All Tiers</option>
+        <option value="">Tous les paliers</option>
         {tiers.map((tier) => (
           <option key={tier} value={tier}>
             {tierLabels[tier]}
@@ -71,7 +82,22 @@ export function ClientListFilters({ currentSearch, currentTier, tiers, tierLabel
         ))}
       </select>
 
-      {(currentSearch || currentTier) && (
+      {isSupervisor && sellers.length > 0 && (
+        <select
+          value={currentSeller || ''}
+          onChange={(e) => updateParams('seller', e.target.value || undefined)}
+          className="input-field md:w-48"
+        >
+          <option value="">Tous les vendeurs</option>
+          {sellers.map((seller) => (
+            <option key={seller.id} value={seller.id}>
+              {seller.full_name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {(currentSearch || currentTier || currentSeller) && (
         <button
           onClick={() => {
             setSearch('')
