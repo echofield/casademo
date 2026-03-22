@@ -22,6 +22,7 @@ export function ClientActions({ clientId }: Props) {
 
   const [purchaseAmount, setPurchaseAmount] = useState('')
   const [purchaseDescription, setPurchaseDescription] = useState('')
+  const [purchaseSource, setPurchaseSource] = useState('casa_one')
 
   const handleLogContact = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +72,7 @@ export function ClientActions({ clientId }: Props) {
         body: JSON.stringify({
           amount,
           description: purchaseDescription.trim() || null,
+          source: purchaseSource,
         }),
       })
 
@@ -82,6 +84,7 @@ export function ClientActions({ clientId }: Props) {
       setShowPurchaseModal(false)
       setPurchaseAmount('')
       setPurchaseDescription('')
+      setPurchaseSource('casa_one')
       router.refresh()
     } catch (err) {
       setPurchaseError(err instanceof Error ? err.message : 'Erreur')
@@ -203,6 +206,24 @@ export function ClientActions({ clientId }: Props) {
                     placeholder="ex. 450"
                     required
                   />
+                </div>
+
+                <div className="mb-4">
+                  <label className="label mb-2 block text-text-muted">Source (obligatoire)</label>
+                  <select
+                    value={purchaseSource}
+                    onChange={(e) => setPurchaseSource(e.target.value)}
+                    className="input-field"
+                    required
+                  >
+                    <option value="casa_one">Casa One</option>
+                    <option value="walk_in">Walk-in</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="recommendation">Recommandation</option>
+                    <option value="existing_client">Client existant</option>
+                    <option value="event">Événement</option>
+                    <option value="other">Autre</option>
+                  </select>
                 </div>
 
                 <div className="mb-6">

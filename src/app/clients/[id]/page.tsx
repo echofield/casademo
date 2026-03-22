@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { AppShell, TierBadge } from '@/components'
-import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel } from '@/lib/types'
+import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
+import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin } from '@/lib/types'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
 import { ClientActions } from './ClientActions'
@@ -85,6 +85,21 @@ export default async function Client360Page({ params }: Props) {
     .order('purchase_date', { ascending: false })
     .limit(20)
 
+  // Fetch sizing
+  const { data: sizing } = await supabase
+    .from('client_sizing')
+    .select('id, category, size, fit_preference, notes')
+    .eq('client_id', id)
+    .order('category')
+
+  // Fetch visits
+  const { data: visits } = await supabase
+    .from('visits')
+    .select('id, visit_date, duration_minutes, tried_products, notes, converted')
+    .eq('client_id', id)
+    .order('visit_date', { ascending: false })
+    .limit(20)
+
   // Build Client360 object
   const clientData: Client360 = {
     id: client.id,
@@ -99,6 +114,9 @@ export default async function Client360Page({ params }: Props) {
     last_contact_date: client.last_contact_date,
     next_recontact_date: client.next_recontact_date,
     notes: client.notes,
+    origin: client.origin || null,
+    is_personal_shopper: client.is_personal_shopper || false,
+    heat_score: client.heat_score || 50,
     created_at: client.created_at,
     updated_at: client.updated_at,
     seller_name: (() => {
@@ -122,6 +140,21 @@ export default async function Client360Page({ params }: Props) {
       date: p.purchase_date,
       amount: p.amount,
       description: p.description,
+    })),
+    sizing: (sizing || []).map(s => ({
+      id: s.id,
+      category: s.category,
+      size: s.size,
+      fit_preference: s.fit_preference,
+      notes: s.notes,
+    })),
+    visit_history: (visits || []).map(v => ({
+      id: v.id,
+      date: v.visit_date,
+      duration_minutes: v.duration_minutes,
+      tried_products: v.tried_products,
+      notes: v.notes,
+      converted: v.converted,
     })),
   }
 
@@ -204,6 +237,12 @@ export default async function Client360Page({ params }: Props) {
                     {clientData.first_name} {clientData.last_name}
                   </h1>
                   <TierBadge tier={clientData.tier} size="md" />
+                  <OriginBadge origin={clientData.origin} size="md" />
+                  <PersonalShopperBadge isPersonalShopper={clientData.is_personal_shopper} size="md" />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-text-muted">Température:</span>
+                  <HeatIndicator score={clientData.heat_score} size="sm" />
                 </div>
                 <p className={`font-serif text-3xl ${isPremium ? 'text-gold' : 'text-primary'}`}>
                   {formatCurrency(clientData.total_spend)}
@@ -345,6 +384,34 @@ export default async function Client360Page({ params }: Props) {
             <p className="body-small text-text-muted">Aucun centre d'intérêt enregistré pour l'instant.</p>
           )}
           <ClientInterestAdd clientId={id} canEdit={canEdit} />
+        </section>
+
+        {/* Mensurations / Sizing */}
+        <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
+          <p className="label mb-2 text-text-muted">Mensurations</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Tailles par catégorie</h2>
+          {clientData.sizing && clientData.sizing.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {clientData.sizing.map((s) => (
+                <div
+                  key={s.id}
+                  className="border bg-bg-soft p-4"
+                  style={cardBorder}
+                >
+                  <p className="label text-text-muted mb-1">{s.category}</p>
+                  <p className="font-serif text-lg text-text">{s.size}</p>
+                  {s.fit_preference && (
+                    <p className="text-xs text-text-muted mt-1">Coupe: {s.fit_preference}</p>
+                  )}
+                  {s.notes && (
+                    <p className="text-xs text-text-soft mt-1">{s.notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="body-small text-text-muted">Aucune mensuration enregistrée.</p>
+          )}
         </section>
 
         {/* Historique */}

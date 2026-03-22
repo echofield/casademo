@@ -9,6 +9,7 @@ import {
   ComplexionDots,
   RhythmIndicator,
   HealthBar,
+  SellerTierBreakdown,
 } from '@/components/dashboard'
 import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
@@ -78,6 +79,34 @@ export default async function DashboardPage() {
     .select('id, full_name')
     .eq('role', 'seller')
     .eq('active', true)
+
+  // Fetch seller/tier breakdown
+  const { data: clientsWithSeller } = await supabase
+    .from('clients')
+    .select('seller_id, tier')
+
+  // Build seller tier breakdown
+  const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
+
+  ;(allSellers || []).forEach((seller) => {
+    sellerTierMap[seller.id] = {
+      name: seller.full_name,
+      tiers: { rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0 },
+      total: 0,
+    }
+  })
+
+  ;(clientsWithSeller || []).forEach((c) => {
+    if (sellerTierMap[c.seller_id]) {
+      sellerTierMap[c.seller_id].tiers[c.tier as ClientTier]++
+      sellerTierMap[c.seller_id].total++
+    }
+  })
+
+  const sellerBreakdownData = Object.entries(sellerTierMap)
+    .map(([id, data]) => ({ seller_id: id, seller_name: data.name, tiers: data.tiers, total: data.total }))
+    .filter(s => s.total > 0)
+    .sort((a, b) => b.total - a.total)
 
   // Build seller data for radar
   const sellerRadarData = (allSellers || []).slice(0, 4).map((seller) => {
@@ -308,44 +337,48 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Tier Distribution */}
-        <section
-          className="p-6 md:p-8 mb-10 relative"
-          style={{
-            background: 'var(--paper)',
-            border: '0.5px solid var(--faint)',
-            borderRadius: '2px',
-          }}
-        >
-          <CornerBrackets size="md" opacity={0.3} />
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
-            <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {TIER_ORDER.map((tier) => {
-              const count = clientsByTier[tier]
+        {/* Tier Distribution + Seller Breakdown */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-10">
+          <section
+            className="p-6 md:p-8 relative"
+            style={{
+              background: 'var(--paper)',
+              border: '0.5px solid var(--faint)',
+              borderRadius: '2px',
+            }}
+          >
+            <CornerBrackets size="md" opacity={0.3} />
+            <div className="flex items-center gap-2 mb-6">
+              <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
+              <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
+            </div>
+            <div className="space-y-4">
+              {TIER_ORDER.map((tier) => {
+                const count = clientsByTier[tier]
 
-              return (
-                <div key={tier} className="flex items-center gap-4">
-                  <div className="w-28 shrink-0">
-                    <TierBadge tier={tier} />
+                return (
+                  <div key={tier} className="flex items-center gap-4">
+                    <div className="w-28 shrink-0">
+                      <TierBadge tier={tier} />
+                    </div>
+                    <div className="flex-1">
+                      <HealthBar
+                        value={count}
+                        max={maxTierCount}
+                        variant="good"
+                      />
+                    </div>
+                    <span className="w-8 shrink-0 text-right font-serif text-lg text-text">
+                      {count}
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <HealthBar
-                      value={count}
-                      max={maxTierCount}
-                      variant="good"
-                    />
-                  </div>
-                  <span className="w-8 shrink-0 text-right font-serif text-lg text-text">
-                    {count}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+                )
+              })}
+            </div>
+          </section>
+
+          <SellerTierBreakdown sellers={sellerBreakdownData} />
+        </div>
       </div>
     </AppShell>
   )

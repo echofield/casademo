@@ -23,7 +23,7 @@ export function Nav({ userRole, userName }: NavProps) {
     { href: '/clients', label: 'Clients' },
     ...(userRole === 'supervisor' ? [
       { href: '/dashboard', label: 'Dashboard' },
-      { href: '/formation/analytics', label: 'Formation' },
+      { href: '/team', label: 'Team' },
     ] : []),
   ]
 

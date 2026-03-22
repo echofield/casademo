@@ -3,10 +3,21 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 
+const PURCHASE_SOURCES = [
+  'casa_one',
+  'walk_in',
+  'instagram',
+  'recommendation',
+  'existing_client',
+  'event',
+  'other',
+] as const
+
 const createPurchaseSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
   description: z.string().optional().nullable(),
   purchase_date: z.string().optional(),
+  source: z.enum(PURCHASE_SOURCES),
 })
 
 // POST /api/clients/[id]/purchases - Log purchase
@@ -48,6 +59,7 @@ export async function POST(
         amount: parsed.data.amount,
         description: parsed.data.description,
         purchase_date: parsed.data.purchase_date || new Date().toISOString().split('T')[0],
+        source: parsed.data.source,
       } as any)
       .select()
       .single()

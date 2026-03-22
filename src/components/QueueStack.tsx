@@ -14,6 +14,8 @@ interface QueueClient {
   phone: string | null
   total_spend: number
   days_overdue: number | null
+  seller_id: string
+  seller_name: string
   lastContactLabel: string
   nextContactLabel: string
 }
@@ -22,9 +24,11 @@ interface Props {
   clients: QueueClient[]
   overdueCount: number
   totalCount: number
+  userRole?: 'seller' | 'supervisor'
+  currentUserId?: string
 }
 
-export function QueueStack({ clients, overdueCount, totalCount }: Props) {
+export function QueueStack({ clients, overdueCount, totalCount, userRole = 'seller', currentUserId }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const goNext = useCallback(() => {
@@ -112,7 +116,7 @@ export function QueueStack({ clients, overdueCount, totalCount }: Props) {
           exit={{ opacity: 0, y: -8 }}
           transition={transitions.enter}
         >
-          <FocusedClientCard client={current} />
+          <FocusedClientCard client={current} userRole={userRole} currentUserId={currentUserId} />
         </motion.div>
       </AnimatePresence>
 

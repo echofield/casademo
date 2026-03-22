@@ -33,6 +33,8 @@ export default async function QueuePage() {
     phone: item.phone,
     total_spend: item.total_spend,
     days_overdue: item.days_overdue,
+    seller_id: item.seller_id,
+    seller_name: item.seller_name,
     lastContactLabel: formatDate(item.last_contact_date),
     nextContactLabel: formatDate(item.next_recontact_date),
   }))
@@ -46,6 +48,8 @@ export default async function QueuePage() {
           clients={clientsWithLabels}
           overdueCount={overdueCount}
           totalCount={items.length}
+          userRole={user.profile.role}
+          currentUserId={user.id}
         />
       </div>
     </AppShell>

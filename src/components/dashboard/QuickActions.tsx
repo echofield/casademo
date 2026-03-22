@@ -6,17 +6,15 @@
  */
 
 import Link from 'next/link'
-import { FileText, Users, Bell, Calendar } from 'lucide-react'
+import { Users, Bell } from 'lucide-react'
 
 interface QuickActionsProps {
   className?: string
 }
 
 const actions = [
-  { icon: FileText, label: 'Générer rapport', href: '#', color: '#1B4332' },
-  { icon: Users, label: 'Voir équipe', href: '/clients', color: '#2F6B4F' },
-  { icon: Bell, label: 'Notifications', href: '#', color: '#A38767' },
-  { icon: Calendar, label: 'Planning', href: '/queue', color: '#6E685F' },
+  { icon: Bell, label: 'Notifications', href: '/notifications', color: '#A38767' },
+  { icon: Users, label: 'Voir équipe', href: '/team', color: '#1B4332' },
 ]
 
 export function QuickActions({ className = '' }: QuickActionsProps) {

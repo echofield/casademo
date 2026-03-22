@@ -65,6 +65,17 @@ export type InterestTaxonomy = Database['public']['Tables']['interest_taxonomy']
 export type NotificationType = Database['public']['Enums']['notification_type']
 export type NotificationRow = Database['public']['Tables']['notifications']['Row']
 
+export type ClientOrigin = Database['public']['Enums']['client_origin']
+export type ConversionSource = Database['public']['Enums']['conversion_source']
+
+export type ClientSizing = Database['public']['Tables']['client_sizing']['Row']
+export type ClientSizingInsert = Database['public']['Tables']['client_sizing']['Insert']
+export type ClientSizingUpdate = Database['public']['Tables']['client_sizing']['Update']
+
+export type Visit = Database['public']['Tables']['visits']['Row']
+export type VisitInsert = Database['public']['Tables']['visits']['Insert']
+export type VisitUpdate = Database['public']['Tables']['visits']['Update']
+
 // View types
 export type RecontactQueueItem = Database['public']['Views']['recontact_queue']['Row']
 
@@ -82,12 +93,34 @@ export interface Client360 {
   last_contact_date: string | null
   next_recontact_date: string | null
   notes: string | null
+  origin: ClientOrigin | null
+  is_personal_shopper: boolean
+  heat_score: number
   created_at: string
   updated_at: string
   seller_name: string
   interests: InterestItem[] | null
   contact_history: ContactHistoryItem[] | null
   purchase_history: PurchaseHistoryItem[] | null
+  sizing: SizingItem[] | null
+  visit_history: VisitItem[] | null
+}
+
+export interface SizingItem {
+  id: string
+  category: string
+  size: string
+  fit_preference: string | null
+  notes: string | null
+}
+
+export interface VisitItem {
+  id: string
+  date: string
+  duration_minutes: number | null
+  tried_products: string[] | null
+  notes: string | null
+  converted: boolean
 }
 
 export interface InterestItem {

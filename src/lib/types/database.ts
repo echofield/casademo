@@ -52,6 +52,10 @@ export type Database = {
           last_contact_date: string | null
           next_recontact_date: string | null
           notes: string | null
+          origin: 'french' | 'foreign' | null
+          is_personal_shopper: boolean
+          heat_score: number
+          heat_updated_at: string | null
           created_at: string
           updated_at: string
         }
@@ -68,6 +72,10 @@ export type Database = {
           last_contact_date?: string | null
           next_recontact_date?: string | null
           notes?: string | null
+          origin?: 'french' | 'foreign' | null
+          is_personal_shopper?: boolean
+          heat_score?: number
+          heat_updated_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -84,6 +92,10 @@ export type Database = {
           last_contact_date?: string | null
           next_recontact_date?: string | null
           notes?: string | null
+          origin?: 'french' | 'foreign' | null
+          is_personal_shopper?: boolean
+          heat_score?: number
+          heat_updated_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -151,6 +163,8 @@ export type Database = {
           amount: number
           description: string | null
           purchase_date: string
+          conversion_source: 'organic' | 'recontact' | 'campaign' | 'referral'
+          source_contact_id: string | null
           created_at: string
         }
         Insert: {
@@ -160,6 +174,8 @@ export type Database = {
           amount: number
           description?: string | null
           purchase_date?: string
+          conversion_source?: 'organic' | 'recontact' | 'campaign' | 'referral'
+          source_contact_id?: string | null
           created_at?: string
         }
         Update: {
@@ -169,6 +185,75 @@ export type Database = {
           amount?: number
           description?: string | null
           purchase_date?: string
+          conversion_source?: 'organic' | 'recontact' | 'campaign' | 'referral'
+          source_contact_id?: string | null
+          created_at?: string
+        }
+      }
+      client_sizing: {
+        Row: {
+          id: string
+          client_id: string
+          category: string
+          size: string
+          fit_preference: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          category: string
+          size: string
+          fit_preference?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          category?: string
+          size?: string
+          fit_preference?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      visits: {
+        Row: {
+          id: string
+          client_id: string
+          seller_id: string
+          visit_date: string
+          duration_minutes: number | null
+          tried_products: string[] | null
+          notes: string | null
+          converted: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          seller_id: string
+          visit_date?: string
+          duration_minutes?: number | null
+          tried_products?: string[] | null
+          notes?: string | null
+          converted?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          seller_id?: string
+          visit_date?: string
+          duration_minutes?: number | null
+          tried_products?: string[] | null
+          notes?: string | null
+          converted?: boolean
           created_at?: string
         }
       }
@@ -240,6 +325,9 @@ export type Database = {
           total_spend: number
           last_contact_date: string | null
           next_recontact_date: string | null
+          origin: 'french' | 'foreign' | null
+          is_personal_shopper: boolean
+          heat_score: number
           days_overdue: number
           seller_id: string
           seller_name: string
@@ -259,12 +347,17 @@ export type Database = {
           last_contact_date: string | null
           next_recontact_date: string | null
           notes: string | null
+          origin: 'french' | 'foreign' | null
+          is_personal_shopper: boolean
+          heat_score: number
           created_at: string
           updated_at: string
           seller_name: string
           interests: Json | null
           contact_history: Json | null
           purchase_history: Json | null
+          sizing: Json | null
+          visit_history: Json | null
         }
       }
     }
@@ -272,6 +365,8 @@ export type Database = {
       user_role: 'seller' | 'supervisor'
       contact_channel: 'whatsapp' | 'sms' | 'phone' | 'email' | 'in_store' | 'other'
       client_tier: 'rainbow' | 'optimisto' | 'kaizen' | 'idealiste' | 'diplomatico' | 'grand_prix'
+      client_origin: 'french' | 'foreign'
+      conversion_source: 'organic' | 'recontact' | 'campaign' | 'referral'
       notification_type:
         | 'client_overdue'
         | 'tier_upgrade'
