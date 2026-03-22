@@ -30,7 +30,7 @@ export function ComplexionDots({
   value,
   max,
   dots = 6,
-  color = '#0D4A3A',
+  color = '#1B4332',
   inverted = false,
   size = 'md',
   showValue = false,
@@ -119,8 +119,8 @@ export function RhythmIndicator({
   // Map activity to descriptive state
   const state = activity > 0.7 ? 'active' : activity > 0.3 ? 'moderate' : 'quiet'
   const stateColors = {
-    active: '#0D4A3A',
-    moderate: '#A48763',
+    active: '#1B4332',
+    moderate: '#A38767',
     quiet: '#6E685F',
   }
   const stateLabels = {
@@ -181,9 +181,9 @@ export function HealthBar({
   const percentage = Math.min((value / max) * 100, 100)
 
   const gradients = {
-    good: 'linear-gradient(90deg, #0D4A3A 0%, #2F6B4F 100%)',
+    good: 'linear-gradient(90deg, #1B4332 0%, #2F6B4F 100%)',
     warning: 'linear-gradient(90deg, #D97706 0%, #C34747 100%)',
-    neutral: 'linear-gradient(90deg, #6E685F 0%, #A48763 100%)',
+    neutral: 'linear-gradient(90deg, #6E685F 0%, #A38767 100%)',
   }
 
   return (

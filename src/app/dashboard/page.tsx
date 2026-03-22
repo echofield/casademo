@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, TierBadge, PageHeader } from '@/components'
+import { AppShell, TierBadge, PageHeader, CornerBrackets } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
   ProgressionChart,
@@ -130,19 +130,23 @@ export default async function DashboardPage() {
           <div
             className="p-8 md:p-10 relative overflow-hidden"
             style={{
-              background: 'linear-gradient(145deg, rgba(252,250,246,0.98) 0%, rgba(247,244,238,0.95) 100%)',
+              background: 'var(--paper)',
+              border: '0.5px solid var(--faint)',
               borderRadius: '2px',
             }}
           >
+            {/* SYMI corner brackets */}
+            <CornerBrackets size="lg" opacity={0.4} />
+
             {/* Subtle accent bar */}
             <div
-              className="absolute top-0 left-0 w-full h-1"
+              className="absolute top-0 left-0 w-full h-0.5"
               style={{
                 background: overdueTotal > 10
-                  ? 'linear-gradient(90deg, #C34747 0%, #D97706 50%, #A48763 100%)'
+                  ? 'linear-gradient(90deg, #C34747 0%, #D97706 50%, #A38767 100%)'
                   : overdueTotal > 0
-                  ? 'linear-gradient(90deg, #A48763 0%, #2F6B4F 100%)'
-                  : 'linear-gradient(90deg, #0D4A3A 0%, #2F6B4F 100%)',
+                  ? 'linear-gradient(90deg, #A38767 0%, #2F6B4F 100%)'
+                  : 'linear-gradient(90deg, #1B4332 0%, #2F6B4F 100%)',
               }}
             />
 
@@ -165,8 +169,14 @@ export default async function DashboardPage() {
                 {overdueTotal > 0 && (
                   <Link
                     href="/queue"
-                    className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-primary text-white text-sm font-medium tracking-wide transition-all duration-200 hover:bg-primary-soft"
-                    style={{ borderRadius: '2px' }}
+                    className="inline-flex items-center gap-2 mt-6 px-6 py-3 text-sm font-medium tracking-wide transition-all duration-200 hover:-translate-y-0.5"
+                    style={{
+                      background: 'var(--green)',
+                      color: 'var(--paper)',
+                      borderRadius: '2px',
+                      fontFamily: 'var(--font-serif)',
+                      boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)',
+                    }}
                   >
                     TRAVAILLER LA FILE
                   </Link>
@@ -234,10 +244,12 @@ export default async function DashboardPage() {
             <div
               className="p-6 relative"
               style={{
-                background: 'linear-gradient(145deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
+                background: 'var(--paper)',
+                border: '0.5px solid var(--faint)',
                 borderRadius: '2px',
               }}
             >
+              <CornerBrackets size="md" opacity={0.3} />
               <span className="label text-text-muted mb-4 block">ACTIVITÉ INDIVIDUELLE</span>
               <div className="space-y-4">
                 {(allSellers || []).slice(0, 5).map((seller) => {
@@ -249,14 +261,15 @@ export default async function DashboardPage() {
                     <div
                       key={seller.id}
                       className="flex items-center justify-between py-3"
-                      style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.05)' }}
+                      style={{ borderBottom: '0.5px solid var(--faint)' }}
                     >
                       <div className="flex items-center gap-4">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-lg"
+                          className="w-10 h-10 flex items-center justify-center font-serif text-lg"
                           style={{
-                            backgroundColor: 'rgba(13, 74, 58, 0.08)',
-                            color: '#0D4A3A',
+                            backgroundColor: 'var(--green-soft)',
+                            color: 'var(--green)',
+                            borderRadius: '2px',
                           }}
                         >
                           {seller.full_name.charAt(0)}
@@ -269,7 +282,7 @@ export default async function DashboardPage() {
                               max={maxContacts}
                               dots={6}
                               size="sm"
-                              color="#0D4A3A"
+                              color="#1B4332"
                             />
                             <span className="text-xs text-text-muted">{contacts} contacts</span>
                           </div>
@@ -297,12 +310,14 @@ export default async function DashboardPage() {
 
         {/* Tier Distribution */}
         <section
-          className="p-6 md:p-8 mb-10"
+          className="p-6 md:p-8 mb-10 relative"
           style={{
-            background: 'linear-gradient(145deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
+            background: 'var(--paper)',
+            border: '0.5px solid var(--faint)',
             borderRadius: '2px',
           }}
         >
+          <CornerBrackets size="md" opacity={0.3} />
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
             <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
@@ -336,7 +351,7 @@ export default async function DashboardPage() {
   )
 }
 
-// Minimal stat pill component
+// Minimal stat pill component - SYMI style
 function StatPill({
   label,
   value,
@@ -351,16 +366,19 @@ function StatPill({
   variant?: 'neutral' | 'good' | 'caution' | 'warning'
 }) {
   const colors = {
-    neutral: { text: '#1C1B19', bg: 'rgba(28, 27, 25, 0.03)' },
-    good: { text: '#0D4A3A', bg: 'rgba(13, 74, 58, 0.05)' },
-    caution: { text: '#A48763', bg: 'rgba(164, 135, 99, 0.08)' },
-    warning: { text: '#C34747', bg: 'rgba(195, 71, 71, 0.06)' },
+    neutral: { text: 'var(--ink)', bg: 'rgba(26, 26, 26, 0.03)' },
+    good: { text: 'var(--green)', bg: 'rgba(27, 67, 50, 0.05)' },
+    caution: { text: 'var(--gold)', bg: 'rgba(163, 135, 103, 0.08)' },
+    warning: { text: 'var(--danger)', bg: 'rgba(195, 71, 71, 0.06)' },
   }
 
   return (
     <div
-      className="p-4 rounded-sm"
-      style={{ backgroundColor: colors[variant].bg }}
+      className="p-4"
+      style={{
+        backgroundColor: colors[variant].bg,
+        borderRadius: '2px',
+      }}
     >
       <div className="flex items-center gap-2 mb-2">
         {icon && <span style={{ color: colors[variant].text }}>{icon}</span>}

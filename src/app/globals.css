@@ -3,9 +3,38 @@
 @tailwind utilities;
 
 /* ============================================
-   CASA CRM DESIGN SYSTEM V2
-   Premium operational clarity
+   CASA CRM DESIGN SYSTEM V3
+   SYMI-Inspired Luxury Minimal
    ============================================ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES
+   ============================================ */
+:root {
+  /* Paper - the base */
+  --paper: #FAF8F2;
+  --paper-dim: #F5F3ED;
+
+  /* Ink */
+  --ink: #1A1A1A;
+  --ink-soft: #3D3D3D;
+
+  /* Forest green - the signal */
+  --green: #1B4332;
+  --green-soft: rgba(27, 67, 50, 0.08);
+  --green-glow: rgba(27, 67, 50, 0.15);
+
+  /* Warmgrey - structure */
+  --warmgrey: #C9C5BC;
+  --faint: #E8E5DE;
+
+  /* Gold accent */
+  --gold: #A38767;
+
+  /* Semantic */
+  --danger: #C34747;
+  --success: #2F6B4F;
+}
 
 @layer base {
   html {
@@ -15,8 +44,25 @@
 
   body {
     min-height: 100vh;
-    background-color: #F7F4EE;
-    color: #1C1B19;
+    background-color: var(--paper);
+    color: var(--ink);
+  }
+
+  /* Subtle paper grain texture */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Selection highlight */
+  ::selection {
+    background: rgba(27, 67, 50, 0.12);
+    color: var(--ink);
   }
 
   /* Base heading styles - serif for identity */
@@ -45,8 +91,19 @@
 
   /* Global focus styles */
   *:focus-visible {
-    outline: 2px solid #0D4A3A;
+    outline: 2px solid var(--green);
     outline-offset: 2px;
+  }
+
+  /* Input focus glow */
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 3px var(--green-soft);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--ink);
+    opacity: 0.3;
   }
 }
 
@@ -174,49 +231,92 @@
    ============================================ */
 
 @layer components {
-  /* Buttons */
+  /* Buttons - SYMI style */
   .btn-primary {
-    @apply bg-primary text-surface font-sans px-6 py-3 text-sm font-medium;
-    @apply hover:bg-primary-soft transition-colors duration-200;
+    @apply px-6 py-3 text-sm font-medium;
+    background: var(--green);
+    color: var(--paper);
+    border-radius: 2px;
+    font-family: var(--font-serif);
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+    @apply transition-all duration-200;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
   }
 
   .btn-secondary {
-    @apply bg-transparent text-text px-6 py-3;
-    @apply text-sm font-sans font-medium;
-    border: 1px solid rgba(28, 27, 25, 0.14);
-    @apply hover:bg-bg-soft transition-colors duration-200;
+    @apply bg-transparent px-6 py-3 text-sm font-medium;
+    color: var(--green);
+    border: 0.5px solid var(--green);
+    border-radius: 2px;
+    @apply transition-all duration-200;
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-2px);
   }
 
   .btn-ghost {
-    @apply bg-transparent text-text-muted px-4 py-2;
-    @apply text-sm font-sans;
-    @apply hover:text-text hover:bg-bg-soft transition-colors duration-200;
+    @apply bg-transparent px-4 py-2 text-sm;
+    color: var(--ink-soft);
+    border: 0.5px solid var(--faint);
+    border-radius: 2px;
+    @apply transition-all duration-200;
   }
 
-  /* Inputs */
+  .btn-ghost:hover {
+    border-color: var(--green);
+    color: var(--ink);
+    transform: translateY(-2px);
+  }
+
+  /* Inputs - SYMI style */
   .input-field {
-    @apply w-full px-4 py-3 bg-surface font-sans text-text;
-    border: 1px solid rgba(28, 27, 25, 0.08);
-    @apply placeholder:text-text-muted;
-    @apply focus:outline-none focus:border-primary transition-colors duration-200;
+    @apply w-full px-4 py-3 font-sans;
+    background: var(--paper);
+    color: var(--ink);
+    border: 0.5px solid var(--faint);
+    border-radius: 2px;
+    @apply transition-all duration-200;
   }
 
-  /* Cards */
+  .input-field:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-soft);
+  }
+
+  /* Cards - SYMI style */
   .card {
-    @apply bg-surface p-6;
-    border: 1px solid rgba(28, 27, 25, 0.08);
+    @apply p-6 relative;
+    background: var(--paper);
+    border: 0.5px solid var(--faint);
+    border-radius: 2px;
   }
 
   .card-elevated {
-    @apply bg-surface p-6 shadow-card;
-    border: 1px solid rgba(28, 27, 25, 0.05);
+    @apply p-6 relative;
+    background: var(--paper);
+    border: 0.5px solid var(--faint);
+    border-radius: 2px;
+    box-shadow: 0 40px 80px rgba(27, 67, 50, 0.08);
   }
 
   /* Data rows */
   .data-row {
     @apply py-5 flex items-center justify-between;
-    border-bottom: 1px solid rgba(28, 27, 25, 0.08);
-    @apply hover:bg-bg-soft transition-colors duration-200;
+    border-bottom: 0.5px solid var(--faint);
+    @apply transition-colors duration-200;
+  }
+
+  .data-row:hover {
+    background: var(--green-soft);
   }
 
   .data-row:last-child {
@@ -225,11 +325,19 @@
 
   /* Section dividers */
   .divider {
-    border-top: 1px solid rgba(28, 27, 25, 0.08);
+    border-top: 0.5px solid var(--faint);
   }
 
   .divider-strong {
-    border-top: 1px solid rgba(28, 27, 25, 0.14);
+    border-top: 0.5px solid var(--warmgrey);
+  }
+
+  /* Gold divider accent (SYMI style) */
+  .divider-gold {
+    width: 48px;
+    height: 0.5px;
+    background: var(--gold);
+    opacity: 0.3;
   }
 }
 
@@ -240,15 +348,15 @@
 @layer utilities {
   /* Text states */
   .text-overdue {
-    color: #C34747;
+    color: var(--danger);
   }
 
   .text-success {
-    color: #2F6B4F;
+    color: var(--success);
   }
 
   .text-gold {
-    color: #A48763;
+    color: var(--gold);
   }
 
   /* Background states */
@@ -261,35 +369,35 @@
   }
 
   .bg-gold-soft {
-    background-color: rgba(164, 135, 99, 0.1);
+    background-color: rgba(163, 135, 103, 0.1);
   }
 
   .bg-primary-soft {
-    background-color: rgba(13, 74, 58, 0.08);
+    background-color: var(--green-soft);
   }
 
   /* Border states */
   .border-overdue {
-    border-color: #C34747;
+    border-color: var(--danger);
   }
 
   /* Left accent borders for urgency */
   .accent-left-overdue {
-    border-left: 3px solid #C34747;
+    border-left: 2px solid var(--danger);
   }
 
   .accent-left-gold {
-    border-left: 3px solid #A48763;
+    border-left: 2px solid var(--gold);
   }
 
   .accent-left-primary {
-    border-left: 3px solid #0D4A3A;
+    border-left: 2px solid var(--green);
   }
 }
 
 /* ============================================
    MOTION SYSTEM
-   Alive but calm
+   SYMI-inspired organic animations
    ============================================ */
 
 @layer utilities {
@@ -305,20 +413,44 @@
     transition: all 0.3s ease;
   }
 
-  /* Hover lift effect - subtle */
+  /* Hover lift effect - SYMI style (stronger) */
   .hover-lift {
-    @apply transition-default;
+    @apply transition-slow;
   }
 
   .hover-lift:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
-  /* Fade in animation */
+  .hover-lift:active {
+    transform: translateY(0);
+  }
+
+  /* SYMI Keyframe Animations */
+
+  /* Settle - organic convergence */
+  @keyframes settle {
+    0% { transform: scale(1); }
+    100% { transform: scale(0.85); }
+  }
+
+  /* Suffuse - ink in water, color bleeding */
+  @keyframes suffuse {
+    0% { stroke: var(--warmgrey); }
+    100% { stroke: var(--green); }
+  }
+
+  /* Surface - memory rising */
+  @keyframes surface {
+    0% { opacity: 0; filter: blur(8px); }
+    100% { opacity: 1; filter: blur(0); }
+  }
+
+  /* Fade in with Y offset */
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(4px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -327,21 +459,25 @@
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.3s ease forwards;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-surface {
+    animation: surface 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   /* Stagger children */
   .stagger-children > * {
-    animation: fadeIn 0.3s ease forwards;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     opacity: 0;
   }
 
   .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 400ms; }
 }
 
 /* ============================================

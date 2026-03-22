@@ -31,7 +31,7 @@ const DIMENSIONS = [
   { key: 'clientSatisfaction', label: 'Satisfaction', max: 100 },
 ]
 
-const COLORS = ['#0D4A3A', '#A48763', '#2F6B4F', '#6E685F']
+const COLORS = ['#1B4332', '#A38767', '#2F6B4F', '#6E685F']
 
 export function SellerActivityRadar({ sellers, className = '' }: SellerActivityRadarProps) {
   const size = 200
@@ -58,9 +58,9 @@ export function SellerActivityRadar({ sellers, className = '' }: SellerActivityR
     <div
       className={`relative overflow-hidden ${className}`}
       style={{
-        background: 'linear-gradient(135deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
-        border: '1px solid rgba(28, 27, 25, 0.06)',
-        backdropFilter: 'blur(8px)',
+        background: 'var(--paper)',
+        border: '0.5px solid var(--faint)',
+        borderRadius: '2px',
       }}
     >
       <div className="p-6">
@@ -72,7 +72,7 @@ export function SellerActivityRadar({ sellers, className = '' }: SellerActivityR
         <div className="flex items-center justify-center">
           <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[200px]">
             {/* Axis lines */}
-            <g stroke="#0D4A3A" strokeWidth="0.5" strokeOpacity="0.12">
+            <g stroke="#1B4332" strokeWidth="0.5" strokeOpacity="0.12">
               {angles.map((angle, i) => (
                 <line
                   key={`axis-${i}`}
@@ -85,7 +85,7 @@ export function SellerActivityRadar({ sellers, className = '' }: SellerActivityR
             </g>
 
             {/* Web rings */}
-            <g stroke="#0D4A3A" strokeWidth="0.5" strokeOpacity="0.08" fill="none">
+            <g stroke="#1B4332" strokeWidth="0.5" strokeOpacity="0.08" fill="none">
               {[0.25, 0.5, 0.75, 1].map((rPct) => (
                 <polygon
                   key={`web-${rPct}`}

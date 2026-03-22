@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Cormorant_Garamond } from 'next/font/google'
 import './globals.css'
 
@@ -17,6 +17,10 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: 'Casa One',
   description: 'Boutique Clienteling CRM',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#FAF8F2',
 }
 
 export default function RootLayout({

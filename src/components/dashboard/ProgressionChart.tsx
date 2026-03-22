@@ -48,16 +48,16 @@ export function ProgressionChart({
     <div
       className={`relative overflow-hidden ${className}`}
       style={{
-        background: 'linear-gradient(135deg, rgba(252,250,246,0.95) 0%, rgba(247,244,238,0.98) 100%)',
-        border: '1px solid rgba(28, 27, 25, 0.06)',
-        backdropFilter: 'blur(8px)',
+        background: 'var(--paper)',
+        border: '0.5px solid var(--faint)',
+        borderRadius: '2px',
       }}
     >
-      {/* Subtle gradient accent */}
+      {/* SYMI-style gradient accent */}
       <div
-        className="absolute top-0 left-0 w-1 h-full"
+        className="absolute top-0 left-0 w-0.5 h-full"
         style={{
-          background: 'linear-gradient(180deg, #0D4A3A 0%, #2F6B4F 50%, #A48763 100%)',
+          background: 'linear-gradient(180deg, #1B4332 0%, #2F6B4F 50%, #A38767 100%)',
         }}
       />
 
@@ -71,19 +71,19 @@ export function ProgressionChart({
           <AreaChart data={data}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0D4A3A" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#0D4A3A" stopOpacity={0} />
+                <stop offset="5%" stopColor="#1B4332" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="#1B4332" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="rgba(28, 27, 25, 0.06)"
+              stroke="var(--faint)"
               vertical={true}
             />
             <XAxis
               dataKey="month"
               tick={{ fill: '#6E685F', fontSize: 11, fontFamily: 'var(--font-sans)' }}
-              axisLine={{ stroke: 'rgba(28, 27, 25, 0.08)' }}
+              axisLine={{ stroke: 'var(--faint)' }}
               tickLine={false}
             />
             <YAxis
@@ -95,20 +95,20 @@ export function ProgressionChart({
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'rgba(252,250,246,0.95)',
-                border: '1px solid rgba(28, 27, 25, 0.08)',
+                backgroundColor: 'var(--paper)',
+                border: '0.5px solid var(--faint)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: '12px',
-                borderRadius: '4px',
-                backdropFilter: 'blur(8px)',
+                borderRadius: '2px',
+                boxShadow: '0 8px 40px rgba(27, 67, 50, 0.04)',
               }}
-              labelStyle={{ color: '#1C1B19', fontWeight: 500 }}
+              labelStyle={{ color: 'var(--ink)', fontWeight: 500 }}
             />
             {/* Target line - dashed */}
             <Line
               type="monotone"
               dataKey="target"
-              stroke="#A48763"
+              stroke="#A38767"
               strokeWidth={1.5}
               strokeDasharray="4 4"
               dot={false}
@@ -117,18 +117,18 @@ export function ProgressionChart({
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#0D4A3A"
+              stroke="#1B4332"
               strokeWidth={2}
               fill="url(#colorValue)"
               dot={{
-                fill: '#FCFAF6',
-                stroke: '#0D4A3A',
+                fill: 'var(--paper)',
+                stroke: '#1B4332',
                 strokeWidth: 2,
                 r: 4,
               }}
               activeDot={{
-                fill: '#0D4A3A',
-                stroke: '#FCFAF6',
+                fill: '#1B4332',
+                stroke: 'var(--paper)',
                 strokeWidth: 2,
                 r: 6,
               }}

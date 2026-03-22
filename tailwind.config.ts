@@ -9,52 +9,67 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Background
-        bg: '#F7F4EE',
-        'bg-soft': '#F2EEE7',
-        surface: '#FCFAF6',
-        'surface-alt': '#F8F5EF',
+        // SYMI Design System Colors
 
-        // Text
-        text: '#1C1B19',
-        'text-soft': '#5F5A53',
+        // Background/Paper
+        bg: '#FAF8F2',
+        'bg-soft': '#F5F3ED',
+        surface: '#FAF8F2',
+        'surface-alt': '#F5F3ED',
+
+        // Text/Ink
+        text: '#1A1A1A',
+        'text-soft': '#3D3D3D',
         'text-muted': '#6E685F',
 
-        // Primary (trust green)
-        primary: '#0D4A3A',
-        'primary-soft': '#1B5C49',
+        // Primary (forest green - SYMI)
+        primary: '#1B4332',
+        'primary-soft': '#2F6B4F',
 
         // Accent (premium gold)
-        gold: '#A48763',
+        gold: '#A38767',
 
         // Semantic
         danger: '#C34747',
         success: '#2F6B4F',
 
+        // Structure
+        faint: '#E8E5DE',
+        warmgrey: '#C9C5BC',
+
         // Legacy aliases (for compatibility)
-        paper: '#F7F4EE',
-        ink: '#1C1B19',
-        green: '#0D4A3A',
+        paper: '#FAF8F2',
+        ink: '#1A1A1A',
+        green: '#1B4332',
         'grey-light': '#E8E5DE',
-        'grey-medium': '#C8C4BA',
+        'grey-medium': '#C9C5BC',
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'Georgia', 'serif'],
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 1px 2px rgba(28, 27, 25, 0.03)',
-        card: '0 8px 20px rgba(28, 27, 25, 0.04)',
-        sm: '0 1px 3px rgba(28, 27, 25, 0.03)',
-        md: '0 2px 8px rgba(28, 27, 25, 0.04)',
-        lg: '0 4px 16px rgba(28, 27, 25, 0.05)',
+        // SYMI-style green-tinted shadows
+        soft: '0 1px 2px rgba(27, 67, 50, 0.03)',
+        card: '0 40px 80px rgba(27, 67, 50, 0.08)',
+        sm: '0 1px 3px rgba(27, 67, 50, 0.03)',
+        md: '0 8px 40px rgba(27, 67, 50, 0.04)',
+        lg: '0 24px 80px rgba(27, 67, 50, 0.08)',
+        modal: '0 24px 80px rgba(26, 26, 26, 0.2)',
       },
       borderColor: {
-        DEFAULT: 'rgba(28, 27, 25, 0.08)',
-        strong: 'rgba(28, 27, 25, 0.14)',
+        DEFAULT: '#E8E5DE',
+        strong: '#C9C5BC',
       },
       borderWidth: {
         thin: '0.5px',
+      },
+      borderRadius: {
+        // SYMI uses very subtle radius
+        DEFAULT: '2px',
+        sm: '2px',
+        md: '2px',
+        lg: '2px',
       },
     },
   },

@@ -1,12 +1,13 @@
 import { ClientTier, TIER_LABELS } from '@/lib/types'
 
-const TIER_STYLES: Record<ClientTier, string> = {
-  rainbow: 'text-text-muted',
-  optimisto: 'text-text-soft',
-  kaizen: 'text-primary',
-  idealiste: 'text-primary',
-  diplomatico: 'text-gold',
-  grand_prix: 'text-gold',
+// SYMI-style tier colors
+const TIER_COLORS: Record<ClientTier, { text: string; border: string }> = {
+  rainbow: { text: 'var(--ink-soft)', border: 'var(--faint)' },
+  optimisto: { text: 'var(--ink-soft)', border: 'var(--warmgrey)' },
+  kaizen: { text: 'var(--green)', border: 'var(--green)' },
+  idealiste: { text: 'var(--green)', border: 'var(--green)' },
+  diplomatico: { text: 'var(--gold)', border: 'var(--gold)' },
+  grand_prix: { text: 'var(--gold)', border: 'var(--gold)' },
 }
 
 interface TierBadgeProps {
@@ -16,19 +17,24 @@ interface TierBadgeProps {
 
 export function TierBadge({ tier, size = 'sm' }: TierBadgeProps) {
   const tierKey = tier as ClientTier
-  const style = TIER_STYLES[tierKey] || 'text-text-muted'
+  const colors = TIER_COLORS[tierKey] || { text: 'var(--ink-soft)', border: 'var(--faint)' }
   const label = TIER_LABELS[tierKey] || tier
 
   const sizeClasses = size === 'sm'
-    ? 'text-[10px] tracking-[0.1em]'
-    : 'text-xs tracking-[0.08em]'
+    ? 'text-[9px] px-2 py-0.5'
+    : 'text-[10px] px-3 py-1'
 
   return (
     <span
       className={`
-        inline-block font-sans font-medium uppercase
-        ${style} ${sizeClasses}
+        inline-block font-sans font-medium uppercase tracking-[0.1em]
+        ${sizeClasses}
       `}
+      style={{
+        color: colors.text,
+        border: `0.5px solid ${colors.border}`,
+        borderRadius: '2px',
+      }}
     >
       {label}
     </span>

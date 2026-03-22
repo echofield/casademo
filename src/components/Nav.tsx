@@ -49,8 +49,8 @@ export function Nav({ userRole, userName }: NavProps) {
       <nav
         className="sticky top-0 z-40 hidden items-center justify-between border-b px-8 py-4 md:flex"
         style={{
-          borderColor: 'rgba(28, 27, 25, 0.08)',
-          backgroundColor: 'rgba(247, 244, 238, 0.88)',
+          borderColor: 'var(--faint)',
+          backgroundColor: 'rgba(250, 248, 242, 0.88)',
           backdropFilter: 'blur(8px)',
         }}
       >
@@ -67,7 +67,7 @@ export function Nav({ userRole, userName }: NavProps) {
 
           <div
             className="flex items-center gap-5 pl-8"
-            style={{ borderLeft: '1px solid rgba(28, 27, 25, 0.08)' }}
+            style={{ borderLeft: '0.5px solid var(--faint)' }}
           >
             <NotificationBell />
             <span className="text-xs text-text-muted">{userName}</span>
@@ -83,7 +83,7 @@ export function Nav({ userRole, userName }: NavProps) {
         </div>
       </nav>
 
-      <nav className="sticky top-0 z-40 border-b bg-bg md:hidden" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+      <nav className="sticky top-0 z-40 border-b bg-bg md:hidden" style={{ borderColor: 'var(--faint)' }}>
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="font-serif text-lg text-primary">
             Casa One
@@ -110,7 +110,7 @@ export function Nav({ userRole, userName }: NavProps) {
         {mobileOpen && (
           <div
             className="absolute left-0 right-0 top-full z-50 bg-bg"
-            style={{ borderBottom: '1px solid rgba(28, 27, 25, 0.08)' }}
+            style={{ borderBottom: '0.5px solid var(--faint)' }}
           >
             <div className="space-y-4 px-4 py-4">
               {links.map((link) => (
@@ -125,7 +125,7 @@ export function Nav({ userRole, userName }: NavProps) {
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-4" style={{ borderTop: '1px solid rgba(28, 27, 25, 0.08)' }}>
+              <div className="pt-4" style={{ borderTop: '0.5px solid var(--faint)' }}>
                 <p className="mb-3 text-xs text-text-muted">{userName}</p>
                 <button
                   type="button"
