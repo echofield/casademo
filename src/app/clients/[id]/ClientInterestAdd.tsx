@@ -35,14 +35,14 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
         }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Échec de l’enregistrement')
+      if (!res.ok) throw new Error(json.error || 'Failed to save')
       setCategory('')
       setValue('')
       setDetail('')
       setOpen(false)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur')
+      setError(err instanceof Error ? err.message : 'Error')
     } finally {
       setLoading(false)
     }
@@ -56,48 +56,48 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
           onClick={() => setOpen(true)}
           className="label text-primary transition-colors duration-200 hover:text-primary-soft"
         >
-          + Ajouter un centre d’intérêt
+          + Add an interest
         </button>
       ) : (
         <form onSubmit={submit} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="label mb-1 block text-text-muted">Catégorie</label>
+              <label className="label mb-1 block text-text-muted">Category</label>
               <input
                 className="input-field"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="ex. Produits"
+                placeholder="e.g. Products"
                 required
               />
             </div>
             <div>
-              <label className="label mb-1 block text-text-muted">Valeur</label>
+              <label className="label mb-1 block text-text-muted">Value</label>
               <input
                 className="input-field"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="ex. Chemises en soie"
+                placeholder="e.g. Silk shirts"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="label mb-1 block text-text-muted">Précision (optionnel)</label>
+            <label className="label mb-1 block text-text-muted">Details (optional)</label>
             <input
               className="input-field"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
-              placeholder="Taille, couleur, collection…"
+              placeholder="Size, color, collection..."
             />
           </div>
           {error && <p className="body-small text-danger">{error}</p>}
           <div className="flex flex-wrap gap-2">
             <Button type="submit" loading={loading}>
-              Enregistrer
+              Save
             </Button>
             <Button type="button" variant="ghost" onClick={() => { setOpen(false); setError(null) }}>
-              Annuler
+              Cancel
             </Button>
           </div>
         </form>

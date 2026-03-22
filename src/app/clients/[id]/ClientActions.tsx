@@ -41,14 +41,14 @@ export function ClientActions({ clientId }: Props) {
 
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        throw new Error(j.error || 'Échec de l’enregistrement')
+        throw new Error(j.error || 'Failed to save')
       }
 
       setShowContactModal(false)
       setContactComment('')
       router.refresh()
     } catch (err) {
-      setContactError(err instanceof Error ? err.message : 'Erreur')
+      setContactError(err instanceof Error ? err.message : 'Error')
     } finally {
       setLoading(false)
     }
@@ -59,7 +59,7 @@ export function ClientActions({ clientId }: Props) {
     setPurchaseError(null)
     const amount = parseFloat(purchaseAmount.replace(',', '.'))
     if (Number.isNaN(amount) || amount <= 0) {
-      setPurchaseError('Indiquez un montant valide (€).')
+      setPurchaseError('Enter a valid amount (€).')
       return
     }
 
@@ -78,7 +78,7 @@ export function ClientActions({ clientId }: Props) {
 
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        throw new Error(j.error || 'Échec de l’enregistrement')
+        throw new Error(j.error || 'Failed to save')
       }
 
       setShowPurchaseModal(false)
@@ -87,7 +87,7 @@ export function ClientActions({ clientId }: Props) {
       setPurchaseSource('casa_one')
       router.refresh()
     } catch (err) {
-      setPurchaseError(err instanceof Error ? err.message : 'Erreur')
+      setPurchaseError(err instanceof Error ? err.message : 'Error')
     } finally {
       setLoading(false)
     }
@@ -97,7 +97,7 @@ export function ClientActions({ clientId }: Props) {
     <>
       <div id="vendor-actions" className="flex flex-wrap gap-2 md:gap-3">
         <Button type="button" onClick={() => { setContactError(null); setShowContactModal(true) }}>
-          Enregistrer un contact
+          Log a contact
         </Button>
         <Button
           type="button"
@@ -107,7 +107,7 @@ export function ClientActions({ clientId }: Props) {
             setShowPurchaseModal(true)
           }}
         >
-          Ajouter un achat
+          Add a purchase
         </Button>
       </div>
 
@@ -128,32 +128,32 @@ export function ClientActions({ clientId }: Props) {
               aria-labelledby="contact-modal-title"
             >
               <h3 id="contact-modal-title" className="mb-4 font-serif text-xl text-text">
-                Enregistrer un contact
+                Log a contact
               </h3>
               <form onSubmit={handleLogContact}>
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Canal</label>
+                  <label className="label mb-2 block text-text-muted">Channel</label>
                   <select
                     value={contactChannel}
                     onChange={(e) => setContactChannel(e.target.value)}
                     className="input-field"
                   >
                     <option value="whatsapp">WhatsApp</option>
-                    <option value="phone">Téléphone</option>
+                    <option value="phone">Phone</option>
                     <option value="sms">SMS</option>
                     <option value="email">E-mail</option>
-                    <option value="in_store">Boutique</option>
-                    <option value="other">Autre</option>
+                    <option value="in_store">In-store</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div className="mb-6">
-                  <label className="label mb-2 block text-text-muted">Notes (optionnel)</label>
+                  <label className="label mb-2 block text-text-muted">Notes (optional)</label>
                   <textarea
                     value={contactComment}
                     onChange={(e) => setContactComment(e.target.value)}
                     className="input-field h-24 resize-none"
-                    placeholder="Résumé de l’échange…"
+                    placeholder="Summary of the exchange..."
                   />
                 </div>
 
@@ -161,10 +161,10 @@ export function ClientActions({ clientId }: Props) {
 
                 <div className="flex flex-wrap gap-3">
                   <Button type="submit" loading={loading}>
-                    Enregistrer
+                    Save
                   </Button>
                   <Button type="button" variant="ghost" onClick={() => setShowContactModal(false)}>
-                    Annuler
+                    Cancel
                   </Button>
                 </div>
               </form>
@@ -189,27 +189,27 @@ export function ClientActions({ clientId }: Props) {
               aria-labelledby="purchase-modal-title"
             >
               <h3 id="purchase-modal-title" className="mb-2 font-serif text-xl text-text">
-                Ajouter un achat
+                Add a purchase
               </h3>
               <p className="body-small mb-4 text-text-muted">
-                Le montant est ajouté au total client et peut faire évoluer le palier.
+                The amount is added to the client total and may update their tier.
               </p>
               <form onSubmit={handleLogPurchase}>
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Montant (€)</label>
+                  <label className="label mb-2 block text-text-muted">Amount (€)</label>
                   <input
                     type="text"
                     inputMode="decimal"
                     value={purchaseAmount}
                     onChange={(e) => setPurchaseAmount(e.target.value)}
                     className="input-field"
-                    placeholder="ex. 450"
+                    placeholder="e.g. 450"
                     required
                   />
                 </div>
 
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Source (obligatoire)</label>
+                  <label className="label mb-2 block text-text-muted">Source (required)</label>
                   <select
                     value={purchaseSource}
                     onChange={(e) => setPurchaseSource(e.target.value)}
@@ -219,21 +219,21 @@ export function ClientActions({ clientId }: Props) {
                     <option value="casa_one">Casa One</option>
                     <option value="walk_in">Walk-in</option>
                     <option value="instagram">Instagram</option>
-                    <option value="recommendation">Recommandation</option>
-                    <option value="existing_client">Client existant</option>
-                    <option value="event">Événement</option>
-                    <option value="other">Autre</option>
+                    <option value="recommendation">Recommendation</option>
+                    <option value="existing_client">Existing client</option>
+                    <option value="event">Event</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div className="mb-6">
-                  <label className="label mb-2 block text-text-muted">Libellé (recommandé)</label>
+                  <label className="label mb-2 block text-text-muted">Description (recommended)</label>
                   <input
                     type="text"
                     value={purchaseDescription}
                     onChange={(e) => setPurchaseDescription(e.target.value)}
                     className="input-field"
-                    placeholder="ex. Chemise en soie"
+                    placeholder="e.g. Silk shirt"
                   />
                 </div>
 
@@ -241,10 +241,10 @@ export function ClientActions({ clientId }: Props) {
 
                 <div className="flex flex-wrap gap-3">
                   <Button type="submit" loading={loading}>
-                    Enregistrer l’achat
+                    Save purchase
                   </Button>
                   <Button type="button" variant="ghost" onClick={() => setShowPurchaseModal(false)}>
-                    Annuler
+                    Cancel
                   </Button>
                 </div>
               </form>

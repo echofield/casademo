@@ -122,7 +122,7 @@ export default async function Client360Page({ params }: Props) {
     seller_name: (() => {
       const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
       return Array.isArray(s) ? s[0]?.full_name : s?.full_name
-    })() || 'Non assigné',
+    })() || 'Unassigned',
     interests: interests || [],
     contact_history: (contacts || []).map(c => {
       const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
@@ -132,7 +132,7 @@ export default async function Client360Page({ params }: Props) {
         date: c.contact_date,
         channel: c.channel as ContactChannel,
         comment: c.comment,
-        seller: sellerName || 'Inconnu',
+        seller: sellerName || 'Unknown',
       }
     }),
     purchase_history: (purchases || []).map(p => ({
@@ -173,7 +173,7 @@ export default async function Client360Page({ params }: Props) {
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -181,7 +181,7 @@ export default async function Client360Page({ params }: Props) {
   }
 
   const formatDateShort = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -189,7 +189,7 @@ export default async function Client360Page({ params }: Props) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -200,10 +200,10 @@ export default async function Client360Page({ params }: Props) {
     const labels: Record<string, string> = {
       whatsapp: 'WhatsApp',
       sms: 'SMS',
-      phone: 'Téléphone',
+      phone: 'Phone',
       email: 'E-mail',
-      in_store: 'Boutique',
-      other: 'Autre',
+      in_store: 'In-store',
+      other: 'Other',
     }
     return labels[channel] || channel
   }
@@ -231,7 +231,7 @@ export default async function Client360Page({ params }: Props) {
           >
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="label mb-2 text-text-muted">Fiche client</p>
+                <p className="label mb-2 text-text-muted">Client profile</p>
                 <div className="mb-2 flex flex-wrap items-center gap-3">
                   <h1 className="heading-1 text-text">
                     {clientData.first_name} {clientData.last_name}
@@ -241,17 +241,17 @@ export default async function Client360Page({ params }: Props) {
                   <PersonalShopperBadge isPersonalShopper={clientData.is_personal_shopper} size="md" />
                 </div>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-text-muted">Température:</span>
+                  <span className="text-xs text-text-muted">Temperature:</span>
                   <HeatIndicator score={clientData.heat_score} size="sm" />
                 </div>
                 <p className={`font-serif text-3xl ${isPremium ? 'text-gold' : 'text-primary'}`}>
                   {formatCurrency(clientData.total_spend)}
                   <span className="body-small ml-2 font-sans font-normal text-text-muted">
-                    total dépensé
+                    total spent
                   </span>
                 </p>
                 <p className="body-small mt-2 text-text-muted">
-                  Conseiller : <span className="text-text">{clientData.seller_name}</span>
+                  Advisor: <span className="text-text">{clientData.seller_name}</span>
                 </p>
               </div>
               {canEdit && (
@@ -281,7 +281,7 @@ export default async function Client360Page({ params }: Props) {
                   href={`tel:${clientData.phone}`}
                   className="flex w-fit items-center gap-2 text-text hover:text-primary"
                 >
-                  <span className="label text-text-muted">Tél.</span>
+                  <span className="label text-text-muted">Phone</span>
                   {clientData.phone}
                 </a>
               )}
@@ -302,7 +302,7 @@ export default async function Client360Page({ params }: Props) {
                   className="flex w-fit items-center gap-2 text-primary"
                 >
                   <span className="label text-text-muted">WhatsApp</span>
-                  Ouvrir la conversation
+                  Open conversation
                 </a>
               )}
             </div>
@@ -312,34 +312,34 @@ export default async function Client360Page({ params }: Props) {
               style={cardBorder}
             >
               <div>
-                <p className="label mb-1 text-text-muted">Premier contact</p>
+                <p className="label mb-1 text-text-muted">First contact</p>
                 <p className="body-small text-text">{formatDate(clientData.first_contact_date)}</p>
               </div>
               <div>
-                <p className="label mb-1 text-text-muted">Dernier contact</p>
+                <p className="label mb-1 text-text-muted">Last contact</p>
                 <p className="body-small text-text">{formatDate(clientData.last_contact_date)}</p>
               </div>
               <div>
-                <p className="label mb-1 text-text-muted">Prochain recontact</p>
+                <p className="label mb-1 text-text-muted">Next follow-up</p>
                 <p className="body-small text-text">{formatDate(clientData.next_recontact_date)}</p>
               </div>
             </div>
 
             <div className="mt-6 border-t pt-6" style={cardBorder}>
-              <p className="label mb-2 text-text-muted">Notes de fiche</p>
+              <p className="label mb-2 text-text-muted">Profile notes</p>
               {clientData.notes ? (
                 <p className="body whitespace-pre-wrap text-text">{clientData.notes}</p>
               ) : (
                 <p className="body-small text-text-muted italic">
-                  Aucune note — utilisez « Modifier la fiche » pour en ajouter.
+                  No notes — use "Edit profile" to add some.
                 </p>
               )}
             </div>
           </section>
 
-          {/* Prochaine étape */}
+          {/* Next step */}
           <section className="border bg-surface p-6" style={cardBorder}>
-            <p className="label mb-3 text-text-muted">Prochaine étape</p>
+            <p className="label mb-3 text-text-muted">Next step</p>
             <h2
               className={`mb-3 font-serif text-xl leading-snug ${
                 nextMove.urgent ? 'text-danger' : 'text-text'
@@ -348,25 +348,25 @@ export default async function Client360Page({ params }: Props) {
               {nextMove.headline}
             </h2>
             <p className="body-small mb-6 text-text-muted">{nextMove.detail}</p>
-            <p className="label mb-2 text-text-muted">Actions rapides</p>
+            <p className="label mb-2 text-text-muted">Quick actions</p>
             <p className="body-small text-text-muted">
-              En bas d'écran : enregistrer un contact (met à jour les dates) ou{' '}
-              <strong className="font-medium text-text">ajouter un achat</strong> (ex. chemise en soie + montant) pour
-              faire évoluer le total et le palier.
+              At the bottom: log a contact (updates dates) or{' '}
+              <strong className="font-medium text-text">add a purchase</strong> (e.g. silk shirt + amount) to
+              update total and tier.
             </p>
             <a
               href="#vendor-actions"
               className="label mt-4 inline-block text-primary hover:text-primary-soft"
             >
-              Aller aux actions →
+              Go to actions →
             </a>
           </section>
         </div>
 
-        {/* Centres d'intérêt */}
+        {/* Interests */}
         <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Centres d'intérêt</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Ce qu'il ou elle aime</h2>
+          <p className="label mb-2 text-text-muted">Interests</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">What they like</h2>
           {clientData.interests && clientData.interests.length > 0 ? (
             <ul className="flex flex-wrap gap-2">
               {clientData.interests.map((interest) => (
@@ -381,15 +381,15 @@ export default async function Client360Page({ params }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="body-small text-text-muted">Aucun centre d'intérêt enregistré pour l'instant.</p>
+            <p className="body-small text-text-muted">No interests recorded yet.</p>
           )}
           <ClientInterestAdd clientId={id} canEdit={canEdit} />
         </section>
 
-        {/* Mensurations / Sizing */}
+        {/* Sizing */}
         <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Mensurations</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Tailles par catégorie</h2>
+          <p className="label mb-2 text-text-muted">Sizing</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Sizes by category</h2>
           {clientData.sizing && clientData.sizing.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {clientData.sizing.map((s) => (
@@ -401,7 +401,7 @@ export default async function Client360Page({ params }: Props) {
                   <p className="label text-text-muted mb-1">{s.category}</p>
                   <p className="font-serif text-lg text-text">{s.size}</p>
                   {s.fit_preference && (
-                    <p className="text-xs text-text-muted mt-1">Coupe: {s.fit_preference}</p>
+                    <p className="text-xs text-text-muted mt-1">Fit: {s.fit_preference}</p>
                   )}
                   {s.notes && (
                     <p className="text-xs text-text-soft mt-1">{s.notes}</p>
@@ -410,17 +410,17 @@ export default async function Client360Page({ params }: Props) {
               ))}
             </div>
           ) : (
-            <p className="body-small text-text-muted">Aucune mensuration enregistrée.</p>
+            <p className="body-small text-text-muted">No sizing recorded.</p>
           )}
         </section>
 
-        {/* Historique */}
+        {/* History */}
         <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Historique</p>
-          <h2 className="mb-6 font-serif text-2xl text-text">Contacts & achats</h2>
+          <p className="label mb-2 text-text-muted">History</p>
+          <h2 className="mb-6 font-serif text-2xl text-text">Contacts & purchases</h2>
           {timeline.length === 0 ? (
             <p className="body-small text-text-muted">
-              Rien encore dans l'historique. Utilisez les actions ci-dessous pour enregistrer un contact ou un achat.
+              Nothing in history yet. Use the actions below to log a contact or purchase.
             </p>
           ) : (
             <ol className="space-y-0">
@@ -449,12 +449,12 @@ export default async function Client360Page({ params }: Props) {
                           <span className="body-small text-text-muted">{formatDateShort(ev.data.date)}</span>
                         </div>
                         {ev.data.comment && <p className="body-small text-text">{ev.data.comment}</p>}
-                        <p className="body-small mt-2 text-text-muted">Par {ev.data.seller}</p>
+                        <p className="body-small mt-2 text-text-muted">By {ev.data.seller}</p>
                       </div>
                     ) : (
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <div>
-                          <p className="body font-medium text-text">Achat</p>
+                          <p className="body font-medium text-text">Purchase</p>
                           <p className="body-small text-text-muted">{formatDateShort(ev.data.date)}</p>
                           {ev.data.description && (
                             <p className="body-small mt-1 text-text">{ev.data.description}</p>
@@ -477,7 +477,7 @@ export default async function Client360Page({ params }: Props) {
           className="fixed bottom-0 left-0 right-0 z-30 border-t bg-bg/95 px-4 py-3 backdrop-blur-sm md:static md:z-0 md:mt-8 md:border md:border-t-0 md:bg-surface md:px-6 md:py-4 md:backdrop-blur-none"
           style={cardBorder}
         >
-          <p className="label mb-2 text-text-muted md:hidden">Actions vendeur</p>
+          <p className="label mb-2 text-text-muted md:hidden">Seller actions</p>
           <ClientActions clientId={id} />
         </div>
       </div>

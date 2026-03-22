@@ -34,7 +34,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
   const isOwnClient = currentUserId === client.seller_id
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -117,7 +117,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
             </span>
             {isSupervisor && !isOwnClient && (
               <span className="text-xs text-text-muted">
-                · Vendeur: <span className="text-text">{client.seller_name}</span>
+                · Seller: <span className="text-text">{client.seller_name}</span>
               </span>
             )}
           </div>
@@ -156,7 +156,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
                   : 'bg-gold text-white hover:bg-gold/90'
               }`}
             >
-              {notified ? 'Rappel envoyé' : notifying ? 'Envoi...' : `Rappeler ${client.seller_name.split(' ')[0]}`}
+              {notified ? 'Reminder sent' : notifying ? 'Sending...' : `Remind ${client.seller_name.split(' ')[0]}`}
             </button>
           ) : (
             /* Seller or supervisor viewing own client - show contact buttons */

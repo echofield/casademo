@@ -26,8 +26,8 @@ export function SellerTierBreakdown({ sellers, className = '' }: SellerTierBreak
           borderRadius: '2px',
         }}
       >
-        <span className="label text-text-muted">RÉPARTITION PAR VENDEUR</span>
-        <p className="text-text-muted mt-4">Aucun vendeur actif</p>
+        <span className="label text-text-muted">BREAKDOWN BY SELLER</span>
+        <p className="text-text-muted mt-4">No active sellers</p>
       </div>
     )
   }
@@ -42,7 +42,7 @@ export function SellerTierBreakdown({ sellers, className = '' }: SellerTierBreak
       }}
     >
       <CornerBrackets size="md" opacity={0.3} />
-      <span className="label text-text-muted mb-4 block">RÉPARTITION PAR VENDEUR</span>
+      <span className="label text-text-muted mb-4 block">BREAKDOWN BY SELLER</span>
 
       <div className="space-y-4">
         {sellers.map((seller) => (

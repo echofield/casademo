@@ -29,10 +29,10 @@ interface SellerActivityRadarProps {
 
 // 4-point radar - all metrics are real/trackable
 const DIMENSIONS = [
-  { key: 'contacts', label: 'Contacts (7j)', max: 15 },
+  { key: 'contacts', label: 'Contacts (7d)', max: 15 },
   { key: 'clients', label: 'Clients', max: 50 },
-  { key: 'ca', label: 'CA (k€)', max: 100000, divider: 1000 },
-  { key: 'aJour', label: 'À jour (%)', max: 100 },
+  { key: 'ca', label: 'Revenue (k€)', max: 100000, divider: 1000 },
+  { key: 'aJour', label: 'Up to date (%)', max: 100 },
 ]
 
 const COLORS = ['#1B4332', '#A38767', '#2F6B4F', '#6E685F']
@@ -84,9 +84,9 @@ export function SellerActivityRadar({ sellers, maxValues, className = '' }: Sell
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-4 h-4 text-primary" strokeWidth={1.5} />
-            <span className="label text-text-muted">COMPARAISON VENDEURS</span>
+            <span className="label text-text-muted">SELLER COMPARISON</span>
           </div>
-          <p className="text-sm text-text-muted text-center py-8">Aucune donnée disponible</p>
+          <p className="text-sm text-text-muted text-center py-8">No data available</p>
         </div>
       </div>
     )
@@ -104,7 +104,7 @@ export function SellerActivityRadar({ sellers, maxValues, className = '' }: Sell
       <div className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-4 h-4 text-primary" strokeWidth={1.5} />
-          <span className="label text-text-muted">COMPARAISON VENDEURS</span>
+          <span className="label text-text-muted">SELLER COMPARISON</span>
         </div>
 
         <div className="flex items-center justify-center">
@@ -151,7 +151,7 @@ export function SellerActivityRadar({ sellers, maxValues, className = '' }: Sell
 
             {/* Labels */}
             <g fontFamily="var(--font-sans)" fontSize="8" fill="#6E685F" textAnchor="middle">
-              {['Contacts', 'Clients', 'CA', 'À jour'].map((label, idx) => {
+              {['Contacts', 'Clients', 'Revenue', 'Up to date'].map((label, idx) => {
                 const labelRadius = maxRadius + 16
                 const x = center + labelRadius * Math.cos(angles[idx])
                 const y = center + labelRadius * Math.sin(angles[idx])

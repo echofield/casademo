@@ -101,13 +101,13 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
         >
         <div className="mb-6 flex items-center justify-between gap-4">
           <h2 id="add-client-title" className="font-serif text-xl text-text">
-            Nouveau client
+            New client
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="shrink-0 p-1 text-text-muted transition-colors hover:text-text"
-            aria-label="Fermer"
+            aria-label="Close"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -192,7 +192,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
               className="input-field"
               placeholder="0"
             />
-            <p className="body-small mt-1 text-text-muted">Définit le palier initial (total dépensé).</p>
+            <p className="body-small mt-1 text-text-muted">Sets the initial tier (total spent).</p>
           </div>
 
           <div>
@@ -215,14 +215,14 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
               onClick={onClose}
               className="btn-secondary flex-1"
             >
-              Annuler
+              Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
               className="btn-primary flex-1"
             >
-              {loading ? 'Création…' : 'Créer le client'}
+              {loading ? 'Creating...' : 'Create client'}
             </button>
           </div>
         </form>

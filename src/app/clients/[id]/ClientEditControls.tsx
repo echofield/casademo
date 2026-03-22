@@ -127,7 +127,7 @@ export function ClientEditControls({
       <div className="flex flex-wrap gap-3">
         {canEdit && (
           <Button variant="secondary" onClick={openEdit}>
-            Modifier la fiche
+            Edit profile
           </Button>
         )}
         {userRole === 'supervisor' && otherSellers.length > 0 && (
@@ -158,7 +158,7 @@ export function ClientEditControls({
             role="dialog"
             aria-modal="true"
           >
-            <h3 className="mb-4 font-serif text-xl text-text">Modifier la fiche</h3>
+            <h3 className="mb-4 font-serif text-xl text-text">Edit profile</h3>
             <form onSubmit={submitEdit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
