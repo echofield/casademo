@@ -152,7 +152,7 @@ export default async function DashboardPage() {
 
   // Greeting based on time
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const firstName = user.profile.full_name.split(' ')[0]
 
   return (
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
             {greeting}, <span className="text-primary">{firstName}</span>
           </h1>
           <p className="text-text-soft mt-1">
-            Voici le pouls de votre équipe aujourd'hui.
+            Here's your team's pulse today.
           </p>
         </div>
 
@@ -196,16 +196,16 @@ export default async function DashboardPage() {
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <span className="text-xs tracking-widest text-text-muted uppercase">
-                  Prochaine étape
+                  Next step
                 </span>
                 <h2 className="font-serif text-2xl md:text-3xl text-text mt-2 leading-snug">
                   {overdueTotal > 0 ? (
                     <>
-                      <span className="text-gold">{overdueTotal}</span> client{overdueTotal !== 1 ? 's' : ''} attend{overdueTotal !== 1 ? 'ent' : ''} votre attention.
+                      <span className="text-gold">{overdueTotal}</span> client{overdueTotal !== 1 ? 's' : ''} need{overdueTotal === 1 ? 's' : ''} your attention.
                     </>
                   ) : (
                     <>
-                      L'équipe est à jour. <span className="text-primary">Continuez ainsi.</span>
+                      Team is up to date. <span className="text-primary">Keep it up.</span>
                     </>
                   )}
                 </h2>
@@ -221,7 +221,7 @@ export default async function DashboardPage() {
                       boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)',
                     }}
                   >
-                    TRAVAILLER LA FILE
+                    WORK THE QUEUE
                   </Link>
                 )}
               </div>
@@ -229,26 +229,26 @@ export default async function DashboardPage() {
               {/* Quick stats - dots visualization */}
               <div className="grid grid-cols-2 gap-6">
                 <StatPill
-                  label="Portefeuille"
+                  label="Portfolio"
                   value={totalClients}
                   icon={<Users className="w-4 h-4" strokeWidth={1.5} />}
                 />
                 <StatPill
-                  label="Contacts (7j)"
+                  label="Contacts (7d)"
                   value={contactsWeek}
                   icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
-                  subtext={`~${(contactsWeek / 7).toFixed(1)}/jour`}
+                  subtext={`~${(contactsWeek / 7).toFixed(1)}/day`}
                 />
                 <StatPill
-                  label="En attente"
+                  label="Overdue"
                   value={overdueTotal}
                   variant={overdueTotal > 10 ? 'warning' : overdueTotal > 0 ? 'caution' : 'good'}
                 />
                 <StatPill
-                  label="Prochain RDV"
+                  label="Next appt"
                   value={2}
                   icon={<Calendar className="w-4 h-4" strokeWidth={1.5} />}
-                  subtext="cette semaine"
+                  subtext="this week"
                 />
               </div>
             </div>
@@ -261,7 +261,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-2">
             <ProgressionChart
               data={progressionData}
-              title="Progression Mensuelle"
+              title="Monthly Progress"
               className="h-full"
             />
           </div>
@@ -274,7 +274,7 @@ export default async function DashboardPage() {
         <section className="mb-10">
           <div className="flex items-center gap-3 mb-6">
             <RhythmIndicator activity={contactsWeek / 50} />
-            <h2 className="font-serif text-xl text-text">Rythme de l'équipe</h2>
+            <h2 className="font-serif text-xl text-text">Team Rhythm</h2>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
@@ -293,7 +293,7 @@ export default async function DashboardPage() {
               }}
             >
               <CornerBrackets size="md" opacity={0.3} />
-              <span className="label text-text-muted mb-4 block">ACTIVITÉ INDIVIDUELLE</span>
+              <span className="label text-text-muted mb-4 block">INDIVIDUAL ACTIVITY</span>
               <div className="space-y-4">
                 {(allSellers || []).slice(0, 5).map((seller) => {
                   const contacts = activityMap[seller.id] || 0
@@ -340,7 +340,7 @@ export default async function DashboardPage() {
                             size="sm"
                             inverted
                           />
-                          <span className="text-xs text-gold">{overdue} en retard</span>
+                          <span className="text-xs text-gold">{overdue} overdue</span>
                         </div>
                       )}
                     </div>
@@ -364,7 +364,7 @@ export default async function DashboardPage() {
             <CornerBrackets size="md" opacity={0.3} />
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
-              <span className="label text-text-muted">RÉPARTITION PAR TIER</span>
+              <span className="label text-text-muted">TIER DISTRIBUTION</span>
             </div>
             <div className="space-y-4">
               {TIER_ORDER.map((tier) => {

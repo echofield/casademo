@@ -22,14 +22,14 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        setError('Email ou mot de passe incorrect')
+        setError('Invalid email or password')
         setLoading(false)
         return
       }
 
       window.location.replace('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-[#003D2B]/70 text-sm tracking-wide mb-2"
               >
-                Mot de passe
+                Password
               </label>
               <input
                 id="password"
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   focus:outline-none focus:border-[#003D2B]/50
                   transition-colors duration-200
                 "
-                placeholder="Mot de passe"
+                placeholder="Password"
               />
             </div>
           </div>
@@ -133,12 +133,12 @@ export default function LoginPage() {
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
-            {loading ? 'Connexion...' : 'Connexion'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p className="mt-8 text-center text-[#003D2B]/40 text-xs">
-          Espace vendeurs et superviseurs
+          Sellers and supervisors portal
         </p>
       </div>
 

@@ -133,32 +133,32 @@ export default async function TeamPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight">
-            Vue d'équipe
+            Team Overview
           </h1>
           <p className="text-text-soft mt-1">
-            {allSellers?.length || 0} vendeurs · {totalClients} clients
+            {allSellers?.length || 0} sellers · {totalClients} clients
           </p>
         </div>
 
         {/* Quick stats - all factual */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <QuickStat
-            label="Vendeurs actifs"
+            label="Active sellers"
             value={allSellers?.length || 0}
             icon={<Users className="w-4 h-4" />}
           />
           <QuickStat
-            label="Clients total"
+            label="Total clients"
             value={totalClients}
             icon={<TrendingUp className="w-4 h-4" />}
           />
           <QuickStat
-            label="Contacts (7j)"
+            label="Contacts (7d)"
             value={totalContacts}
             icon={<Activity className="w-4 h-4" />}
           />
           <QuickStat
-            label="En retard"
+            label="Overdue"
             value={totalOverdue}
             icon={<AlertCircle className="w-4 h-4" />}
             variant={totalOverdue > 10 ? 'warning' : totalOverdue > 0 ? 'caution' : 'good'}
@@ -177,17 +177,17 @@ export default async function TeamPage() {
           >
             <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-4 h-4 text-danger" strokeWidth={1.5} />
-              <span className="label text-danger">ALERTES ÉQUIPE</span>
+              <span className="label text-danger">TEAM ALERTS</span>
             </div>
             <div className="space-y-2">
               {inactiveSellers.map(s => (
                 <p key={s.id} className="text-sm text-text">
-                  <strong>{s.name}</strong> — 0 contact cette semaine ({s.clientCount} clients)
+                  <strong>{s.name}</strong> — 0 contacts this week ({s.clientCount} clients)
                 </p>
               ))}
               {highOverdueSellers.map(s => (
                 <p key={s.id} className="text-sm text-text">
-                  <strong>{s.name}</strong> — {s.overdueCount} clients en retard
+                  <strong>{s.name}</strong> — {s.overdueCount} clients overdue
                 </p>
               ))}
             </div>
@@ -207,7 +207,7 @@ export default async function TeamPage() {
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-primary" strokeWidth={1.5} />
-            <span className="label text-text-muted">DÉTAIL PAR VENDEUR</span>
+            <span className="label text-text-muted">SELLER DETAILS</span>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sellerStats.map((seller) => (
@@ -243,17 +243,17 @@ export default async function TeamPage() {
                   <div>
                     <p className="text-[10px] text-text-muted uppercase">Contacts</p>
                     <p className="font-serif text-lg text-text">{seller.contactsWeek}</p>
-                    <p className="text-[9px] text-text-muted">cette semaine</p>
+                    <p className="text-[9px] text-text-muted">this week</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-text-muted uppercase">En retard</p>
+                    <p className="text-[10px] text-text-muted uppercase">Overdue</p>
                     <p className={`font-serif text-lg ${seller.overdueCount > 0 ? 'text-danger' : 'text-primary'}`}>
                       {seller.overdueCount}
                     </p>
                     <p className="text-[9px] text-text-muted">clients</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-text-muted uppercase">CA</p>
+                    <p className="text-[10px] text-text-muted uppercase">Revenue</p>
                     <p className="font-serif text-lg text-gold">{formatCurrency(seller.totalSpend)}</p>
                     <p className="text-[9px] text-text-muted">total</p>
                   </div>
@@ -262,7 +262,7 @@ export default async function TeamPage() {
                 {/* À jour indicator */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] text-text-muted uppercase">Portefeuille à jour</p>
+                    <p className="text-[10px] text-text-muted uppercase">Portfolio up to date</p>
                     <span className={`text-xs font-medium ${seller.aJourPct >= 80 ? 'text-primary' : seller.aJourPct >= 50 ? 'text-gold' : 'text-danger'}`}>
                       {seller.aJourPct}%
                     </span>

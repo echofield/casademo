@@ -7,12 +7,12 @@ import { ClientTier } from '@/lib/types'
 type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
 
 const SORT_LABELS: Record<SortOption, string> = {
-  alpha: 'Nom A→Z',
-  alpha_desc: 'Nom Z→A',
-  spend: 'Dépenses ↑',
-  spend_desc: 'Dépenses ↓',
-  last_contact: 'Dernier contact',
-  tier: 'Palier',
+  alpha: 'Name A→Z',
+  alpha_desc: 'Name Z→A',
+  spend: 'Spend ↑',
+  spend_desc: 'Spend ↓',
+  last_contact: 'Last contact',
+  tier: 'Tier',
 }
 
 interface Props {
@@ -91,7 +91,7 @@ export function ClientListFilters({
         onChange={(e) => updateParams('tier', e.target.value || undefined)}
         className="input-field md:w-48"
       >
-        <option value="">Tous les paliers</option>
+        <option value="">All tiers</option>
         {tiers.map((tier) => (
           <option key={tier} value={tier}>
             {tierLabels[tier]}
@@ -117,7 +117,7 @@ export function ClientListFilters({
           onChange={(e) => updateParams('interest', e.target.value || undefined)}
           className="input-field md:w-44"
         >
-          <option value="">Tous les intérêts</option>
+          <option value="">All interests</option>
           {interests.map((interest) => (
             <option key={interest} value={interest}>
               {interest.charAt(0).toUpperCase() + interest.slice(1)}
@@ -132,7 +132,7 @@ export function ClientListFilters({
           onChange={(e) => updateParams('seller', e.target.value || undefined)}
           className="input-field md:w-48"
         >
-          <option value="">Tous les vendeurs</option>
+          <option value="">All sellers</option>
           {sellers.map((seller) => (
             <option key={seller.id} value={seller.id}>
               {seller.full_name}
@@ -149,7 +149,7 @@ export function ClientListFilters({
           }}
           className="btn-secondary px-4"
         >
-          Réinitialiser
+          Reset
         </button>
       )}
     </div>
