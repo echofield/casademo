@@ -91,7 +91,7 @@ export function ProgressionChart({
               tick={{ fill: '#6E685F', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `${v}`}
+              tickFormatter={(v) => `${v}%`}
             />
             <Tooltip
               contentStyle={{
@@ -103,6 +103,10 @@ export function ProgressionChart({
                 boxShadow: '0 8px 40px rgba(27, 67, 50, 0.04)',
               }}
               labelStyle={{ color: 'var(--ink)', fontWeight: 500 }}
+              formatter={(value, name) => [
+                `${value}%`,
+                name === 'value' ? 'Contacted' : 'Goal'
+              ]}
             />
             {/* Target line - dashed */}
             <Line
@@ -140,11 +144,11 @@ export function ProgressionChart({
         <div className="flex gap-6 justify-center mt-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-0.5 bg-primary" />
-            <span className="text-[10px] text-text-muted tracking-wide">Actual</span>
+            <span className="text-[10px] text-text-muted tracking-wide">Contacted %</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-0.5 bg-gold" style={{ borderStyle: 'dashed' }} />
-            <span className="text-[10px] text-text-muted tracking-wide">Target</span>
+            <span className="text-[10px] text-text-muted tracking-wide">Monthly Goal</span>
           </div>
         </div>
       </div>

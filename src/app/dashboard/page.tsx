@@ -261,7 +261,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-2">
             <ProgressionChart
               data={progressionData}
-              title="Monthly Progress"
+              title="Portfolio Contact Rate"
               className="h-full"
             />
           </div>
