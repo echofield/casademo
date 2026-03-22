@@ -11,6 +11,60 @@ type NotificationsPayload = {
   fetch_error?: boolean
 }
 
+// Mock notifications for demo
+const DEMO_NOTIFICATIONS: NotificationRow[] = [
+  {
+    id: 'demo-1',
+    user_id: 'demo',
+    type: 'client_overdue',
+    title: 'Follow up: Marc Dubois',
+    message: 'This client is 5 days overdue. Please contact today.',
+    client_id: null,
+    read: false,
+    created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 min ago
+  },
+  {
+    id: 'demo-2',
+    user_id: 'demo',
+    type: 'client_overdue',
+    title: 'Urgent: Sophie Laurent',
+    message: 'Grand Prix client - 12 days overdue!',
+    client_id: null,
+    read: false,
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+  },
+  {
+    id: 'demo-3',
+    user_id: 'demo',
+    type: 'manual',
+    title: 'Reminder from Hicham',
+    message: 'Please prioritize your overdue clients today.',
+    client_id: null,
+    read: false,
+    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+  },
+  {
+    id: 'demo-4',
+    user_id: 'demo',
+    type: 'tier_upgrade',
+    title: 'Jean-Pierre Martin upgraded to Kaizen',
+    message: 'Total spend: €3,500',
+    client_id: null,
+    read: true,
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+  },
+  {
+    id: 'demo-5',
+    user_id: 'demo',
+    type: 'big_purchase',
+    title: 'Big purchase: €5,200',
+    message: 'Claire Moreau - Tennis Club Printed Silk Shirt',
+    client_id: null,
+    read: true,
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+  },
+]
+
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationRow[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -25,17 +79,28 @@ export function NotificationBell() {
     try {
       const res = await fetch('/api/notifications')
       if (!res.ok) {
-        setFetchError(true)
-        setSetupRequired(false)
+        // Use demo notifications as fallback
+        setNotifications(DEMO_NOTIFICATIONS)
+        setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
+        setInitialLoad(false)
         return
       }
       const data = (await res.json()) as NotificationsPayload
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.unread_count || 0)
+
+      // If no real notifications, use demo data
+      if (!data.notifications || data.notifications.length === 0) {
+        setNotifications(DEMO_NOTIFICATIONS)
+        setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
+      } else {
+        setNotifications(data.notifications)
+        setUnreadCount(data.unread_count || 0)
+      }
       setSetupRequired(!!data.setup_required)
-      setFetchError(!!data.fetch_error)
+      setFetchError(false)
     } catch {
-      setFetchError(true)
+      // Use demo notifications on error
+      setNotifications(DEMO_NOTIFICATIONS)
+      setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
     } finally {
       setInitialLoad(false)
     }
