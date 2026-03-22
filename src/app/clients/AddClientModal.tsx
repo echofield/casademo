@@ -15,11 +15,34 @@ interface Props {
   sellers?: SellerPick[]
 }
 
+// Casablanca-relevant interest categories
+const INTEREST_OPTIONS = [
+  { category: 'Products', values: ['Silk shirts', 'T-shirts', 'Knitwear', 'Shorts', 'Tracksuits', 'Sneakers', 'Accessories'] },
+  { category: 'Collections', values: ['Tennis Club', 'Maison De Rêve', 'Gradient Wave', 'Monogram'] },
+  { category: 'Styles', values: ['Printed', 'Crochet', 'Knitted', 'Tailored'] },
+  { category: 'Colors', values: ['Green', 'Gold', 'Navy', 'White', 'Multicolor'] },
+]
+
 export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sellerId, setSellerId] = useState('')
+  const [selectedInterests, setSelectedInterests] = useState<{ category: string; value: string }[]>([])
+
+  const toggleInterest = (category: string, value: string) => {
+    setSelectedInterests(prev => {
+      const exists = prev.some(i => i.category === category && i.value === value)
+      if (exists) {
+        return prev.filter(i => !(i.category === category && i.value === value))
+      }
+      return [...prev, { category, value }]
+    })
+  }
+
+  const isSelected = (category: string, value: string) => {
+    return selectedInterests.some(i => i.category === category && i.value === value)
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -72,6 +95,15 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
             amount: initialPurchase,
             description: 'Initial purchase',
           }),
+        })
+      }
+
+      // Save selected interests
+      if (selectedInterests.length > 0 && clientId) {
+        await fetch(`/api/clients/${clientId}/interests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interests: selectedInterests }),
         })
       }
 
@@ -203,6 +235,40 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
               className="input-field"
               placeholder="Any notes about the client..."
             />
+          </div>
+
+          {/* Interests selection */}
+          <div>
+            <label className="small-caps block mb-2">Interests</label>
+            <div className="space-y-3 max-h-48 overflow-y-auto border p-3" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+              {INTEREST_OPTIONS.map((group) => (
+                <div key={group.category}>
+                  <p className="text-xs text-text-muted mb-1.5">{group.category}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.values.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => toggleInterest(group.category, value)}
+                        className={`px-2 py-1 text-xs transition-colors border ${
+                          isSelected(group.category, value)
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-surface text-text-muted border-transparent hover:border-primary/30'
+                        }`}
+                        style={{ borderRadius: '2px' }}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {selectedInterests.length > 0 && (
+              <p className="body-small mt-1 text-text-muted">
+                {selectedInterests.length} interest{selectedInterests.length !== 1 ? 's' : ''} selected
+              </p>
+            )}
           </div>
 
           {error && (

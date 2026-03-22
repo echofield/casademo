@@ -2,8 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AppShell, RecontactQueueSection } from '@/components'
-import { RecontactQueueItem } from '@/lib/types'
+import { AppShell, RecontactQueueSection, TierBadge } from '@/components'
+import { RecontactQueueItem, ClientTier, TIER_ORDER } from '@/lib/types'
+import { Users, Phone, TrendingUp } from 'lucide-react'
 
 export default async function HomePage() {
   const user = await getCurrentUser()
@@ -13,12 +14,19 @@ export default async function HomePage() {
 
   // Demo mode filter
   const DEMO_MODE = true
+  const isSeller = user.profile.role === 'seller'
 
-  const { data: queue } = await supabase
+  // Sellers only see their own clients, supervisors see all
+  let query = supabase
     .from('recontact_queue')
     .select('*')
     .eq('is_demo', DEMO_MODE)
-    .order('days_overdue', { ascending: false })
+
+  if (isSeller) {
+    query = query.eq('seller_id', user.id)
+  }
+
+  const { data: queue } = await query.order('days_overdue', { ascending: false })
 
   const items = (queue || []) as RecontactQueueItem[]
 
@@ -27,6 +35,43 @@ export default async function HomePage() {
   const upcoming = items.filter((i) => (i.days_overdue ?? 0) < 0)
 
   const urgentTotal = overdue.length + dueToday.length
+
+  // Seller-specific stats
+  let sellerStats = null
+  if (isSeller) {
+    // Get seller's clients with spend and tier
+    const { data: myClients } = await supabase
+      .from('clients')
+      .select('id, total_spend, tier')
+      .eq('is_demo', DEMO_MODE)
+      .eq('seller_id', user.id)
+
+    // Get seller's contacts this week
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const { count: contactsThisWeek } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('seller_id', user.id)
+      .gte('contact_date', weekAgo.toISOString())
+
+    // Calculate tier breakdown
+    const tierCounts: Record<ClientTier, number> = {
+      rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0
+    }
+    let totalSpend = 0
+    ;(myClients || []).forEach(c => {
+      if (c.tier) tierCounts[c.tier as ClientTier]++
+      totalSpend += c.total_spend || 0
+    })
+
+    sellerStats = {
+      totalClients: myClients?.length || 0,
+      totalSpend,
+      contactsThisWeek: contactsThisWeek || 0,
+      tierCounts,
+    }
+  }
 
   return (
     <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
@@ -45,6 +90,63 @@ export default async function HomePage() {
           <SummaryStat label="Due today" value={dueToday.length} tone={dueToday.length > 0 ? 'gold' : 'default'} />
           <SummaryStat label="Upcoming" value={upcoming.length} />
         </div>
+
+        {/* Seller Portfolio Stats */}
+        {isSeller && sellerStats && (
+          <div className="mb-10 grid gap-4 md:grid-cols-2">
+            {/* Portfolio Overview */}
+            <div
+              className="border bg-surface p-5"
+              style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <span className="label text-text-muted">MY PORTFOLIO</span>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-text-muted mb-1">Clients</p>
+                  <p className="font-serif text-2xl text-text">{sellerStats.totalClients}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted mb-1">Total CA</p>
+                  <p className="font-serif text-2xl text-primary">
+                    {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(sellerStats.totalSpend)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted mb-1">Contacts (7d)</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-text-muted" strokeWidth={1.5} />
+                    <p className="font-serif text-2xl text-text">{sellerStats.contactsThisWeek}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tier Breakdown */}
+            <div
+              className="border bg-surface p-5"
+              style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <span className="label text-text-muted">MY TIERS</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {TIER_ORDER.filter(t => sellerStats.tierCounts[t] > 0).map((tier) => (
+                  <div key={tier} className="flex items-center gap-2 pr-3">
+                    <TierBadge tier={tier} />
+                    <span className="font-serif text-lg text-text">{sellerStats.tierCounts[tier]}</span>
+                  </div>
+                ))}
+                {Object.values(sellerStats.tierCounts).every(c => c === 0) && (
+                  <p className="text-sm text-text-muted">No clients yet</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div
           className="mb-12 border bg-surface p-6 md:p-8"

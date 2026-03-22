@@ -12,12 +12,19 @@ export default async function QueuePage() {
 
   // Demo mode filter
   const DEMO_MODE = true
+  const isSeller = user.profile.role === 'seller'
 
-  const { data: queue } = await supabase
+  // Sellers only see their own clients, supervisors see all
+  let query = supabase
     .from('recontact_queue')
     .select('*')
     .eq('is_demo', DEMO_MODE)
-    .order('days_overdue', { ascending: false })
+
+  if (isSeller) {
+    query = query.eq('seller_id', user.id)
+  }
+
+  const { data: queue } = await query.order('days_overdue', { ascending: false })
 
   const items = (queue || []) as RecontactQueueItem[]
 

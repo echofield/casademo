@@ -124,7 +124,11 @@ export default async function ClientsPage({ searchParams }: Props) {
     query = query.eq('tier', tier)
   }
 
-  if (sellerId && isSupervisor) {
+  // Sellers can only see their own clients
+  if (!isSupervisor) {
+    query = query.eq('seller_id', user.id)
+  } else if (sellerId) {
+    // Supervisor filtering by specific seller
     query = query.eq('seller_id', sellerId)
   }
 

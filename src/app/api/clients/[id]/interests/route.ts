@@ -3,13 +3,21 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 
-const createInterestSchema = z.object({
+const singleInterestSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   value: z.string().min(1, 'Value is required'),
   detail: z.string().optional().nullable(),
 })
 
-// POST /api/clients/[id]/interests - Add interest
+const bulkInterestsSchema = z.object({
+  interests: z.array(z.object({
+    category: z.string().min(1),
+    value: z.string().min(1),
+    detail: z.string().optional().nullable(),
+  })),
+})
+
+// POST /api/clients/[id]/interests - Add interest(s)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,7 +39,31 @@ export async function POST(
     }
 
     const body = await request.json()
-    const parsed = createInterestSchema.safeParse(body)
+
+    // Check if bulk format
+    const bulkParsed = bulkInterestsSchema.safeParse(body)
+    if (bulkParsed.success) {
+      const inserts = bulkParsed.data.interests.map(i => ({
+        client_id,
+        category: i.category,
+        value: i.value,
+        detail: i.detail || null,
+      }))
+
+      const { data, error } = await supabase
+        .from('client_interests')
+        .insert(inserts as any)
+        .select()
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json(data, { status: 201 })
+    }
+
+    // Single interest format
+    const parsed = singleInterestSchema.safeParse(body)
 
     if (!parsed.success) {
       return NextResponse.json(
