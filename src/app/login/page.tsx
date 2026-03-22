@@ -4,27 +4,30 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  async function handleMicrosoftLogin() {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setLoading(true)
     setError(null)
 
     try {
       const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: 'azure',
-        options: {
-          scopes: 'email profile',
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       })
 
       if (signInError) {
-        setError(signInError.message)
+        setError('Email ou mot de passe incorrect')
         setLoading(false)
+        return
       }
+
+      window.location.replace('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       setLoading(false)
@@ -52,41 +55,91 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Microsoft Login */}
-        <div className="w-full max-w-sm">
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="w-full max-w-sm">
+          <div className="space-y-5">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-[#003D2B]/70 text-sm tracking-wide mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="
+                  w-full px-0 py-3
+                  bg-transparent
+                  border-0 border-b border-[#003D2B]/20
+                  text-[#003D2B] text-base
+                  placeholder:text-[#003D2B]/30
+                  focus:outline-none focus:border-[#003D2B]/50
+                  transition-colors duration-200
+                "
+                placeholder="votre@email.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-[#003D2B]/70 text-sm tracking-wide mb-2"
+              >
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="
+                  w-full px-0 py-3
+                  bg-transparent
+                  border-0 border-b border-[#003D2B]/20
+                  text-[#003D2B] text-base
+                  placeholder:text-[#003D2B]/30
+                  focus:outline-none focus:border-[#003D2B]/50
+                  transition-colors duration-200
+                "
+                placeholder="Mot de passe"
+              />
+            </div>
+          </div>
+
           {error && (
-            <p className="mb-4 text-sm text-red-600 text-center">{error}</p>
+            <p className="mt-4 text-sm text-red-600">{error}</p>
           )}
 
           <button
-            onClick={handleMicrosoftLogin}
+            type="submit"
             disabled={loading}
             className="
-              w-full py-4 px-6
+              w-full mt-10 py-4
               bg-[#003D2B]
               border border-[#003D2B]
-              text-white text-sm tracking-[0.1em]
+              text-white text-sm tracking-[0.15em] uppercase
               hover:bg-[#004D38]
               focus:outline-none focus:ring-2 focus:ring-[#003D2B]/50
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed
-              flex items-center justify-center gap-3
             "
           >
-            {/* Microsoft Logo */}
-            <svg className="w-5 h-5" viewBox="0 0 21 21" fill="none">
-              <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-              <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-              <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-              <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-            </svg>
-            {loading ? 'Connexion...' : 'Se connecter avec Microsoft'}
+            {loading ? 'Connexion...' : 'Connexion'}
           </button>
+        </form>
 
-          <p className="mt-6 text-center text-[#003D2B]/40 text-xs">
-            Espace vendeurs et superviseurs
-          </p>
-        </div>
+        <p className="mt-8 text-center text-[#003D2B]/40 text-xs">
+          Espace vendeurs et superviseurs
+        </p>
       </div>
 
       {/* Footer */}

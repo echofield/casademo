@@ -79,9 +79,13 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   const sort = params.sort || 'alpha'
 
+  // Demo mode: only show demo clients
+  const DEMO_MODE = true
+
   let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
+    .eq('is_demo', DEMO_MODE)
 
   // Apply sorting
   switch (sort) {
