@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { tierBorders } from '@/lib/motion'
 import { createClient } from '@/lib/supabase/client'
+import { ClickableSellerBadge } from './ClickableSellerBadge'
 import type { ClientTier } from '@/lib/types'
 
 interface Props {
@@ -115,8 +116,17 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
             <span className="label" style={{ color: borderColor, letterSpacing: '0.15em' }}>
               {tierLabel}
             </span>
-            <span className="text-xs text-text-muted">
-              · Seller: <span className="text-text">{client.seller_name}</span>
+            <span className="text-xs">
+              <ClickableSellerBadge
+                sellerId={client.seller_id}
+                sellerName={client.seller_name}
+                clientId={client.id}
+                clientName={`${client.first_name} ${client.last_name}`}
+                isOverdue={isOverdue}
+                daysOverdue={client.days_overdue ?? 0}
+                userRole={userRole}
+                currentUserId={currentUserId}
+              />
             </span>
           </div>
         </div>

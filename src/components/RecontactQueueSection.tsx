@@ -6,9 +6,17 @@ interface RecontactQueueSectionProps {
   title: string
   items: RecontactQueueItem[]
   urgent?: boolean
+  userRole?: 'seller' | 'supervisor'
+  currentUserId?: string
 }
 
-export function RecontactQueueSection({ title, items, urgent = false }: RecontactQueueSectionProps) {
+export function RecontactQueueSection({
+  title,
+  items,
+  urgent = false,
+  userRole = 'seller',
+  currentUserId,
+}: RecontactQueueSectionProps) {
   if (items.length === 0) return null
 
   return (
@@ -27,6 +35,8 @@ export function RecontactQueueSection({ title, items, urgent = false }: Recontac
             spendLabel={formatCurrencyEUR(item.total_spend)}
             lastContactLabel={formatQueueDate(item.last_contact_date)}
             nextRecontactLabel={formatQueueDate(item.next_recontact_date)}
+            userRole={userRole}
+            currentUserId={currentUserId}
           />
         ))}
       </div>

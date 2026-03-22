@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { TierBadge } from './TierBadge'
+import { ClickableSellerBadge } from './ClickableSellerBadge'
 import type { RecontactQueueItem } from '@/lib/types'
 
 interface RecontactQueueRowProps {
@@ -10,6 +11,8 @@ interface RecontactQueueRowProps {
   spendLabel: string
   lastContactLabel: string
   nextRecontactLabel: string
+  userRole?: 'seller' | 'supervisor'
+  currentUserId?: string
 }
 
 export function RecontactQueueRow({
@@ -18,6 +21,8 @@ export function RecontactQueueRow({
   spendLabel,
   lastContactLabel,
   nextRecontactLabel,
+  userRole = 'seller',
+  currentUserId,
 }: RecontactQueueRowProps) {
   const router = useRouter()
   const href = `/clients/${item.id}`
@@ -64,8 +69,17 @@ export function RecontactQueueRow({
               </a>
             )}
             <span className="text-text">{spendLabel}</span>
-            {item.seller_name && (
-              <span className="text-text-muted">· {item.seller_name}</span>
+            {item.seller_name && item.seller_id && (
+              <ClickableSellerBadge
+                sellerId={item.seller_id}
+                sellerName={item.seller_name}
+                clientId={item.id}
+                clientName={`${item.first_name} ${item.last_name}`}
+                isOverdue={(item.days_overdue ?? 0) > 0}
+                daysOverdue={item.days_overdue ?? 0}
+                userRole={userRole}
+                currentUserId={currentUserId}
+              />
             )}
           </div>
         </div>

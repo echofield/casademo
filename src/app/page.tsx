@@ -88,9 +88,9 @@ export default async function HomePage() {
         ) : (
           <>
             <p className="label mb-6 text-text-muted">By priority</p>
-            <RecontactQueueSection title="Overdue" items={overdue} urgent />
-            <RecontactQueueSection title="Due today" items={dueToday} />
-            <RecontactQueueSection title="Upcoming" items={upcoming} />
+            <RecontactQueueSection title="Overdue" items={overdue} urgent userRole={user.profile.role} currentUserId={user.id} />
+            <RecontactQueueSection title="Due today" items={dueToday} userRole={user.profile.role} currentUserId={user.id} />
+            <RecontactQueueSection title="Upcoming" items={upcoming} userRole={user.profile.role} currentUserId={user.id} />
           </>
         )}
       </div>
