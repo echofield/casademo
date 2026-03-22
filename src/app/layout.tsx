@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: 'Casa One',
   description: 'Luxury clienteling for Casablanca',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
