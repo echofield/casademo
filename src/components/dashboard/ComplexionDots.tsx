@@ -124,9 +124,9 @@ export function RhythmIndicator({
     quiet: '#6E685F',
   }
   const stateLabels = {
-    active: 'Actif',
-    moderate: 'Modéré',
-    quiet: 'Calme',
+    active: 'Active',
+    moderate: 'Moderate',
+    quiet: 'Quiet',
   }
 
   return (

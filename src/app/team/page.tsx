@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { AppShell, TierBadge, CornerBrackets } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
@@ -7,7 +8,7 @@ import {
   SellerTierBreakdown,
 } from '@/components/dashboard'
 import type { SellerRadarData } from '@/components/dashboard/SellerActivityRadar'
-import { Users, AlertCircle, TrendingUp, Activity, Euro } from 'lucide-react'
+import { Users, AlertCircle, TrendingUp, Activity, Euro, Bell } from 'lucide-react'
 
 export default async function TeamPage() {
   const user = await getCurrentUser()
@@ -170,14 +171,14 @@ export default async function TeamPage() {
           <section
             className="p-6 mb-8 relative"
             style={{
-              background: 'rgba(195, 71, 71, 0.05)',
-              border: '0.5px solid rgba(195, 71, 71, 0.2)',
+              background: 'rgba(163, 135, 103, 0.06)',
+              border: '0.5px solid rgba(163, 135, 103, 0.25)',
               borderRadius: '2px',
             }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <AlertCircle className="w-4 h-4 text-danger" strokeWidth={1.5} />
-              <span className="label text-danger">TEAM ALERTS</span>
+              <AlertCircle className="w-4 h-4 text-gold" strokeWidth={1.5} />
+              <span className="label text-gold">TEAM ALERTS</span>
             </div>
             <div className="space-y-2">
               {inactiveSellers.map(s => (
@@ -211,9 +212,10 @@ export default async function TeamPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sellerStats.map((seller) => (
-              <div
+              <Link
                 key={seller.id}
-                className="p-5 relative"
+                href={`/clients?seller_id=${seller.id}`}
+                className="block p-5 relative group transition-all duration-200 hover:shadow-sm"
                 style={{
                   background: 'var(--paper)',
                   border: '0.5px solid var(--faint)',
@@ -221,6 +223,16 @@ export default async function TeamPage() {
                 }}
               >
                 <CornerBrackets size="sm" opacity={0.2} />
+
+                {/* Notify button */}
+                <Link
+                  href={`/notifications/send?seller_id=${seller.id}`}
+                  className="absolute top-3 right-3 p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gold/10"
+                  title={`Send reminder to ${seller.name}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Bell className="w-4 h-4 text-gold" />
+                </Link>
 
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -302,7 +314,7 @@ export default async function TeamPage() {
                     })}
                   </div>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         </section>

@@ -32,11 +32,11 @@ interface ProgressionChartProps {
 
 const defaultData: DataPoint[] = [
   { month: 'Jan', value: 65, target: 70 },
-  { month: 'Fév', value: 68, target: 72 },
+  { month: 'Feb', value: 68, target: 72 },
   { month: 'Mar', value: 72, target: 74 },
-  { month: 'Avr', value: 75, target: 76 },
-  { month: 'Mai', value: 78, target: 78 },
-  { month: 'Juin', value: 82, target: 80 },
+  { month: 'Apr', value: 75, target: 76 },
+  { month: 'May', value: 78, target: 78 },
+  { month: 'Jun', value: 82, target: 80 },
 ]
 
 export function ProgressionChart({
@@ -140,11 +140,11 @@ export function ProgressionChart({
         <div className="flex gap-6 justify-center mt-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-0.5 bg-primary" />
-            <span className="text-[10px] text-text-muted tracking-wide">Réalisé</span>
+            <span className="text-[10px] text-text-muted tracking-wide">Actual</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-0.5 bg-gold" style={{ borderStyle: 'dashed' }} />
-            <span className="text-[10px] text-text-muted tracking-wide">Objectif</span>
+            <span className="text-[10px] text-text-muted tracking-wide">Target</span>
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@ interface QuickActionsProps {
 
 const actions = [
   { icon: Bell, label: 'Notifications', href: '/notifications', color: '#A38767' },
-  { icon: Users, label: 'Voir équipe', href: '/team', color: '#1B4332' },
+  { icon: Users, label: 'View team', href: '/team', color: '#1B4332' },
 ]
 
 export function QuickActions({ className = '' }: QuickActionsProps) {
@@ -27,7 +27,7 @@ export function QuickActions({ className = '' }: QuickActionsProps) {
         borderRadius: '2px',
       }}
     >
-      <span className="label text-text-muted mb-4 block">ACTIONS RAPIDES</span>
+      <span className="label text-text-muted mb-4 block">QUICK ACTIONS</span>
 
       <div className="space-y-2">
         {actions.map((action) => (

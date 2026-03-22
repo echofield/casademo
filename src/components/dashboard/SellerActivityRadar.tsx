@@ -151,8 +151,8 @@ export function SellerActivityRadar({ sellers, maxValues, className = '' }: Sell
 
             {/* Labels */}
             <g fontFamily="var(--font-sans)" fontSize="8" fill="#6E685F" textAnchor="middle">
-              {['Contacts', 'Clients', 'Revenue', 'Up to date'].map((label, idx) => {
-                const labelRadius = maxRadius + 16
+              {['Contacts', 'Clients', 'Revenue', 'On track'].map((label, idx) => {
+                const labelRadius = maxRadius + 22
                 const x = center + labelRadius * Math.cos(angles[idx])
                 const y = center + labelRadius * Math.sin(angles[idx])
                 return (

@@ -143,11 +143,11 @@ export default async function DashboardPage() {
   // Progression data - upward trend
   const progressionData = [
     { month: 'Jan', value: 42, target: 45 },
-    { month: 'Fév', value: 51, target: 50 },
+    { month: 'Feb', value: 51, target: 50 },
     { month: 'Mar', value: 58, target: 55 },
-    { month: 'Avr', value: 64, target: 60 },
-    { month: 'Mai', value: 71, target: 65 },
-    { month: 'Juin', value: 78, target: 70 },
+    { month: 'Apr', value: 64, target: 60 },
+    { month: 'May', value: 71, target: 65 },
+    { month: 'Jun', value: 78, target: 70 },
   ]
 
   // Greeting based on time

@@ -115,11 +115,9 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
             <span className="label" style={{ color: borderColor, letterSpacing: '0.15em' }}>
               {tierLabel}
             </span>
-            {isSupervisor && !isOwnClient && (
-              <span className="text-xs text-text-muted">
-                · Seller: <span className="text-text">{client.seller_name}</span>
-              </span>
-            )}
+            <span className="text-xs text-text-muted">
+              · Seller: <span className="text-text">{client.seller_name}</span>
+            </span>
           </div>
         </div>
 
