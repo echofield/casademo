@@ -64,6 +64,9 @@ export function RecontactQueueRow({
               </a>
             )}
             <span className="text-text">{spendLabel}</span>
+            {item.seller_name && (
+              <span className="text-text-muted">· {item.seller_name}</span>
+            )}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { ClientActions } from './ClientActions'
 import { ClientEditControls } from './ClientEditControls'
 import { ClientInterestAdd } from './ClientInterestAdd'
+import { NotifySellerButton } from './NotifySellerButton'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -250,9 +251,19 @@ export default async function Client360Page({ params }: Props) {
                     total spent
                   </span>
                 </p>
-                <p className="body-small mt-2 text-text-muted">
-                  Advisor: <span className="text-text">{clientData.seller_name}</span>
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <p className="body-small text-text-muted">
+                    Advisor: <span className="text-text">{clientData.seller_name}</span>
+                  </p>
+                  {user.profile.role === 'supervisor' && clientData.seller_id !== user.id && (
+                    <NotifySellerButton
+                      clientId={id}
+                      sellerId={clientData.seller_id}
+                      sellerName={clientData.seller_name}
+                      clientName={`${clientData.first_name} ${clientData.last_name}`}
+                    />
+                  )}
+                </div>
               </div>
               {canEdit && (
                 <div className="shrink-0">
