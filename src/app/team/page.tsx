@@ -224,16 +224,6 @@ export default async function TeamPage() {
               >
                 <CornerBrackets size="sm" opacity={0.2} />
 
-                {/* Notify button */}
-                <Link
-                  href={`/notifications/send?seller_id=${seller.id}`}
-                  className="absolute top-3 right-3 p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gold/10"
-                  title={`Send reminder to ${seller.name}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Bell className="w-4 h-4 text-gold" />
-                </Link>
-
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-10 h-10 flex items-center justify-center font-serif text-lg"
