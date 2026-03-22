@@ -65,7 +65,7 @@ export default async function ClientsPage({ searchParams }: Props) {
     .select('category')
     .order('category')
 
-  const uniqueInterests = [...new Set((interestCategories || []).map(i => i.category))].filter(Boolean)
+  const uniqueInterests = Array.from(new Set((interestCategories || []).map(i => i.category))).filter(Boolean)
 
   // If interest filter is active, get matching client IDs
   let interestClientIds: string[] | null = null
