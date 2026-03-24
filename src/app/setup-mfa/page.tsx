@@ -32,11 +32,29 @@ export default function SetupMFAPage() {
         return
       }
 
-      // Clean up any previously unverified factors that would block new enrollment
-      const allTotp = (factors?.totp || []) as Array<{ id: string; status: string }>
+      // Clean up ALL unverified TOTP factors (must complete before enrolling)
+      const allTotp = (factors?.totp || []) as Array<{ id: string; status: string; friendly_name?: string }>
       const unverified = allTotp.filter(f => f.status !== 'verified')
-      for (const f of unverified) {
-        await supabase.auth.mfa.unenroll({ factorId: f.id })
+
+      if (unverified.length > 0) {
+        console.log('[MFA Setup] Cleaning up', unverified.length, 'unverified factors')
+        // Unenroll all unverified factors and wait for all to complete
+        const unenrollResults = await Promise.all(
+          unverified.map(f => supabase.auth.mfa.unenroll({ factorId: f.id }))
+        )
+
+        // Check if any unenroll failed
+        const failedUnenrolls = unenrollResults.filter(r => r.error)
+        if (failedUnenrolls.length > 0) {
+          console.error('[MFA Setup] Some unenrolls failed:', failedUnenrolls.map(r => r.error?.message))
+        }
+
+        // Re-fetch factors to confirm cleanup worked
+        const { data: refreshedFactors } = await supabase.auth.mfa.listFactors()
+        const stillUnverified = (refreshedFactors?.totp || []).filter(f => f.status !== 'verified')
+        if (stillUnverified.length > 0) {
+          console.warn('[MFA Setup] Still have', stillUnverified.length, 'unverified factors after cleanup')
+        }
       }
 
       // Enroll a fresh TOTP factor
@@ -45,7 +63,48 @@ export default function SetupMFAPage() {
         friendlyName: 'Casa One'
       })
 
+      // If enrollment fails due to existing factor, try one more cleanup and retry
+      if (enrollError?.message?.includes('already exists')) {
+        console.log('[MFA Setup] Factor exists error, attempting aggressive cleanup')
+
+        // Fetch factors again and force-remove any with our friendly name
+        const { data: retryFactors } = await supabase.auth.mfa.listFactors()
+        const existingCasaOne = (retryFactors?.totp || []).filter(
+          (f) => f.friendly_name === 'Casa One'
+        )
+
+        for (const f of existingCasaOne) {
+          const { error: unenrollErr } = await supabase.auth.mfa.unenroll({ factorId: f.id })
+          if (unenrollErr) {
+            console.error('[MFA Setup] Failed to unenroll factor', f.id, ':', unenrollErr.message)
+          }
+        }
+
+        // Small delay to let Supabase process the unenrollment
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Retry enrollment
+        const { data: retryData, error: retryError } = await supabase.auth.mfa.enroll({
+          factorType: 'totp',
+          friendlyName: 'Casa One'
+        })
+
+        if (retryError) {
+          console.error('[MFA Setup] Retry enrollment failed:', retryError.message)
+          setError(retryError.message)
+          setLoading(false)
+          return
+        }
+
+        setQrCode(retryData.totp.qr_code)
+        setSecret(retryData.totp.secret)
+        setFactorId(retryData.id)
+        setLoading(false)
+        return
+      }
+
       if (enrollError) {
+        console.error('[MFA Setup] Enrollment error:', enrollError.message)
         setError(enrollError.message)
         setLoading(false)
         return
