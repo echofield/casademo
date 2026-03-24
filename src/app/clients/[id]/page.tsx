@@ -47,7 +47,7 @@ export default async function Client360Page({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch client with seller name
+  // Fetch client with seller name (must be first - needed for seller_id and existence check)
   const { data: client, error: clientError } = await supabase
     .from('clients')
     .select(`
@@ -61,65 +61,63 @@ export default async function Client360Page({ params }: Props) {
     notFound()
   }
 
-  // Fetch interests (with domain)
-  const { data: interests } = await supabase
-    .from('client_interests')
-    .select('id, category, value, detail')
-    .eq('client_id', id)
-    .order('created_at', { ascending: false })
+  // PARALLELIZED QUERIES - all these can run simultaneously
+  const [
+    { data: interests },
+    { data: contacts },
+    { data: purchases },
+    { data: knownSizes },
+    { data: sizing },
+    { data: visits },
+    { data: sellerClientIds },
+  ] = await Promise.all([
+    // Fetch interests (with domain)
+    supabase
+      .from('client_interests')
+      .select('id, category, value, detail')
+      .eq('client_id', id)
+      .order('created_at', { ascending: false }),
+    // Fetch contacts with seller name
+    supabase
+      .from('contacts')
+      .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
+      .eq('client_id', id)
+      .order('contact_date', { ascending: false })
+      .limit(15),
+    // Fetch purchases
+    supabase
+      .from('purchases')
+      .select('id, purchase_date, amount, description')
+      .eq('client_id', id)
+      .order('purchase_date', { ascending: false })
+      .limit(15),
+    // Fetch derived sizes from purchase history
+    supabase
+      .from('client_known_sizes' as any)
+      .select('*')
+      .eq('client_id', id),
+    // Fetch sizing
+    supabase
+      .from('client_sizing')
+      .select('id, category, size, fit_preference, notes')
+      .eq('client_id', id)
+      .order('category'),
+    // Fetch visits
+    supabase
+      .from('visits')
+      .select('id, visit_date, duration_minutes, tried_products, notes, converted')
+      .eq('client_id', id)
+      .order('visit_date', { ascending: false })
+      .limit(10),
+    // Fetch seller's client IDs for interest counts
+    supabase
+      .from('clients')
+      .select('id')
+      .eq('seller_id', client.seller_id),
+  ])
 
-  // Fetch contacts with seller name
-  const { data: contacts } = await supabase
-    .from('contacts')
-    .select(`
-      id,
-      contact_date,
-      channel,
-      comment,
-      seller:profiles!contacts_seller_id_fkey(full_name)
-    `)
-    .eq('client_id', id)
-    .order('contact_date', { ascending: false })
-    .limit(20)
-
-  // Fetch purchases (with product details)
-  const { data: purchases } = await supabase
-    .from('purchases')
-    .select('id, purchase_date, amount, description')
-    .eq('client_id', id)
-    .order('purchase_date', { ascending: false })
-    .limit(20)
-
-  // Fetch derived sizes from purchase history
-  const { data: knownSizes } = await supabase
-    .from('client_known_sizes' as any)
-    .select('*')
-    .eq('client_id', id)
-
-  // Fetch sizing
-  const { data: sizing } = await supabase
-    .from('client_sizing')
-    .select('id, category, size, fit_preference, notes')
-    .eq('client_id', id)
-    .order('category')
-
-  // Fetch visits
-  const { data: visits } = await supabase
-    .from('visits')
-    .select('id, visit_date, duration_minutes, tried_products, notes, converted')
-    .eq('client_id', id)
-    .order('visit_date', { ascending: false })
-    .limit(20)
-
-  // Fetch interest counts for the seller's portfolio (A.3)
-  // First get all client IDs for this seller
-  const { data: sellerClientIds } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('seller_id', client.seller_id)
-
+  // Fetch interest counts (depends on sellerClientIds)
   const clientIdList = (sellerClientIds || []).map(c => c.id)
-
   const { data: interestCounts } = clientIdList.length > 0
     ? await supabase
         .from('client_interests')
@@ -326,7 +324,7 @@ export default async function Client360Page({ params }: Props) {
                 </div>
                 {/* Heat score - secondary system metric */}
                 <div className="mt-2 flex items-center gap-2 opacity-60">
-                  <span className="text-xs text-text-muted">Activite:</span>
+                  <span className="text-xs text-text-muted">Activity:</span>
                   <HeatIndicator score={clientData.heat_score} size="sm" />
                 </div>
                 <p className={`font-serif text-3xl ${isPremium ? 'text-gold' : 'text-primary'}`}>
@@ -383,7 +381,7 @@ export default async function Client360Page({ params }: Props) {
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
-                  Envoyer un message
+                  Send message
                 </a>
               )}
               <div className="flex flex-wrap gap-4">
@@ -524,8 +522,8 @@ export default async function Client360Page({ params }: Props) {
 
         {/* Fashion Interests */}
         <section id="fashion-interests" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Interets mode</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Ce qu&apos;il aime</h2>
+          <p className="label mb-2 text-text-muted">FASHION INTERESTS</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">What they like</h2>
           {(() => {
             const fashionInterests = (clientData.interests || []).filter(i => i.domain !== 'life')
             return fashionInterests.length > 0 ? (
@@ -544,7 +542,7 @@ export default async function Client360Page({ params }: Props) {
                 ))}
               </div>
             ) : (
-              <p className="body-small text-text-muted">Aucun interet mode enregistre.</p>
+              <p className="body-small text-text-muted">No fashion interests recorded.</p>
             )
           })()}
           <ClientInterestAdd clientId={id} canEdit={canEdit} domain="fashion" />
@@ -552,8 +550,8 @@ export default async function Client360Page({ params }: Props) {
 
         {/* Life Interests */}
         <section id="life-interests" className="mt-6 border bg-surface p-6 md:p-8" style={{ ...cardBorder, borderLeftWidth: 3, borderLeftColor: 'rgba(14, 165, 233, 0.3)' }}>
-          <p className="label mb-2 text-text-muted">Life</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Qui il est</h2>
+          <p className="label mb-2 text-text-muted">LIFESTYLE</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Who they are</h2>
           {(() => {
             const lifeInterests = (clientData.interests || []).filter(i => i.domain === 'life')
             return lifeInterests.length > 0 ? (
@@ -572,7 +570,7 @@ export default async function Client360Page({ params }: Props) {
                 ))}
               </div>
             ) : (
-              <p className="body-small text-text-muted">Aucun interet personnel enregistre.</p>
+              <p className="body-small text-text-muted">No personal interests recorded.</p>
             )
           })()}
           <ClientInterestAdd clientId={id} canEdit={canEdit} domain="life" />

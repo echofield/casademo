@@ -1,10 +1,8 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, TierBadge, PageHeader, CornerBrackets } from '@/components'
+import { AppShell, TierBadge, CornerBrackets } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
-  ProgressionChart,
-  SellerActivityRadar,
   QuickActions,
   ComplexionDots,
   RhythmIndicator,
@@ -16,6 +14,24 @@ import {
 import { ClientSignal } from '@/lib/types'
 import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+// Dynamic imports for heavy chart components
+const ProgressionChart = dynamic(
+  () => import('@/components/dashboard/ProgressionChart').then(mod => ({ default: mod.ProgressionChart })),
+  {
+    loading: () => <div className="h-64 animate-pulse bg-[#003D2B]/5 rounded" />,
+    ssr: false,
+  }
+)
+
+const SellerActivityRadar = dynamic(
+  () => import('@/components/dashboard/SellerActivityRadar').then(mod => ({ default: mod.SellerActivityRadar })),
+  {
+    loading: () => <div className="h-64 animate-pulse bg-[#003D2B]/5 rounded" />,
+    ssr: false,
+  }
+)
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -28,8 +44,29 @@ export default async function DashboardPage() {
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
-  const { data: tierCounts } = await supabase.from('clients').select('tier')
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
 
+  // PARALLELIZED QUERIES - all independent queries run simultaneously
+  const [
+    { data: tierCounts },
+    { data: overdueData, count: totalOverdue },
+    { count: contactsThisWeek },
+    { data: sellerActivity },
+    { data: allSellers },
+    { data: clientsWithSeller },
+    { data: clientSignals },
+  ] = await Promise.all([
+    supabase.from('clients').select('tier'),
+    supabase.from('recontact_queue').select('seller_id, seller_name, days_overdue', { count: 'exact' }).gt('days_overdue', 0),
+    supabase.from('contacts').select('id', { count: 'exact', head: true }).gte('contact_date', weekAgo.toISOString()),
+    supabase.from('contacts').select('seller_id').gte('contact_date', weekAgo.toISOString()),
+    supabase.from('profiles').select('id, full_name').eq('role', 'seller').eq('active', true),
+    supabase.from('clients').select('seller_id, tier, total_spend'),
+    supabase.from('clients').select('seller_id, seller_signal'),
+  ])
+
+  // Process tier counts
   const clientsByTier: Record<ClientTier, number> = {
     rainbow: 0,
     optimisto: 0,
@@ -38,18 +75,12 @@ export default async function DashboardPage() {
     diplomatico: 0,
     grand_prix: 0,
   }
-
   tierCounts?.forEach((c) => {
     if (c.tier) clientsByTier[c.tier as ClientTier]++
   })
-
   const totalClients = tierCounts?.length || 0
 
-  const { data: overdueData, count: totalOverdue } = await supabase
-    .from('recontact_queue')
-    .select('*', { count: 'exact' })
-    .gt('days_overdue', 0)
-
+  // Process overdue data
   const sellerOverdue: Record<string, { name: string; count: number }> = {}
   overdueData?.forEach((item) => {
     const sellerId = item.seller_id
@@ -60,38 +91,14 @@ export default async function DashboardPage() {
     sellerOverdue[sellerId].count++
   })
 
-  const weekAgo = new Date()
-  weekAgo.setDate(weekAgo.getDate() - 7)
-  const { count: contactsThisWeek } = await supabase
-    .from('contacts')
-    .select('*', { count: 'exact', head: true })
-    .gte('contact_date', weekAgo.toISOString())
-
-  const { data: sellerActivity } = await supabase
-    .from('contacts')
-    .select('seller_id')
-    .gte('contact_date', weekAgo.toISOString())
-
+  // Process activity map
   const activityMap: Record<string, number> = {}
   sellerActivity?.forEach((item) => {
     activityMap[item.seller_id] = (activityMap[item.seller_id] || 0) + 1
   })
 
-  const { data: allSellers } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .eq('role', 'seller')
-    .eq('active', true)
-
-  // Fetch seller/tier breakdown
-  const { data: clientsWithSeller } = await supabase
-    .from('clients')
-    .select('seller_id, tier')
-    
-
   // Build seller tier breakdown
   const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
-
   ;(allSellers || []).forEach((seller) => {
     sellerTierMap[seller.id] = {
       name: seller.full_name,
@@ -99,7 +106,6 @@ export default async function DashboardPage() {
       total: 0,
     }
   })
-
   ;(clientsWithSeller || []).forEach((c) => {
     if (sellerTierMap[c.seller_id]) {
       sellerTierMap[c.seller_id].tiers[c.tier as ClientTier]++
@@ -112,22 +118,9 @@ export default async function DashboardPage() {
     .filter(s => s.total > 0)
     .sort((a, b) => b.total - a.total)
 
-  // Fetch clients with total_spend for CA calculation
-  const { data: clientsForCA } = await supabase
-    .from('clients')
-    .select('seller_id, total_spend')
-    
-
-  // Fetch signal distribution per seller
-  const { data: clientSignals } = await supabase
-    .from('clients')
-    .select('seller_id, seller_signal')
-    
-
   // Build signal distribution data per seller
   type SignalCounts = Record<ClientSignal | 'null', number>
   const sellerSignalMap: Record<string, { name: string; signals: SignalCounts; total: number }> = {}
-
   ;(allSellers || []).forEach((seller) => {
     sellerSignalMap[seller.id] = {
       name: seller.full_name,
@@ -135,7 +128,6 @@ export default async function DashboardPage() {
       total: 0,
     }
   })
-
   ;(clientSignals || []).forEach((c) => {
     if (sellerSignalMap[c.seller_id]) {
       const signalKey = (c.seller_signal || 'null') as ClientSignal | 'null'
@@ -154,11 +146,11 @@ export default async function DashboardPage() {
     .filter(s => s.total > 0)
     .sort((a, b) => b.total - a.total)
 
-  // Build seller data for radar - ALL REAL DATA
+  // Build seller data for radar
   const sellerRadarData = (allSellers || []).slice(0, 4).map((seller) => {
     const contacts = activityMap[seller.id] || 0
     const overdue = sellerOverdue[seller.id]?.count || 0
-    const sellerClients = (clientsForCA || []).filter(c => c.seller_id === seller.id)
+    const sellerClients = (clientsWithSeller || []).filter(c => c.seller_id === seller.id)
     const clientCount = sellerClients.length
     const totalCA = sellerClients.reduce((sum, c) => sum + (c.total_spend || 0), 0)
     const aJourPct = clientCount > 0 ? Math.round(((clientCount - overdue) / clientCount) * 100) : 100

@@ -104,7 +104,7 @@ export function CompetencyRadar({ field, className = '' }: CompetencyRadarProps)
       className={`bg-surface p-6 ${className}`}
       style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
     >
-      <div className="label text-text-muted mb-4">CARTOGRAPHIE DES COMPÉTENCES</div>
+      <div className="label text-text-muted mb-4">COMPETENCY MAP</div>
 
       <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[220px] mx-auto block">
         {/* Axis lines */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { AppShell } from '@/components'
@@ -14,8 +15,10 @@ import { CalendarNav } from './CalendarNav'
 import { AgendaView } from './AgendaView'
 import { WeekView } from './WeekView'
 import { TeamView } from './TeamView'
-import { AddMeetingModal } from './AddMeetingModal'
-import { MeetingCompletionSheet } from './MeetingCompletionSheet'
+
+// Dynamic imports for modals - not needed in initial bundle
+const AddMeetingModal = dynamic(() => import('./AddMeetingModal').then(mod => ({ default: mod.AddMeetingModal })), { ssr: false })
+const MeetingCompletionSheet = dynamic(() => import('./MeetingCompletionSheet').then(mod => ({ default: mod.MeetingCompletionSheet })), { ssr: false })
 
 type CalendarView = 'agenda' | 'week' | 'team'
 

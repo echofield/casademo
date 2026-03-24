@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Cormorant_Garamond } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const inter = Inter({
@@ -49,6 +50,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${cormorant.variable} font-sans bg-bg text-text antialiased`}>
         {children}
+        <Toaster position="bottom-center" richColors={false} />
       </body>
     </html>
   )

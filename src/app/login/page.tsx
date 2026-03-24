@@ -90,7 +90,7 @@ export default function LoginPage() {
       // Success - redirect to home
       window.location.replace('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -112,7 +112,7 @@ export default function LoginPage() {
         setLoading(false)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -136,7 +136,7 @@ export default function LoginPage() {
       setStep('forgot-sent')
       setLoading(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -402,7 +402,7 @@ export default function LoginPage() {
                     focus:outline-none focus:border-[#003D2B]/50
                     transition-colors duration-200
                   "
-                  placeholder="votre@email.com"
+                  placeholder="your@email.com"
                 />
               </div>
 

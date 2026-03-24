@@ -65,17 +65,17 @@ function DotRow({ filled, total = 6, color }: { filled: number; total?: number; 
 function getInterpretation(dominant: string): string {
   switch (dominant) {
     case 'engagement':
-      return "L'attention est là. Le reste suivra."
+      return "Attention is there. The rest will follow."
     case 'comprehension':
-      return "La compréhension s'installe."
+      return "Understanding is taking hold."
     case 'retention':
-      return "Les acquis prennent racine."
+      return "Knowledge is taking root."
     case 'initiative':
-      return "L'autonomie se développe."
+      return "Autonomy is developing."
     case 'gaps':
-      return "Des zones demandent attention."
+      return "Some areas need attention."
     default:
-      return "Profil en construction."
+      return "Profile under construction."
   }
 }
 

@@ -133,7 +133,7 @@ export function AddMeetingModal({
 
     // Validate external location
     if (format === 'external' && !location.trim()) {
-      setError('L\'adresse est requise pour les rendez-vous exterieurs')
+      setError('Address is required for external meetings')
       setLoading(false)
       return
     }

@@ -16,12 +16,12 @@ interface InsightCaptureProps {
 }
 
 const REFLECTIVE_PROMPTS = [
-  "Qu'avez-vous compris différemment aujourd'hui ?",
-  "Quelle connexion avez-vous faite avec votre travail ?",
-  "Qu'est-ce qui vous a surpris dans ce module ?",
-  "Comment allez-vous appliquer cela demain ?",
-  "Quelle question reste en suspens ?",
-  "Qu'est-ce qui mérite d'être approfondi ?",
+  "What did you understand differently today?",
+  "What connection did you make with your work?",
+  "What surprised you in this module?",
+  "How will you apply this tomorrow?",
+  "What question remains unanswered?",
+  "What deserves to be explored further?",
 ]
 
 function getPromptOfDay(): string {
@@ -73,7 +73,7 @@ export function InsightCapture({ moduleId, onCapture, className = '' }: InsightC
         onClick={handleOpen}
         className={`text-xs tracking-wider text-text-muted underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity duration-200 ${className}`}
       >
-        Capturer un apprentissage
+        Capture an insight
       </button>
     )
   }
@@ -89,7 +89,7 @@ export function InsightCapture({ moduleId, onCapture, className = '' }: InsightC
         style={{ border: '1px solid rgba(28, 27, 25, 0.08)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-serif text-xl text-text mb-3">Capturer un apprentissage</h3>
+        <h3 className="font-serif text-xl text-text mb-3">Capture an insight</h3>
 
         <p className="font-serif text-sm italic text-text-muted mb-4" style={{ lineHeight: 1.5 }}>
           {prompt}
@@ -98,7 +98,7 @@ export function InsightCapture({ moduleId, onCapture, className = '' }: InsightC
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Ce que j'ai retenu..."
+          placeholder="What I learned..."
           disabled={saved || saving}
           rows={4}
           className="w-full p-3 text-sm font-serif resize-none focus:outline-none focus:border-primary transition-colors duration-200"
@@ -121,7 +121,7 @@ export function InsightCapture({ moduleId, onCapture, className = '' }: InsightC
             disabled={saving}
             className="text-xs tracking-wider text-text-muted px-4 py-2 hover:text-text transition-colors duration-200"
           >
-            Pas maintenant
+            Not now
           </button>
           <button
             onClick={handleSave}
@@ -135,7 +135,7 @@ export function InsightCapture({ moduleId, onCapture, className = '' }: InsightC
               cursor: content.trim() && !saving ? 'pointer' : 'default',
             }}
           >
-            {saving ? '...' : saved ? 'Enregistré' : 'Capturer'}
+            {saving ? '...' : saved ? 'Saved' : 'Capture'}
           </button>
         </div>
       </div>

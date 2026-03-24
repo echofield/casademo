@@ -37,14 +37,14 @@ export function ClientLifeNotes({ clientId, initialNotes, canEdit }: Props) {
 
   return (
     <div className="mt-4 border-t pt-4" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
-      <p className="label mb-2 text-text-muted">Notes personnelles</p>
+      <p className="label mb-2 text-text-muted">PERSONAL NOTES</p>
       {editing ? (
         <div>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="input-field h-24 w-full resize-none"
-            placeholder="Collectionneur de montres vintage. Va au Japon 2x par an. Fan de F1..."
+            placeholder="Vintage watch collector. Goes to Japan 2x per year. F1 fan..."
           />
           <div className="mt-2 flex gap-2">
             <button

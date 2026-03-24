@@ -1,6 +1,6 @@
 import { LoadingShell } from './LoadingShell'
 
-type Variant = 'home' | 'queue' | 'clients' | 'clientDetail' | 'dashboard'
+type Variant = 'home' | 'queue' | 'clients' | 'clientDetail' | 'dashboard' | 'calendar' | 'team'
 
 export function ScreenSkeleton({ variant }: { variant: Variant }) {
   return (
@@ -11,6 +11,8 @@ export function ScreenSkeleton({ variant }: { variant: Variant }) {
         {variant === 'clients' && <ClientsSkeleton />}
         {variant === 'clientDetail' && <ClientDetailSkeleton />}
         {variant === 'dashboard' && <DashboardSkeleton />}
+        {variant === 'calendar' && <CalendarSkeleton />}
+        {variant === 'team' && <TeamSkeleton />}
       </div>
     </LoadingShell>
   )
@@ -113,6 +115,75 @@ function DashboardSkeleton() {
       <div className="grid gap-6 md:grid-cols-2">
         <Block className="h-64" />
         <Block className="h-64" />
+      </div>
+    </>
+  )
+}
+
+function CalendarSkeleton() {
+  return (
+    <>
+      <Block className="mb-3 h-4 w-20" />
+      <Block className="mb-8 h-10 w-32" />
+      {/* Nav bar */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex gap-2">
+          <Block className="h-10 w-10" />
+          <Block className="h-10 w-10" />
+          <Block className="h-10 w-20" />
+        </div>
+        <div className="flex gap-2">
+          <Block className="h-10 w-20" />
+          <Block className="h-10 w-20" />
+        </div>
+      </div>
+      {/* Meeting list */}
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="border bg-surface p-5"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Block className="mb-2 h-5 w-48" />
+                <Block className="h-4 w-32" />
+              </div>
+              <Block className="h-8 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function TeamSkeleton() {
+  return (
+    <>
+      <Block className="mb-3 h-4 w-16" />
+      <Block className="mb-8 h-10 w-24" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="border bg-surface p-6"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <Block className="h-12 w-12 rounded-full" />
+              <div className="flex-1">
+                <Block className="mb-2 h-5 w-32" />
+                <Block className="h-3 w-20" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Block className="h-16" />
+              <Block className="h-16" />
+            </div>
+          </div>
+        ))}
       </div>
     </>
   )

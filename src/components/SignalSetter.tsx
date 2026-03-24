@@ -44,7 +44,7 @@ export function SignalSetter({
 
   const handleSubmit = async () => {
     if (!selectedSignal) {
-      setError('Veuillez selectionner un signal')
+      setError('Please select a signal')
       return
     }
 
@@ -55,7 +55,7 @@ export function SignalSetter({
       await onSubmit(selectedSignal, note)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -82,7 +82,7 @@ export function SignalSetter({
           <button
             onClick={onClose}
             className="p-2 hover:bg-[#003D2B]/5 rounded-full transition-colors"
-            aria-label="Fermer"
+            aria-label="Close"
           >
             <X className="w-5 h-5 text-text-muted" />
           </button>
@@ -137,12 +137,12 @@ export function SignalSetter({
         {/* Note field */}
         <div className="px-6 py-4 border-t border-[#003D2B]/10">
           <label className="block text-xs font-medium uppercase tracking-wide text-text-muted mb-2">
-            Note (optionnel)
+            Note (optional)
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Pourquoi ce signal ? (ex: 'A essaye 3 vestes, revient vendredi')"
+            placeholder="Why this signal? (e.g. 'Tried 3 jackets, coming back Friday')"
             rows={2}
             className="w-full px-3 py-2 border border-[#003D2B]/20 rounded bg-surface text-text placeholder:text-text-muted/50 focus:outline-none focus:border-[#003D2B]/40 resize-none"
           />
@@ -163,7 +163,7 @@ export function SignalSetter({
             disabled={loading || !selectedSignal}
             className="w-full py-3 bg-[#003D2B] text-white text-sm font-medium uppercase tracking-wide hover:bg-[#004D38] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Enregistrement...' : 'Confirmer'}
+            {loading ? 'Saving...' : 'Confirm'}
           </button>
         </div>
       </div>

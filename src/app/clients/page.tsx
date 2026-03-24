@@ -39,22 +39,13 @@ export default async function ClientsPage({ searchParams }: Props) {
   // Fetch sellers for filter (supervisors only)
   let sellers: { id: string; full_name: string }[] = []
   if (isSupervisor) {
-    const { data: sellerRoles } = await supabase
-      .from('profiles_roles')
-      .select('user_id')
+    const { data: s } = await supabase
+      .from('profiles')
+      .select('id, full_name')
       .eq('role', 'seller')
-
-    const sellerIds = sellerRoles?.map(r => r.user_id) || []
-
-    if (sellerIds.length > 0) {
-      const { data: s } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', sellerIds)
-        .eq('active', true)
-        .order('full_name')
-      sellers = s || []
-    }
+      .eq('active', true)
+      .order('full_name')
+    sellers = s || []
   }
 
   const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
@@ -103,9 +94,10 @@ export default async function ClientsPage({ searchParams }: Props) {
   
   
 
+  // Select only needed columns for card display - avoid fetching notes, life_notes, etc.
   let query = supabase
     .from('clients')
-    .select('*', { count: 'exact' })
+    .select('id, first_name, last_name, phone, email, tier, total_spend, last_contact_date, next_recontact_date, seller_id, seller_signal, heat_score, is_personal_shopper, origin, locale', { count: 'exact' })
     
 
   const isTierGroup = sort === 'tier_group'
@@ -234,7 +226,8 @@ export default async function ClientsPage({ searchParams }: Props) {
     }).format(amount)
   }
 
-  const list = (clients || []) as (Client & { seller_signal?: ClientSignal | null })[]
+  // Type assertion for optimized query that only fetches needed columns
+  const list = (clients || []) as unknown as (Client & { seller_signal?: ClientSignal | null })[]
 
   const paginationHref = (p: number) => {
     const sp = new URLSearchParams()

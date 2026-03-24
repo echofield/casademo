@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Bell, Check } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   sellerId: string
@@ -40,19 +39,25 @@ export function ClickableSellerBadge({
 
     setSending(true)
     try {
-      const supabase = createClient()
-      await supabase.from('notifications').insert({
-        user_id: sellerId,
-        type: 'manual',
-        title: `Follow up: ${clientName}`,
-        message: isOverdue
-          ? `This client is ${daysOverdue} days overdue. Please follow up.`
-          : `Supervisor reminder to check in with this client.`,
-        client_id: clientId,
+      const response = await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seller_id: sellerId,
+          client_id: clientId,
+          client_name: clientName,
+          message: isOverdue
+            ? `This client is ${daysOverdue} days overdue. Please follow up.`
+            : `Supervisor reminder to check in with this client.`,
+        }),
       })
-      setSent(true)
-      // Reset after 3 seconds
-      setTimeout(() => setSent(false), 3000)
+
+      if (response.ok) {
+        setSent(true)
+        setTimeout(() => setSent(false), 3000)
+      } else {
+        console.error('Failed to notify:', await response.text())
+      }
     } catch (err) {
       console.error('Failed to notify:', err)
     } finally {

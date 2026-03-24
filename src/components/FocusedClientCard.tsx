@@ -86,8 +86,8 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
       await supabase.from('notifications').insert({
         user_id: client.seller_id,
         type: 'client_overdue',
-        title: `Relancer ${client.first_name} ${client.last_name}`,
-        message: `Ce client est en retard de ${client.days_overdue} jour${(client.days_overdue ?? 0) > 1 ? 's' : ''}.`,
+        title: `Follow up: ${client.first_name} ${client.last_name}`,
+        message: `This client is ${client.days_overdue} day${(client.days_overdue ?? 0) > 1 ? 's' : ''} overdue.`,
         client_id: client.id,
       })
       setNotified(true)

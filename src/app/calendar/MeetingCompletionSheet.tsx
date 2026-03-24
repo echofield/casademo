@@ -70,7 +70,7 @@ export function MeetingCompletionSheet({
               {purchased ? '' : ''}
             </div>
             <p className="font-serif text-xl text-[#003D2B] mb-2">
-              {purchased ? 'Purchase recorded!' : 'Rendez-vous termine'}
+              {purchased ? 'Purchase recorded!' : 'Meeting completed'}
             </p>
 
             {purchased && meeting.client_id && (

@@ -13,10 +13,11 @@ export default async function QueuePage() {
   const isSeller = user.effectiveRole === 'seller'
 
   // Sellers only see their own clients, supervisors see all
+  // Limit to 50 items max - a seller can't act on hundreds at once
   let query = supabase
     .from('recontact_queue')
     .select('*')
-    
+    .limit(50)
 
   if (isSeller) {
     query = query.eq('seller_id', user.id)

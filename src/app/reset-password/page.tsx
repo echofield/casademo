@@ -25,11 +25,11 @@ export default function ResetPasswordPage() {
     setError(null)
 
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères')
+      setError('Password must be at least 8 characters')
       return
     }
     if (password !== confirm) {
-      setError('Les mots de passe ne correspondent pas')
+      setError('Passwords do not match')
       return
     }
 
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
         window.location.replace('/login')
       }, 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -77,29 +77,29 @@ export default function ResetPasswordPage() {
               </svg>
             </div>
             <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-              Mot de passe mis à jour
+              Password updated
             </h2>
             <p className="text-[#003D2B]/60 text-sm">
-              Redirection vers la connexion...
+              Redirecting to login...
             </p>
           </div>
         ) : !sessionReady ? (
           <div className="w-full max-w-sm text-center">
             <h2 className="font-serif text-[#003D2B] text-2xl mb-4">
-              Chargement...
+              Loading...
             </h2>
             <p className="text-[#003D2B]/60 text-sm">
-              Vérification du lien de réinitialisation
+              Verifying reset link
             </p>
           </div>
         ) : (
           <div className="w-full max-w-sm">
             <div className="text-center mb-8">
               <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-                Nouveau mot de passe
+                New password
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
-                Choisissez un mot de passe sécurisé
+                Choose a secure password
               </p>
             </div>
 
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
               <div className="space-y-5">
                 <div>
                   <label htmlFor="new-password" className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                    Nouveau mot de passe
+                    New password
                   </label>
                   <input
                     id="new-password"
@@ -127,13 +127,13 @@ export default function ResetPasswordPage() {
                       focus:outline-none focus:border-[#003D2B]/50
                       transition-colors duration-200
                     "
-                    placeholder="Minimum 8 caractères"
+                    placeholder="Minimum 8 characters"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="confirm-password" className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                    Confirmer le mot de passe
+                    Confirm password
                   </label>
                   <input
                     id="confirm-password"
@@ -152,7 +152,7 @@ export default function ResetPasswordPage() {
                       focus:outline-none focus:border-[#003D2B]/50
                       transition-colors duration-200
                     "
-                    placeholder="Retapez le mot de passe"
+                    placeholder="Re-enter password"
                   />
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function ResetPasswordPage() {
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                {loading ? 'Mise à jour...' : 'Mettre à jour'}
+                {loading ? 'Updating...' : 'Update password'}
               </button>
             </form>
           </div>
