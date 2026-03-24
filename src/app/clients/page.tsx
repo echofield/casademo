@@ -1,21 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, PageHeader, ClientGridCard, TierBadge } from '@/components'
-import { Client, ClientTier, ClientSignal, TIER_LABELS, TIER_ORDER, InterestItem } from '@/lib/types'
+import { AppShell, ClientGridCard } from '@/components'
+import { ClientTier, TIER_LABELS, TIER_ORDER } from '@/lib/types'
 import { ClientListFilters } from './ClientListFilters'
 import { AddClientButton } from './AddClientButton'
-
-type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier' | 'tier_group'
+import Link from 'next/link'
 
 interface Props {
   searchParams: Promise<{
     search?: string
     tier?: ClientTier
-    seller?: string
-    sort?: SortOption
-    interest?: string
-    interest_val?: string
     page?: string
   }>
 }
@@ -27,16 +22,13 @@ export default async function ClientsPage({ searchParams }: Props) {
   const params = await searchParams
   const search = params.search || ''
   const tier = params.tier
-  const sellerId = params.seller
-  const interestFilter = params.interest
-  const interestValFilter = params.interest_val
   const page = parseInt(params.page || '1', 10)
   const limit = 24
 
   const supabase = await createClient()
   const isSupervisor = user.effectiveRole === 'supervisor'
 
-  // Fetch sellers for filter (supervisors only)
+  // Fetch sellers for AddClientButton (supervisors only)
   let sellers: { id: string; full_name: string }[] = []
   if (isSupervisor) {
     const { data: s } = await supabase
@@ -48,195 +40,58 @@ export default async function ClientsPage({ searchParams }: Props) {
     sellers = s || []
   }
 
-  const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
-
-  // Fetch interest taxonomy for the grouped dropdown
-  const { data: interestTaxonomy } = await supabase
-    .from('interest_taxonomy')
-    .select('category, value, display_label')
-    .order('category')
-    .order('sort_order')
-
-  const interestValues = (interestTaxonomy || []).map(t => ({
-    category: t.category,
-    value: t.value,
-    displayLabel: t.display_label,
-    domain: 'fashion' as string,
-  }))
-
-  // Legacy: get distinct interest categories
-  const { data: interestCategories } = await supabase
-    .from('client_interests')
-    .select('category')
-    .order('category')
-
-  const uniqueInterests = Array.from(new Set((interestCategories || []).map(i => i.category))).filter(Boolean)
-
-  // If interest filter is active (either category or value), get matching client IDs
-  let interestClientIds: string[] | null = null
-  if (interestValFilter) {
-    let interestQuery = supabase
-      .from('client_interests')
-      .select('client_id')
-      .eq('value', interestValFilter)
-    const { data: matchingInterests } = await interestQuery
-    interestClientIds = matchingInterests?.map(i => i.client_id) || []
-  } else if (interestFilter) {
-    const { data: matchingInterests } = await supabase
-      .from('client_interests')
-      .select('client_id')
-      .eq('category', interestFilter)
-    interestClientIds = matchingInterests?.map(i => i.client_id) || []
-  }
-
-  const sort = params.sort || 'alpha'
-
-  
-  
-
-  // Select only needed columns for card display - avoid fetching notes, life_notes, etc.
+  // Build query - select only needed columns
   let query = supabase
     .from('clients')
-    .select('id, first_name, last_name, phone, email, tier, total_spend, last_contact_date, next_recontact_date, seller_id, seller_signal, heat_score, is_personal_shopper, origin, locale', { count: 'exact' })
-    
+    .select('id, first_name, last_name, phone, tier, total_spend, last_contact_date, next_recontact_date, seller_id', { count: 'exact' })
+    .order('last_name', { ascending: true })
+    .order('first_name', { ascending: true })
+    .range((page - 1) * limit, page * limit - 1)
 
-  const isTierGroup = sort === 'tier_group'
-
-  // Apply sorting
-  switch (sort) {
-    case 'alpha':
-      query = query.order('last_name', { ascending: true }).order('first_name', { ascending: true })
-      break
-    case 'alpha_desc':
-      query = query.order('last_name', { ascending: false }).order('first_name', { ascending: false })
-      break
-    case 'spend':
-      query = query.order('total_spend', { ascending: true })
-      break
-    case 'spend_desc':
-      query = query.order('total_spend', { ascending: false })
-      break
-    case 'last_contact':
-      query = query.order('last_contact_date', { ascending: false, nullsFirst: true })
-      break
-    case 'tier':
-    case 'tier_group':
-      query = query.order('total_spend', { ascending: false })
-      break
-    default:
-      query = query.order('last_name', { ascending: true })
-  }
-
-  if (!isTierGroup) {
-    query = query.range((page - 1) * limit, page * limit - 1)
-  }
-
+  // Search filter
   if (search) {
     query = query.or(
       `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
     )
   }
 
+  // Tier filter
   if (tier) {
     query = query.eq('tier', tier)
   }
 
-
-
   // Sellers can only see their own clients
   if (!isSupervisor) {
     query = query.eq('seller_id', user.id)
-  } else if (sellerId) {
-    query = query.eq('seller_id', sellerId)
-  }
-
-  if (interestClientIds !== null) {
-    if (interestClientIds.length > 0) {
-      query = query.in('id', interestClientIds)
-    } else {
-      query = query.eq('id', '00000000-0000-0000-0000-000000000000')
-    }
   }
 
   const { data: clients, count } = await query
 
-  // Fetch interests for the clients to display on cards
-  const clientIds = (clients || []).map(c => c.id)
-  let clientInterestsMap = new Map<string, InterestItem[]>()
+  const totalPages = Math.ceil((count || 0) / limit)
 
-  if (clientIds.length > 0) {
-    const { data: allInterests } = await supabase
-      .from('client_interests')
-      .select('id, client_id, category, value, detail')
-      .in('client_id', clientIds)
-
-    // Group by client_id — only fashion interests on cards
-    ;(allInterests || []).forEach((interest) => {
-      const existing = clientInterestsMap.get(interest.client_id) || []
-      existing.push({
-        id: interest.id,
-        category: interest.category,
-        value: interest.value,
-        detail: interest.detail,
-        domain: 'fashion' as 'fashion' | 'life',
-      })
-      clientInterestsMap.set(interest.client_id, existing)
-    })
-  }
-
-  // Fetch last purchase per client
-  let lastPurchaseMap = new Map<string, { product_name: string | null; purchase_date: string; size: string | null; is_gift: boolean }>()
-
-  if (clientIds.length > 0) {
-    const { data: purchases } = await supabase
-      .from('purchases')
-      .select('client_id, purchase_date')
-      .in('client_id', clientIds)
-      .order('purchase_date', { ascending: false })
-
-    if (purchases) {
-      for (const p of purchases) {
-        if (!lastPurchaseMap.has(p.client_id)) {
-          lastPurchaseMap.set(p.client_id, {
-            product_name: null,
-            purchase_date: p.purchase_date,
-            size: null,
-            is_gift: false,
-          })
-        }
-      }
-    }
-  }
-
-  const totalPages = isTierGroup ? 1 : Math.ceil((count || 0) / limit)
-
+  // Format helpers
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',
-    })
+    }).replace('.', '')
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'decimal',
       minimumFractionDigits: 0,
-    }).format(amount)
+      maximumFractionDigits: 0,
+    }).format(amount) + ' €'
   }
 
-  // Type assertion for optimized query that only fetches needed columns
-  const list = (clients || []) as unknown as (Client & { seller_signal?: ClientSignal | null })[]
+  const list = clients || []
 
   const paginationHref = (p: number) => {
     const sp = new URLSearchParams()
     if (search) sp.set('search', search)
     if (tier) sp.set('tier', tier)
-    if (sellerId) sp.set('seller', sellerId)
-    if (interestValFilter) sp.set('interest_val', interestValFilter)
-    else if (interestFilter) sp.set('interest', interestFilter)
-    if (sort && sort !== 'alpha') sp.set('sort', sort)
     if (p > 1) sp.set('page', String(p))
     const q = sp.toString()
     return q ? `/clients?${q}` : '/clients'
@@ -244,131 +99,79 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
-      <div className="mx-auto max-w-6xl animate-fade-in">
-        <PageHeader
-          title="Clients"
-          subtitle={`${count || 0} in your portfolio`}
-          actions={
+      <div className="mx-auto max-w-6xl px-4 md:px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="font-serif text-4xl text-text mb-1">Clients</h1>
+          <p className="text-text-muted">{count || 0} in your portfolio</p>
+          <div className="mt-4">
             <AddClientButton
               isSupervisor={isSupervisor}
               sellers={sellers}
             />
-          }
-        />
+          </div>
+        </div>
 
+        {/* Filters */}
         <ClientListFilters
           currentSearch={search}
           currentTier={tier}
-          currentSeller={sellerId}
-          currentSort={sort}
-          currentInterest={interestFilter}
-          currentInterestVal={interestValFilter}
           tiers={TIER_ORDER}
           tierLabels={TIER_LABELS}
-          sellers={sellers}
-          interests={uniqueInterests}
-          interestValues={interestValues}
-          isSupervisor={isSupervisor}
         />
 
+        {/* Client grid */}
         {list.length === 0 ? (
           <div
-            className="border bg-surface py-20 text-center"
+            className="border bg-white py-20 text-center"
             style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
           >
-            <p className="body text-text-muted">No clients match your filters.</p>
-            {search && <p className="body-small mt-2 text-text-muted">Try adjusting search or tier.</p>}
-          </div>
-        ) : isTierGroup ? (
-          /* Tier-grouped view */
-          <div className="space-y-10">
-            {[...TIER_ORDER].reverse().map((tierKey) => {
-              const tierClients = list.filter(c => c.tier === tierKey)
-              if (tierClients.length === 0) return null
-              const tierSpend = tierClients.reduce((sum, c) => sum + c.total_spend, 0)
-              return (
-                <section key={tierKey}>
-                  <div className="mb-4 flex items-center gap-4 border-b pb-3" style={{ borderColor: 'rgba(28, 27, 25, 0.1)' }}>
-                    <TierBadge tier={tierKey} />
-                    <span className="text-text-muted text-sm">
-                      {tierClients.length} client{tierClients.length > 1 ? 's' : ''}
-                    </span>
-                    <span className="text-text-muted text-sm ml-auto">
-                      {formatCurrency(tierSpend)} total
-                    </span>
-                  </div>
-                  <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {tierClients.map((client) => (
-                      <li key={client.id}>
-                        <ClientGridCard
-                          client={{
-                            ...client,
-                            seller_signal: client.seller_signal ?? null,
-                            interests: clientInterestsMap.get(client.id) || null,
-                          }}
-                          spendLabel={formatCurrency(client.total_spend)}
-                          lastContactLabel={formatDate(client.last_contact_date)}
-                          nextRecontactLabel={formatDate(client.next_recontact_date)}
-                          sellerName={isSupervisor ? sellerMap.get(client.seller_id) : undefined}
-                          lastPurchase={lastPurchaseMap.get(client.id)}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )
-            })}
+            <p className="text-text-muted">No clients match your filters.</p>
+            {search && <p className="text-sm mt-2 text-text-muted">Try adjusting your search.</p>}
           </div>
         ) : (
-          /* Flat grid view */
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {list.map((client) => (
-              <li key={client.id}>
-                <ClientGridCard
-                  client={{
-                    ...client,
-                    seller_signal: client.seller_signal ?? null,
-                    interests: clientInterestsMap.get(client.id) || null,
-                  }}
-                  spendLabel={formatCurrency(client.total_spend)}
-                  lastContactLabel={formatDate(client.last_contact_date)}
-                  nextRecontactLabel={formatDate(client.next_recontact_date)}
-                  sellerName={isSupervisor ? sellerMap.get(client.seller_id) : undefined}
-                  lastPurchase={lastPurchaseMap.get(client.id)}
-                />
-              </li>
+              <ClientGridCard
+                key={client.id}
+                client={client as any}
+                spendLabel={formatCurrency(client.total_spend)}
+                lastContactLabel={formatDate(client.last_contact_date)}
+                nextRecontactLabel={formatDate(client.next_recontact_date)}
+              />
             ))}
-          </ul>
+          </div>
         )}
 
-        {!isTierGroup && totalPages > 1 && (
+        {/* Pagination */}
+        {totalPages > 1 && (
           <nav
             className="mt-10 flex items-center justify-center gap-4 border-t pt-8"
             style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
             aria-label="Pagination"
           >
             {page > 1 ? (
-              <a
+              <Link
                 href={paginationHref(page - 1)}
-                className="label text-text-muted transition-colors duration-200 hover:text-text"
+                className="text-xs tracking-wider uppercase text-text-muted hover:text-text transition-colors"
               >
                 Previous
-              </a>
+              </Link>
             ) : (
-              <span className="label text-text-muted/40">Previous</span>
+              <span className="text-xs tracking-wider uppercase text-text-muted/40">Previous</span>
             )}
-            <span className="body-small text-text-muted">
+            <span className="text-sm text-text-muted">
               Page {page} of {totalPages}
             </span>
             {page < totalPages ? (
-              <a
+              <Link
                 href={paginationHref(page + 1)}
-                className="label text-text-muted transition-colors duration-200 hover:text-text"
+                className="text-xs tracking-wider uppercase text-text-muted hover:text-text transition-colors"
               >
                 Next
-              </a>
+              </Link>
             ) : (
-              <span className="label text-text-muted/40">Next</span>
+              <span className="text-xs tracking-wider uppercase text-text-muted/40">Next</span>
             )}
           </nav>
         )}
