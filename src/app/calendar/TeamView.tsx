@@ -2,12 +2,21 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
+import { Store, MapPin, Phone, Video, MessageCircle } from 'lucide-react'
 import {
   MeetingWithDetails,
   MEETING_FORMAT_CONFIG,
   MEETING_STATUS_CONFIG,
   formatTimeRange,
 } from '@/lib/types/meetings'
+
+const FORMAT_ICONS = {
+  store: Store,
+  pin: MapPin,
+  phone: Phone,
+  video: Video,
+  message: MessageCircle,
+}
 
 interface TeamViewProps {
   meetings: MeetingWithDetails[]
@@ -91,6 +100,7 @@ export function TeamView({ meetings, onMeetingClick }: TeamViewProps) {
               {group.meetings.map(meeting => {
                 const formatConfig = MEETING_FORMAT_CONFIG[meeting.format]
                 const statusConfig = MEETING_STATUS_CONFIG[meeting.status]
+                const Icon = FORMAT_ICONS[formatConfig.iconType]
                 const timeRange = formatTimeRange(meeting.start_time, meeting.end_time)
                 const meetingDate = new Date(meeting.start_time).toLocaleDateString('en-US', {
                   weekday: 'short',
@@ -108,8 +118,8 @@ export function TeamView({ meetings, onMeetingClick }: TeamViewProps) {
                     <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
                     <span className="text-xs text-text-muted w-20">{meetingDate}</span>
                     <span className="text-sm font-medium text-text w-28">{timeRange}</span>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${formatConfig.bgColor} ${formatConfig.textColor}`}>
-                      {formatConfig.icon}
+                    <span className={`px-2 py-0.5 text-xs rounded-full flex items-center gap-1 ${formatConfig.bgColor} ${formatConfig.textColor}`}>
+                      <Icon size={10} strokeWidth={1.5} />
                     </span>
                     <div className="flex-1 min-w-0">
                       {meeting.client_name ? (
