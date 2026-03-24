@@ -81,7 +81,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    if (user.profile.role !== 'supervisor' && existing.seller_id !== user.id) {
+    if (user.effectiveRole !== 'supervisor' && existing.seller_id !== user.id) {
       return NextResponse.json(
         { error: 'You can only edit clients assigned to you' },
         { status: 403 }

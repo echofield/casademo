@@ -34,8 +34,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Check access - seller can only see their own meetings
-    const isSupervisor = user.profile.role === 'supervisor'
+    const isSupervisor = user.effectiveRole === 'supervisor'
     if (!isSupervisor && meeting.seller_id !== user.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
@@ -86,8 +85,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
-    // Check access
-    const isSupervisor = user.profile.role === 'supervisor'
+    const isSupervisor = user.effectiveRole === 'supervisor'
     if (!isSupervisor && existing.seller_id !== user.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
@@ -176,8 +174,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
-    // Check access
-    const isSupervisor = user.profile.role === 'supervisor'
+    const isSupervisor = user.effectiveRole === 'supervisor'
     if (!isSupervisor && existing.seller_id !== user.id) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }

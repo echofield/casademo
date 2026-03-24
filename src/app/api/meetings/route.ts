@@ -46,14 +46,11 @@ export async function GET(request: NextRequest) {
       .lte('start_time', endParam)
       .order('start_time', { ascending: true })
 
-    // Role-based filtering
-    const isSupervisor = user.profile.role === 'supervisor'
+    const isSupervisor = user.effectiveRole === 'supervisor'
 
     if (isSupervisor && sellerIdParam) {
-      // Supervisor filtering by specific seller
       query = query.eq('seller_id', sellerIdParam)
     } else if (!isSupervisor) {
-      // Sellers only see their own meetings
       query = query.eq('seller_id', user.id)
     }
 
@@ -140,9 +137,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Set seller_id
-    const isSupervisor = user.profile.role === 'supervisor'
-    const sellerId = isSupervisor && body.seller_id ? body.seller_id : user.id
+    const isEffectiveSupervisor = user.effectiveRole === 'supervisor'
+    const sellerId = isEffectiveSupervisor && body.seller_id ? body.seller_id : user.id
 
     // Auto-fill location for boutique format
     let location = body.location

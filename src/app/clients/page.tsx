@@ -40,7 +40,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const limit = 24
 
   const supabase = await createClient()
-  const isSupervisor = user.profile.role === 'supervisor'
+  const isSupervisor = user.effectiveRole === 'supervisor'
 
   // Fetch sellers for filter (supervisors only)
   let sellers: { id: string; full_name: string }[] = []
@@ -273,7 +273,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   }
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-6xl animate-fade-in">
         <PageHeader
           title="Clients"

@@ -8,21 +8,34 @@ import { NotificationBell } from './NotificationBell'
 
 interface NavProps {
   userRole: 'seller' | 'supervisor'
+  effectiveRole: 'seller' | 'supervisor'
   userName: string
 }
 
-export function Nav({ userRole, userName }: NavProps) {
+export function Nav({ userRole, effectiveRole, userName }: NavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+
+  const canSwitch = userRole === 'supervisor'
+  const viewingAsSeller = canSwitch && effectiveRole === 'seller'
+
+  const toggleViewMode = () => {
+    if (viewingAsSeller) {
+      document.cookie = 'casa_view_mode=; path=/; max-age=0'
+    } else {
+      document.cookie = 'casa_view_mode=seller; path=/; max-age=31536000'
+    }
+    router.refresh()
+  }
 
   const links = [
     { href: '/', label: 'Home' },
     { href: '/queue', label: 'Queue' },
     { href: '/clients', label: 'Clients' },
     { href: '/calendar', label: 'Calendrier' },
-    ...(userRole === 'supervisor' ? [
+    ...(effectiveRole === 'supervisor' ? [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/team', label: 'Team' },
     ] : []),
@@ -71,6 +84,21 @@ export function Nav({ userRole, userName }: NavProps) {
             style={{ borderLeft: '0.5px solid var(--faint)' }}
           >
             <NotificationBell />
+            {canSwitch && (
+              <button
+                type="button"
+                onClick={toggleViewMode}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-medium uppercase tracking-wider transition-colors duration-200 ${
+                  viewingAsSeller
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-gold/10 text-gold'
+                }`}
+                title={viewingAsSeller ? 'Switch to supervisor view' : 'Switch to seller view'}
+              >
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: viewingAsSeller ? 'var(--primary)' : 'var(--gold)' }} />
+                {viewingAsSeller ? 'Seller' : 'Supervisor'}
+              </button>
+            )}
             <span className="text-xs text-text-muted">{userName}</span>
             <button
               type="button"
@@ -128,6 +156,18 @@ export function Nav({ userRole, userName }: NavProps) {
               ))}
               <div className="pt-4" style={{ borderTop: '0.5px solid var(--faint)' }}>
                 <p className="mb-3 text-xs text-text-muted">{userName}</p>
+                {canSwitch && (
+                  <button
+                    type="button"
+                    onClick={() => { toggleViewMode(); setMobileOpen(false) }}
+                    className={`mb-3 flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider ${
+                      viewingAsSeller ? 'bg-primary/10 text-primary' : 'bg-gold/10 text-gold'
+                    }`}
+                  >
+                    <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: viewingAsSeller ? 'var(--primary)' : 'var(--gold)' }} />
+                    {viewingAsSeller ? 'Mode Seller' : 'Mode Supervisor'}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleLogout}

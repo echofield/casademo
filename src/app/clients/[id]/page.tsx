@@ -214,10 +214,10 @@ export default async function Client360Page({ params }: Props) {
     })),
   }
 
-  const canEdit = user.profile.role === 'supervisor' || clientData.seller_id === user.id
+  const canEdit = user.effectiveRole === 'supervisor' || clientData.seller_id === user.id
 
   let sellerOptions: { id: string; full_name: string }[] | undefined
-  if (user.profile.role === 'supervisor') {
+  if (user.effectiveRole === 'supervisor') {
     const { data: sellers } = await supabase
       .from('profiles')
       .select('id, full_name')
@@ -269,7 +269,7 @@ export default async function Client360Page({ params }: Props) {
   const nextMove = getNextMoveContext(clientData)
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-5xl pb-32 md:pb-10">
         <Link
           href="/clients"
@@ -339,7 +339,7 @@ export default async function Client360Page({ params }: Props) {
                   <p className="body-small text-text-muted">
                     Advisor: <span className="text-text">{clientData.seller_name}</span>
                   </p>
-                  {user.profile.role === 'supervisor' && clientData.seller_id !== user.id && (
+                  {user.effectiveRole === 'supervisor' && clientData.seller_id !== user.id && (
                     <NotifySellerButton
                       clientId={id}
                       sellerId={clientData.seller_id}

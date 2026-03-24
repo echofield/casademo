@@ -45,12 +45,12 @@ export default async function FormationAnalyticsPage() {
   if (!user) redirect('/login')
 
   // Only supervisors can access formation analytics
-  if (user.profile.role !== 'supervisor') {
+  if (user.effectiveRole !== 'supervisor') {
     redirect('/queue')
   }
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-6xl animate-fade-in">
         <PageHeader
           title="Formation Analytics"

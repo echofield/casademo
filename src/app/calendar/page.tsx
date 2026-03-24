@@ -19,12 +19,26 @@ import { MeetingCompletionSheet } from './MeetingCompletionSheet'
 
 type CalendarView = 'agenda' | 'week' | 'team'
 
+const VIEW_MODE_COOKIE = 'casa_view_mode'
+
+function getCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+function computeEffectiveRole(profileRole: 'seller' | 'supervisor'): 'seller' | 'supervisor' {
+  if (profileRole !== 'supervisor') return profileRole
+  return getCookieValue(VIEW_MODE_COOKIE) === 'seller' ? 'seller' : 'supervisor'
+}
+
 export default function CalendarPage() {
   const [view, setView] = useState<CalendarView>('agenda')
   const [weekStart, setWeekStart] = useState(() => getWeekBounds().start)
   const [meetings, setMeetings] = useState<MeetingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [userRole, setUserRole] = useState<'seller' | 'supervisor'>('seller')
+  const [effectiveRole, setEffectiveRole] = useState<'seller' | 'supervisor'>('seller')
   const [userName, setUserName] = useState('')
 
   // Modal states
@@ -44,7 +58,9 @@ export default function CalendarPage() {
           .single()
 
         if (profile) {
-          setUserRole(profile.role as 'seller' | 'supervisor')
+          const role = profile.role as 'seller' | 'supervisor'
+          setUserRole(role)
+          setEffectiveRole(computeEffectiveRole(role))
           setUserName(profile.full_name || '')
         }
       }
@@ -58,7 +74,7 @@ export default function CalendarPage() {
     try {
       const { start, end } = getWeekBounds(weekStart)
       // For team view, supervisors fetch all sellers' meetings
-      const url = view === 'team' && userRole === 'supervisor'
+      const url = view === 'team' && effectiveRole === 'supervisor'
         ? `/api/meetings?start=${start.toISOString()}&end=${end.toISOString()}`
         : `/api/meetings?start=${start.toISOString()}&end=${end.toISOString()}`
       const res = await fetch(url)
@@ -71,7 +87,7 @@ export default function CalendarPage() {
     } finally {
       setLoading(false)
     }
-  }, [weekStart, view, userRole])
+  }, [weekStart, view, effectiveRole])
 
   useEffect(() => {
     fetchMeetings()
@@ -161,7 +177,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <AppShell userRole={userRole} userName={userName}>
+    <AppShell userRole={userRole} effectiveRole={effectiveRole} userName={userName}>
       <div className="mx-auto max-w-6xl animate-fade-in">
         {/* Header */}
         <header className="mb-8">
@@ -177,7 +193,7 @@ export default function CalendarPage() {
           onToday={handleToday}
           view={view}
           onViewChange={setView}
-          showTeamView={userRole === 'supervisor'}
+          showTeamView={effectiveRole === 'supervisor'}
         />
 
         {/* Content */}

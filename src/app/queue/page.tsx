@@ -12,7 +12,7 @@ export default async function QueuePage() {
 
   // Demo mode filter
   const DEMO_MODE = false
-  const isSeller = user.profile.role === 'seller'
+  const isSeller = user.effectiveRole === 'seller'
 
   // Sellers only see their own clients, supervisors see all
   let query = supabase
@@ -85,7 +85,7 @@ export default async function QueuePage() {
   const overdueCount = items.filter(i => (i.days_overdue ?? 0) > 0).length
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <QueueStack
           clients={clientsWithLabels}

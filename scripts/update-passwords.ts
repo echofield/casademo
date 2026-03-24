@@ -44,25 +44,38 @@ const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: strin
 
 const ALL_USERS = [...SUPERVISORS, ...CASABLANCA_TEAM]
 
+async function getAllAuthUsers() {
+  const all: Array<{ id: string; email?: string }> = []
+  let page = 1
+  while (true) {
+    const { data } = await supabase.auth.admin.listUsers({ page, perPage: 1000 })
+    if (!data?.users?.length) break
+    all.push(...data.users)
+    if (data.users.length < 1000) break
+    page++
+  }
+  return all
+}
+
+let cachedUsers: Array<{ id: string; email?: string }> | null = null
+
 async function updatePassword(row: typeof ALL_USERS[0]) {
-  // Skip placeholder entries
   if (row.email === 'REAL_EMAIL' || row.password === 'REAL_PASSWORD') {
     console.log(`SKIPPED (placeholder): ${row.full_name}`)
     return { success: false, skipped: true }
   }
 
-  // Find user by email
-  const { data: list } = await supabase.auth.admin.listUsers()
-  const user = list?.users?.find((u) => u.email?.toLowerCase() === row.email.toLowerCase())
+  if (!cachedUsers) cachedUsers = await getAllAuthUsers()
+  const user = cachedUsers.find((u) => u.email?.toLowerCase() === row.email.toLowerCase())
 
   if (!user) {
     console.log(`NOT FOUND: ${row.email} (${row.full_name})`)
     return { success: false, skipped: false }
   }
 
-  // Update password
   const { error } = await supabase.auth.admin.updateUserById(user.id, {
     password: row.password,
+    email_confirm: true,
   })
 
   if (error) {

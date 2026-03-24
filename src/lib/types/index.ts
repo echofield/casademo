@@ -245,6 +245,7 @@ export interface AuthUser {
   id: string
   email: string
   profile: Profile
+  effectiveRole: UserRole
 }
 
 // Meeting types - re-export from meetings.ts

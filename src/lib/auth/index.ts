@@ -1,5 +1,8 @@
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { AuthUser, Profile, UserRole } from '@/lib/types'
+
+export const VIEW_MODE_COOKIE = 'casa_view_mode'
 
 export class AuthError extends Error {
   constructor(
@@ -32,10 +35,20 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null
   }
 
+  let effectiveRole: UserRole = profile.role
+  if (profile.role === 'supervisor') {
+    const cookieStore = await cookies()
+    const viewMode = cookieStore.get(VIEW_MODE_COOKIE)?.value
+    if (viewMode === 'seller') {
+      effectiveRole = 'seller'
+    }
+  }
+
   return {
     id: user.id,
     email: user.email!,
     profile,
+    effectiveRole,
   }
 }
 

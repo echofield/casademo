@@ -22,9 +22,11 @@ export async function GET(request: NextRequest) {
       .from('clients')
       .select('*, profiles!clients_seller_id_fkey(full_name)', { count: 'exact' })
 
-    // RLS handles scope, but supervisors can filter by seller
-    if (seller_id && user.profile.role === 'supervisor') {
-      query = query.eq('seller_id', seller_id)
+    // Supervisors can filter by seller; in seller mode, scope to own clients
+    if (user.effectiveRole === 'supervisor') {
+      if (seller_id) query = query.eq('seller_id', seller_id)
+    } else {
+      query = query.eq('seller_id', user.id)
     }
 
     if (tier) {

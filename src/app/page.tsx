@@ -14,7 +14,7 @@ export default async function HomePage() {
 
   // Demo mode filter
   const DEMO_MODE = false
-  const isSeller = user.profile.role === 'seller'
+  const isSeller = user.effectiveRole === 'seller'
 
   // Sellers only see their own clients, supervisors see all
   let query = supabase
@@ -74,7 +74,7 @@ export default async function HomePage() {
   }
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-4xl animate-fade-in">
         <header className="mb-10">
           <p className="label mb-3 text-text-muted">Overview</p>
@@ -193,9 +193,9 @@ export default async function HomePage() {
         ) : (
           <>
             <p className="label mb-6 text-text-muted">By priority</p>
-            <RecontactQueueSection title="Overdue" items={overdue} urgent userRole={user.profile.role} currentUserId={user.id} />
-            <RecontactQueueSection title="Due today" items={dueToday} userRole={user.profile.role} currentUserId={user.id} />
-            <RecontactQueueSection title="Upcoming" items={upcoming} userRole={user.profile.role} currentUserId={user.id} />
+            <RecontactQueueSection title="Overdue" items={overdue} urgent userRole={user.effectiveRole} currentUserId={user.id} />
+            <RecontactQueueSection title="Due today" items={dueToday} userRole={user.effectiveRole} currentUserId={user.id} />
+            <RecontactQueueSection title="Upcoming" items={upcoming} userRole={user.effectiveRole} currentUserId={user.id} />
           </>
         )}
       </div>

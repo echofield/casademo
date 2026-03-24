@@ -14,7 +14,7 @@ export default async function TeamPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
 
-  if (user.profile.role !== 'supervisor') {
+  if (user.effectiveRole !== 'supervisor') {
     redirect('/queue')
   }
 
@@ -129,7 +129,7 @@ export default async function TeamPage() {
   }
 
   return (
-    <AppShell userRole={user.profile.role} userName={user.profile.full_name}>
+    <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
