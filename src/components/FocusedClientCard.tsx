@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { tierBorders } from '@/lib/motion'
-import { createClient } from '@/lib/supabase/client'
 import { ClickableSellerBadge } from './ClickableSellerBadge'
 import { SignalBadge } from './SignalBadge'
 import { InterestTag } from './InterestTag'
@@ -81,18 +81,32 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
     if (notifying || notified) return
 
     setNotifying(true)
+    const clientFullName = `${client.first_name} ${client.last_name}`
+    const tierDisplay = client.tier.replace('_', ' ')
+    const daysText = client.days_overdue === 1 ? '1 day' : `${client.days_overdue} days`
+
     try {
-      const supabase = createClient()
-      await supabase.from('notifications').insert({
-        user_id: client.seller_id,
-        type: 'client_overdue',
-        title: `Follow up: ${client.first_name} ${client.last_name}`,
-        message: `This client is ${client.days_overdue} day${(client.days_overdue ?? 0) > 1 ? 's' : ''} overdue.`,
-        client_id: client.id,
+      const res = await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seller_id: client.seller_id,
+          client_id: client.id,
+          client_name: clientFullName,
+          message: `${clientFullName} (${tierDisplay}) is ${daysText} overdue. Please follow up.`,
+        }),
       })
-      setNotified(true)
+
+      if (res.ok) {
+        setNotified(true)
+        toast.success(`Reminder sent to ${client.seller_name} about ${clientFullName}`)
+      } else {
+        const err = await res.json()
+        toast.error(err.error || 'Failed to send reminder')
+      }
     } catch (err) {
       console.error('Failed to notify seller:', err)
+      toast.error('Failed to send reminder')
     } finally {
       setNotifying(false)
     }

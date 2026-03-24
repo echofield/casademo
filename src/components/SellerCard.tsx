@@ -24,14 +24,12 @@ export function SellerCard({ seller, tierOrder }: Props) {
     }).format(amount) + ' €'
   }
 
-  // Determine status color based on overdue count
   const hasOverdue = seller.overdueCount > 0
   const statusColor = hasOverdue ? '#C34747' : '#2F6B4F'
 
   return (
-    <Link
-      href={`/clients?seller=${seller.id}`}
-      className="group block bg-white border p-6 transition-all duration-200 hover:shadow-sm"
+    <div
+      className="bg-white border p-6"
       style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
     >
       {/* Header: Name + Status */}
@@ -73,10 +71,13 @@ export function SellerCard({ seller, tierOrder }: Props) {
         </div>
       </div>
 
-      {/* View profile link */}
-      <p className="text-xs tracking-wider text-text-muted uppercase group-hover:text-primary transition-colors">
+      {/* View clients link */}
+      <Link
+        href={`/team/${seller.id}`}
+        className="text-xs tracking-wider text-text-muted uppercase hover:text-primary transition-colors"
+      >
         View clients →
-      </p>
-    </Link>
+      </Link>
+    </div>
   )
 }
