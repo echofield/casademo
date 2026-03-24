@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Calendar, Plus } from 'lucide-react'
+import { Calendar, Plus, Store, MapPin, Phone, Video, MessageCircle } from 'lucide-react'
 import {
   MeetingWithDetails,
   MEETING_FORMAT_CONFIG,
   MEETING_STATUS_CONFIG,
   formatTimeRange,
 } from '@/lib/types/meetings'
+
+const FORMAT_ICONS = {
+  store: Store,
+  pin: MapPin,
+  phone: Phone,
+  video: Video,
+  message: MessageCircle,
+}
 
 export function TodayMeetings() {
   const [meetings, setMeetings] = useState<MeetingWithDetails[]>([])
@@ -99,8 +107,9 @@ export function TodayMeetings() {
               >
                 <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
                 <span className="text-sm font-medium text-text w-24">{timeRange}</span>
-                <span className={`px-2 py-0.5 text-xs rounded-full ${formatConfig.bgColor} ${formatConfig.textColor}`}>
-                  {formatConfig.icon} {formatConfig.label}
+                <span className={`px-2 py-0.5 text-xs rounded-full flex items-center gap-1 ${formatConfig.bgColor} ${formatConfig.textColor}`}>
+                  {(() => { const Icon = FORMAT_ICONS[formatConfig.iconType]; return <Icon size={12} strokeWidth={1.5} />; })()}
+                  {formatConfig.label}
                 </span>
                 <div className="flex-1 min-w-0">
                   {meeting.client_name ? (
