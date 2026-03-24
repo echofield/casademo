@@ -16,9 +16,6 @@ interface Props {
     sort?: SortOption
     interest?: string
     interest_val?: string
-    domain?: string
-    locale?: string
-    signal?: ClientSignal | 'null'
     page?: string
   }>
 }
@@ -33,9 +30,6 @@ export default async function ClientsPage({ searchParams }: Props) {
   const sellerId = params.seller
   const interestFilter = params.interest
   const interestValFilter = params.interest_val
-  const domainFilter = params.domain
-  const localeFilter = params.locale
-  const signalFilter = params.signal
   const page = parseInt(params.page || '1', 10)
   const limit = 24
 
@@ -65,10 +59,10 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
 
-  // Fetch interest taxonomy for the grouped dropdown (with domain)
+  // Fetch interest taxonomy for the grouped dropdown
   const { data: interestTaxonomy } = await supabase
     .from('interest_taxonomy')
-    .select('category, value, display_label, domain')
+    .select('category, value, display_label')
     .order('category')
     .order('sort_order')
 
@@ -76,7 +70,7 @@ export default async function ClientsPage({ searchParams }: Props) {
     category: t.category,
     value: t.value,
     displayLabel: t.display_label,
-    domain: (t.domain || 'fashion') as string,
+    domain: 'fashion' as string,
   }))
 
   // Legacy: get distinct interest categories
@@ -94,7 +88,6 @@ export default async function ClientsPage({ searchParams }: Props) {
       .from('client_interests')
       .select('client_id')
       .eq('value', interestValFilter)
-    if (domainFilter) interestQuery = interestQuery.eq('domain', domainFilter)
     const { data: matchingInterests } = await interestQuery
     interestClientIds = matchingInterests?.map(i => i.client_id) || []
   } else if (interestFilter) {
@@ -107,13 +100,13 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   const sort = params.sort || 'alpha'
 
-  // Demo mode: only show demo clients
-  const DEMO_MODE = false
+  
+  
 
   let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
-    .eq('is_demo', DEMO_MODE)
+    
 
   const isTierGroup = sort === 'tier_group'
 
@@ -156,19 +149,7 @@ export default async function ClientsPage({ searchParams }: Props) {
     query = query.eq('tier', tier)
   }
 
-  // Signal filter
-  if (signalFilter) {
-    if (signalFilter === 'null') {
-      query = query.is('seller_signal', null)
-    } else {
-      query = query.eq('seller_signal', signalFilter)
-    }
-  }
 
-  // Locale filter
-  if (localeFilter) {
-    query = query.eq('locale', localeFilter)
-  }
 
   // Sellers can only see their own clients
   if (!isSupervisor) {
@@ -194,19 +175,18 @@ export default async function ClientsPage({ searchParams }: Props) {
   if (clientIds.length > 0) {
     const { data: allInterests } = await supabase
       .from('client_interests')
-      .select('id, client_id, category, value, detail, domain')
+      .select('id, client_id, category, value, detail')
       .in('client_id', clientIds)
 
     // Group by client_id — only fashion interests on cards
     ;(allInterests || []).forEach((interest) => {
-      if (interest.domain === 'life') return
       const existing = clientInterestsMap.get(interest.client_id) || []
       existing.push({
         id: interest.id,
         category: interest.category,
         value: interest.value,
         detail: interest.detail,
-        domain: (interest.domain || 'fashion') as 'fashion' | 'life',
+        domain: 'fashion' as 'fashion' | 'life',
       })
       clientInterestsMap.set(interest.client_id, existing)
     })
@@ -218,7 +198,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   if (clientIds.length > 0) {
     const { data: purchases } = await supabase
       .from('purchases')
-      .select('client_id, product_name, purchase_date, size, is_gift')
+      .select('client_id, purchase_date')
       .in('client_id', clientIds)
       .order('purchase_date', { ascending: false })
 
@@ -226,10 +206,10 @@ export default async function ClientsPage({ searchParams }: Props) {
       for (const p of purchases) {
         if (!lastPurchaseMap.has(p.client_id)) {
           lastPurchaseMap.set(p.client_id, {
-            product_name: p.product_name,
+            product_name: null,
             purchase_date: p.purchase_date,
-            size: p.size,
-            is_gift: p.is_gift ?? false,
+            size: null,
+            is_gift: false,
           })
         }
       }
@@ -263,9 +243,6 @@ export default async function ClientsPage({ searchParams }: Props) {
     if (sellerId) sp.set('seller', sellerId)
     if (interestValFilter) sp.set('interest_val', interestValFilter)
     else if (interestFilter) sp.set('interest', interestFilter)
-    if (domainFilter) sp.set('domain', domainFilter)
-    if (localeFilter) sp.set('locale', localeFilter)
-    if (signalFilter) sp.set('signal', signalFilter)
     if (sort && sort !== 'alpha') sp.set('sort', sort)
     if (p > 1) sp.set('page', String(p))
     const q = sp.toString()
@@ -293,8 +270,6 @@ export default async function ClientsPage({ searchParams }: Props) {
           currentSort={sort}
           currentInterest={interestFilter}
           currentInterestVal={interestValFilter}
-          currentSignal={signalFilter}
-          currentLocale={localeFilter}
           tiers={TIER_ORDER}
           tierLabels={TIER_LABELS}
           sellers={sellers}
