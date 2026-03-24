@@ -24,24 +24,29 @@ export default function SetupMFAPage() {
         return
       }
 
-      // Check if MFA is already enrolled
       const { data: factors } = await supabase.auth.mfa.listFactors()
-      const totpFactor = factors?.totp?.find(f => f.status === 'verified')
+      const verifiedFactor = factors?.totp?.find(f => f.status === 'verified')
 
-      if (totpFactor) {
-        // Already enrolled, redirect to home
+      if (verifiedFactor) {
         router.push('/')
         return
       }
 
-      // Enroll new TOTP factor
-      const { data, error } = await supabase.auth.mfa.enroll({
+      // Clean up any previously unverified factors that would block new enrollment
+      const allTotp = (factors?.totp || []) as Array<{ id: string; status: string }>
+      const unverified = allTotp.filter(f => f.status !== 'verified')
+      for (const f of unverified) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id })
+      }
+
+      // Enroll a fresh TOTP factor
+      const { data, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'Google Authenticator'
+        friendlyName: 'Casa One'
       })
 
-      if (error) {
-        setError(error.message)
+      if (enrollError) {
+        setError(enrollError.message)
         setLoading(false)
         return
       }
@@ -87,7 +92,18 @@ export default function SetupMFAPage() {
     }
 
     // Success - redirect to home
-    router.push('/')
+    window.location.replace('/')
+  }
+
+  async function handleSkip() {
+    const supabase = createClient()
+    // Remove any unverified factor so middleware won't loop back here
+    if (factorId) {
+      await supabase.auth.mfa.unenroll({ factorId })
+    }
+    // Set a cookie so middleware knows user chose to skip
+    document.cookie = 'casa_mfa_skipped=1; path=/; max-age=604800'
+    window.location.replace('/')
   }
 
   if (loading) {
@@ -111,71 +127,107 @@ export default function SetupMFAPage() {
           <h1 className="font-serif text-[#003D2B] text-3xl mb-2 text-center">
             Sécuriser votre compte
           </h1>
-          <p className="text-[#003D2B]/60 text-center mb-8">
+          <p className="text-[#003D2B]/60 text-center mb-2">
             Scannez le QR code avec Google Authenticator
           </p>
+          <p className="text-[#003D2B]/40 text-xs text-center mb-8">
+            Ouvrez l&apos;app Google Authenticator &gt; appuyez sur &quot;+&quot; &gt; Scanner un QR code
+          </p>
+
+          {error && !qrCode && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-center">
+              <p className="text-sm text-red-700 mb-2">{error}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="text-xs text-red-600 underline"
+              >
+                Réessayer
+              </button>
+            </div>
+          )}
 
           {qrCode && (
             <div className="flex flex-col items-center mb-8">
-              <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-                <img src={qrCode} alt="QR Code MFA" className="w-48 h-48" />
+              <div className="bg-white p-6 rounded-lg shadow-sm mb-5 border border-[#003D2B]/10">
+                <img
+                  src={qrCode}
+                  alt="QR Code pour Google Authenticator"
+                  className="w-56 h-56"
+                  style={{ imageRendering: 'pixelated' }}
+                />
               </div>
 
               {secret && (
-                <div className="text-center">
-                  <p className="text-xs text-[#003D2B]/40 mb-1">Ou entrez manuellement:</p>
-                  <code className="text-xs bg-[#003D2B]/5 px-3 py-1.5 rounded font-mono text-[#003D2B]/70 select-all">
-                    {secret}
-                  </code>
+                <div className="text-center w-full">
+                  <p className="text-xs text-[#003D2B]/40 mb-2">Ou entrez ce code manuellement :</p>
+                  <div className="bg-[#003D2B]/5 px-4 py-2.5 rounded border border-[#003D2B]/10">
+                    <code className="text-sm font-mono text-[#003D2B] select-all tracking-wide break-all">
+                      {secret}
+                    </code>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          <form onSubmit={handleVerify}>
-            <div className="mb-6">
-              <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                Code à 6 chiffres
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                value={verifyCode}
-                onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+          {qrCode && (
+            <form onSubmit={handleVerify}>
+              <div className="mb-6">
+                <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
+                  Entrez le code à 6 chiffres affiché dans l&apos;app
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                  autoFocus
+                  className="
+                    w-full px-4 py-4 text-center text-2xl tracking-[0.5em]
+                    bg-white border border-[#003D2B]/20
+                    text-[#003D2B]
+                    placeholder:text-[#003D2B]/30
+                    focus:outline-none focus:border-[#003D2B]/50
+                    transition-colors duration-200
+                  "
+                  placeholder="000000"
+                  autoComplete="one-time-code"
+                />
+              </div>
+
+              {error && (
+                <p className="mb-4 text-sm text-red-600 text-center">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={verifying || verifyCode.length !== 6}
                 className="
-                  w-full px-4 py-3 text-center text-2xl tracking-[0.5em]
-                  bg-white border border-[#003D2B]/20
-                  text-[#003D2B]
-                  placeholder:text-[#003D2B]/30
-                  focus:outline-none focus:border-[#003D2B]/50
-                  transition-colors duration-200
+                  w-full py-4
+                  bg-[#003D2B] border border-[#003D2B]
+                  text-white text-sm tracking-[0.15em] uppercase
+                  hover:bg-[#004D38]
+                  focus:outline-none focus:ring-2 focus:ring-[#003D2B]/50
+                  transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 "
-                placeholder="000000"
-                autoComplete="one-time-code"
-              />
-            </div>
+              >
+                {verifying ? 'Vérification...' : 'Activer'}
+              </button>
+            </form>
+          )}
 
-            {error && (
-              <p className="mb-4 text-sm text-red-600 text-center">{error}</p>
-            )}
-
+          <div className="mt-8 text-center">
             <button
-              type="submit"
-              disabled={verifying || verifyCode.length !== 6}
-              className="
-                w-full py-4
-                bg-[#003D2B] border border-[#003D2B]
-                text-white text-sm tracking-[0.15em] uppercase
-                hover:bg-[#004D38]
-                focus:outline-none focus:ring-2 focus:ring-[#003D2B]/50
-                transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+              type="button"
+              onClick={handleSkip}
+              className="text-[#003D2B]/40 text-xs hover:text-[#003D2B]/60 transition-colors"
             >
-              {verifying ? 'Vérification...' : 'Activer'}
+              Configurer plus tard
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </main>

@@ -98,6 +98,11 @@ export async function middleware(request: NextRequest) {
 
   // If user doesn't have MFA enrolled at all (nextLevel is aal1)
   if (aal?.nextLevel === 'aal1') {
+    // Allow users to skip MFA setup temporarily
+    const mfaSkipped = request.cookies.get('casa_mfa_skipped')?.value === '1'
+    if (mfaSkipped) {
+      return supabaseResponse
+    }
     if (pathname.startsWith('/setup-mfa')) {
       return supabaseResponse
     }
