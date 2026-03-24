@@ -66,7 +66,6 @@ export default function SetupMFAPage() {
       // If enrollment fails due to existing factor, try one more cleanup and retry
       if (enrollError?.message?.includes('already exists')) {
         console.log('[MFA Setup] Factor exists error, attempting aggressive cleanup')
-        console.log('[MFA Setup] All factors:', JSON.stringify(retryFactors?.totp || []))
 
         // Fetch factors again and force-remove any with our friendly name
         const { data: retryFactors } = await supabase.auth.mfa.listFactors()
