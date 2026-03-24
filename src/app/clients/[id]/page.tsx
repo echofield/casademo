@@ -64,7 +64,7 @@ export default async function Client360Page({ params }: Props) {
   // Fetch interests (with domain)
   const { data: interests } = await supabase
     .from('client_interests')
-    .select('id, category, value, detail, domain')
+    .select('id, category, value, detail')
     .eq('client_id', id)
     .order('created_at', { ascending: false })
 
@@ -85,7 +85,7 @@ export default async function Client360Page({ params }: Props) {
   // Fetch purchases (with product details)
   const { data: purchases } = await supabase
     .from('purchases')
-    .select('id, purchase_date, amount, description, product_name, product_category, size, size_type, is_gift, gift_recipient')
+    .select('id, purchase_date, amount, description')
     .eq('client_id', id)
     .order('purchase_date', { ascending: false })
     .limit(20)
@@ -150,12 +150,12 @@ export default async function Client360Page({ params }: Props) {
     origin: client.origin || null,
     is_personal_shopper: client.is_personal_shopper || false,
     heat_score: client.heat_score || 50,
-    seller_signal: client.seller_signal || null,
-    signal_note: client.signal_note || null,
-    signal_updated_at: client.signal_updated_at || null,
-    life_notes: client.life_notes || null,
-    locale: (client.locale || 'local') as ClientLocale,
-    first_impact: (client.first_impact || 'unknown') as FirstImpact,
+    seller_signal: (client as any).seller_signal || null,
+    signal_note: (client as any).signal_note || null,
+    signal_updated_at: (client as any).signal_updated_at || null,
+    life_notes: (client as any).life_notes || null,
+    locale: ((client as any).locale || 'local') as ClientLocale,
+    first_impact: ((client as any).first_impact || 'unknown') as FirstImpact,
     created_at: client.created_at,
     updated_at: client.updated_at,
     seller_name: (() => {
@@ -164,7 +164,7 @@ export default async function Client360Page({ params }: Props) {
     })() || 'Unassigned',
     interests: (interests || []).map(i => ({
       ...i,
-      domain: (i.domain || 'fashion') as 'fashion' | 'life',
+      domain: 'fashion' as 'fashion' | 'life',
     })),
     contact_history: (contacts || []).map(c => {
       const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
@@ -182,12 +182,12 @@ export default async function Client360Page({ params }: Props) {
       date: p.purchase_date,
       amount: p.amount,
       description: p.description,
-      product_name: p.product_name || null,
-      product_category: p.product_category || null,
-      size: p.size || null,
-      size_type: p.size_type || null,
-      is_gift: p.is_gift || false,
-      gift_recipient: p.gift_recipient || null,
+      product_name: null,
+      product_category: null,
+      size: null,
+      size_type: null,
+      is_gift: false,
+      gift_recipient: null,
     })),
     sizing: (sizing || []).map(s => ({
       id: s.id,
