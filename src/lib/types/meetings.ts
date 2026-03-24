@@ -11,40 +11,40 @@ export type MeetingStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show'
 // Default boutique location
 export const DEFAULT_BOUTIQUE_LOCATION = 'Casablanca Paris — Faubourg Saint-Honore'
 
-// Format display configuration
+// Format display configuration (icons are SVG paths rendered in components)
 export const MEETING_FORMAT_CONFIG: Record<MeetingFormat, {
   label: string
-  icon: string
+  iconType: 'store' | 'pin' | 'phone' | 'video' | 'message'
   bgColor: string
   textColor: string
 }> = {
   boutique: {
     label: 'In Store',
-    icon: '🏪',
+    iconType: 'store',
     bgColor: 'bg-[#003D2B]/10',
     textColor: 'text-[#003D2B]',
   },
   external: {
     label: 'External',
-    icon: '📍',
+    iconType: 'pin',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-700',
   },
   call: {
     label: 'Call',
-    icon: '📞',
+    iconType: 'phone',
     bgColor: 'bg-orange-50',
     textColor: 'text-orange-700',
   },
   video: {
     label: 'Video',
-    icon: '📹',
+    iconType: 'video',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-700',
   },
   whatsapp: {
     label: 'WhatsApp',
-    icon: '💬',
+    iconType: 'message',
     bgColor: 'bg-teal-50',
     textColor: 'text-teal-700',
   },

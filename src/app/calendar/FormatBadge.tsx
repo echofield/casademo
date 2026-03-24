@@ -1,5 +1,6 @@
 'use client'
 
+import { Store, MapPin, Phone, Video, MessageCircle } from 'lucide-react'
 import { MeetingFormat, MEETING_FORMAT_CONFIG } from '@/lib/types/meetings'
 
 interface FormatBadgeProps {
@@ -8,12 +9,23 @@ interface FormatBadgeProps {
   size?: 'sm' | 'md'
 }
 
+const ICONS = {
+  store: Store,
+  pin: MapPin,
+  phone: Phone,
+  video: Video,
+  message: MessageCircle,
+}
+
 export function FormatBadge({ format, showIcon = true, size = 'md' }: FormatBadgeProps) {
   const config = MEETING_FORMAT_CONFIG[format]
+  const Icon = ICONS[config.iconType]
 
   const sizeClasses = size === 'sm'
     ? 'px-1.5 py-0.5 text-[10px]'
     : 'px-2 py-1 text-xs'
+
+  const iconSize = size === 'sm' ? 10 : 12
 
   return (
     <span
@@ -23,7 +35,7 @@ export function FormatBadge({ format, showIcon = true, size = 'md' }: FormatBadg
         ${sizeClasses}
       `}
     >
-      {showIcon && <span>{config.icon}</span>}
+      {showIcon && <Icon className="shrink-0" size={iconSize} strokeWidth={1.5} />}
       <span>{config.label}</span>
     </span>
   )

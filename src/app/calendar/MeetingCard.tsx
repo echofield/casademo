@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { MapPin } from 'lucide-react'
 import { MeetingWithDetails, MEETING_STATUS_CONFIG, formatTimeRange } from '@/lib/types/meetings'
 import { FormatBadge } from './FormatBadge'
 
@@ -84,8 +85,9 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
 
       {/* Location for external */}
       {meeting.format === 'external' && meeting.location && (
-        <p className="text-xs text-text-muted mt-2">
-          📍 {meeting.location}
+        <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
+          <MapPin size={12} strokeWidth={1.5} />
+          {meeting.location}
         </p>
       )}
 
@@ -101,7 +103,7 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
         <div className="mt-3 pt-3 border-t" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
           <div className="flex items-center gap-2 text-sm">
             <span className={meeting.outcome_purchased ? 'text-green-600' : 'text-text-muted'}>
-              {meeting.outcome_purchased ? 'Purchase made' : 'Pas d\'achat'}
+              {meeting.outcome_purchased ? 'Purchase made' : 'No purchase'}
             </span>
           </div>
           {meeting.outcome_notes && (

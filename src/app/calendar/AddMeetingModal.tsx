@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Search } from 'lucide-react'
+import { X, Search, Store, MapPin, Phone, Video, MessageCircle } from 'lucide-react'
 import {
   MeetingFormat,
   MeetingInsert,
@@ -10,6 +10,14 @@ import {
   DURATION_PRESETS,
 } from '@/lib/types/meetings'
 import { TierBadge } from '@/components'
+
+const FORMAT_ICONS = {
+  store: Store,
+  pin: MapPin,
+  phone: Phone,
+  video: Video,
+  message: MessageCircle,
+}
 
 interface Client {
   id: string
@@ -195,6 +203,7 @@ export function AddMeetingModal({
             <div className="flex flex-wrap gap-2">
               {(Object.keys(MEETING_FORMAT_CONFIG) as MeetingFormat[]).map((f) => {
                 const config = MEETING_FORMAT_CONFIG[f]
+                const Icon = FORMAT_ICONS[config.iconType]
                 const isSelected = format === f
                 return (
                   <button
@@ -209,7 +218,7 @@ export function AddMeetingModal({
                       }
                     `}
                   >
-                    <span>{config.icon}</span>
+                    <Icon size={14} strokeWidth={1.5} />
                     <span>{config.label}</span>
                   </button>
                 )

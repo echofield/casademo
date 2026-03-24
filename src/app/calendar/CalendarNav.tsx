@@ -86,7 +86,7 @@ export function CalendarNav({
               : 'text-text-muted hover:bg-[#003D2B]/5'
           }`}
         >
-          Semaine
+          Week
         </button>
         {showTeamView && (
           <button
@@ -97,7 +97,7 @@ export function CalendarNav({
                 : 'text-text-muted hover:bg-[#003D2B]/5'
             }`}
           >
-            Equipe
+            Team
           </button>
         )}
       </div>
