@@ -43,7 +43,7 @@ export function ClickableSellerBadge({
       const supabase = createClient()
       await supabase.from('notifications').insert({
         user_id: sellerId,
-        type: 'client_reminder',
+        type: 'manual',
         title: `Follow up: ${clientName}`,
         message: isOverdue
           ? `This client is ${daysOverdue} days overdue. Please follow up.`

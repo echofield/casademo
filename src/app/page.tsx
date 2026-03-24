@@ -12,15 +12,13 @@ export default async function HomePage() {
 
   const supabase = await createClient()
 
-  // Demo mode filter
-  const DEMO_MODE = false
   const isSeller = user.effectiveRole === 'seller'
 
   // Sellers only see their own clients, supervisors see all
   let query = supabase
     .from('recontact_queue')
     .select('*')
-    .eq('is_demo', DEMO_MODE)
+    
 
   if (isSeller) {
     query = query.eq('seller_id', user.id)
@@ -43,7 +41,7 @@ export default async function HomePage() {
     const { data: myClients } = await supabase
       .from('clients')
       .select('id, total_spend, tier')
-      .eq('is_demo', DEMO_MODE)
+      
       .eq('seller_id', user.id)
 
     // Get seller's contacts this week
@@ -85,10 +83,10 @@ export default async function HomePage() {
         </header>
 
         <div className="mb-10 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <SummaryStat label="Total due" value={items.length} />
-          <SummaryStat label="Overdue" value={overdue.length} tone={overdue.length > 0 ? 'danger' : 'default'} />
-          <SummaryStat label="Due today" value={dueToday.length} tone={dueToday.length > 0 ? 'gold' : 'default'} />
-          <SummaryStat label="Upcoming" value={upcoming.length} />
+          <SummaryStat label="Total due" value={items.length} href="/queue" />
+          <SummaryStat label="Overdue" value={overdue.length} tone={overdue.length > 0 ? 'danger' : 'default'} href="/queue?status=overdue" />
+          <SummaryStat label="Due today" value={dueToday.length} tone={dueToday.length > 0 ? 'gold' : 'default'} href="/queue?status=today" />
+          <SummaryStat label="Upcoming" value={upcoming.length} href="/queue?status=upcoming" />
         </div>
 
         {/* Seller Portfolio Stats */}
@@ -111,7 +109,7 @@ export default async function HomePage() {
                 <div>
                   <p className="text-xs text-text-muted mb-1">Total CA</p>
                   <p className="font-serif text-2xl text-primary">
-                    {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(sellerStats.totalSpend)}
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(sellerStats.totalSpend)}
                   </p>
                 </div>
                 <div>
@@ -207,20 +205,23 @@ function SummaryStat({
   label,
   value,
   tone = 'default',
+  href,
 }: {
   label: string
   value: number
   tone?: 'default' | 'danger' | 'gold'
+  href?: string
 }) {
   const valueClass =
     tone === 'danger' ? 'text-danger' : tone === 'gold' ? 'text-gold' : 'text-text'
-  return (
+  const content = (
     <div
-      className="border bg-surface px-4 py-4"
+      className={`border bg-surface px-4 py-4 transition-colors ${href ? 'hover:border-primary/30 cursor-pointer' : ''}`}
       style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
     >
       <p className="label mb-2 text-text-muted">{label}</p>
       <p className={`metric-small ${valueClass}`}>{value}</p>
     </div>
   )
+  return href ? <Link href={href}>{content}</Link> : content
 }

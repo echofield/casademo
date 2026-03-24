@@ -145,7 +145,7 @@ export default function SetupMFAPage() {
     })
 
     if (verifyError) {
-      setError('Code invalide. Réessayez.')
+      setError('Invalid code. Try again.')
       setVerifying(false)
       return
     }
@@ -168,7 +168,7 @@ export default function SetupMFAPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
-        <p className="text-[#003D2B]/60">Chargement...</p>
+        <p className="text-[#003D2B]/60">Loading...</p>
       </main>
     )
   }
@@ -184,13 +184,13 @@ export default function SetupMFAPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
         <div className="w-full max-w-sm">
           <h1 className="font-serif text-[#003D2B] text-3xl mb-2 text-center">
-            Sécuriser votre compte
+            Secure your account
           </h1>
           <p className="text-[#003D2B]/60 text-center mb-2">
-            Scannez le QR code avec Google Authenticator
+            Scan the QR code with Google Authenticator
           </p>
           <p className="text-[#003D2B]/40 text-xs text-center mb-8">
-            Ouvrez l&apos;app Google Authenticator &gt; appuyez sur &quot;+&quot; &gt; Scanner un QR code
+            Open Google Authenticator app {'>'} tap "+" {'>'} Scan QR code
           </p>
 
           {error && !qrCode && (
@@ -201,7 +201,7 @@ export default function SetupMFAPage() {
                 onClick={() => window.location.reload()}
                 className="text-xs text-red-600 underline"
               >
-                Réessayer
+                Try again
               </button>
             </div>
           )}
@@ -211,7 +211,7 @@ export default function SetupMFAPage() {
               <div className="bg-white p-6 rounded-lg shadow-sm mb-5 border border-[#003D2B]/10">
                 <img
                   src={qrCode}
-                  alt="QR Code pour Google Authenticator"
+                  alt="QR Code for Google Authenticator"
                   className="w-56 h-56"
                   style={{ imageRendering: 'pixelated' }}
                 />
@@ -219,7 +219,7 @@ export default function SetupMFAPage() {
 
               {secret && (
                 <div className="text-center w-full">
-                  <p className="text-xs text-[#003D2B]/40 mb-2">Ou entrez ce code manuellement :</p>
+                  <p className="text-xs text-[#003D2B]/40 mb-2">Or enter this code manually:</p>
                   <div className="bg-[#003D2B]/5 px-4 py-2.5 rounded border border-[#003D2B]/10">
                     <code className="text-sm font-mono text-[#003D2B] select-all tracking-wide break-all">
                       {secret}
@@ -234,7 +234,7 @@ export default function SetupMFAPage() {
             <form onSubmit={handleVerify}>
               <div className="mb-6">
                 <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                  Entrez le code à 6 chiffres affiché dans l&apos;app
+                  Enter the 6-digit code shown in the app
                 </label>
                 <input
                   type="text"
@@ -273,7 +273,7 @@ export default function SetupMFAPage() {
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                {verifying ? 'Vérification...' : 'Activer'}
+                {verifying ? 'Verifying...' : 'Enable'}
               </button>
             </form>
           )}
@@ -284,7 +284,7 @@ export default function SetupMFAPage() {
               onClick={handleSkip}
               className="text-[#003D2B]/40 text-xs hover:text-[#003D2B]/60 transition-colors"
             >
-              Configurer plus tard
+              Set up later
             </button>
           </div>
         </div>

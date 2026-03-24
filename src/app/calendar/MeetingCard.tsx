@@ -32,7 +32,7 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
             {meeting.client_name}
           </Link>
         ) : (
-          <span className="text-sm text-text-muted">Sans client</span>
+          <span className="text-sm text-text-muted">No client</span>
         )}
       </div>
     )
@@ -64,7 +64,7 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
             {meeting.client_name}
           </Link>
         ) : (
-          <span className="text-sm text-text-muted">Sans client</span>
+          <span className="text-sm text-text-muted">No client</span>
         )}
         {meeting.client_phone && (
           <a
@@ -101,7 +101,7 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
         <div className="mt-3 pt-3 border-t" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
           <div className="flex items-center gap-2 text-sm">
             <span className={meeting.outcome_purchased ? 'text-green-600' : 'text-text-muted'}>
-              {meeting.outcome_purchased ? 'Achat effectue' : 'Pas d\'achat'}
+              {meeting.outcome_purchased ? 'Purchase made' : 'Pas d\'achat'}
             </span>
           </div>
           {meeting.outcome_notes && (
@@ -117,19 +117,19 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
             onClick={() => onAction('complete', meeting)}
             className="flex-1 py-2 text-xs font-medium uppercase tracking-wide text-white bg-[#003D2B] hover:bg-[#004D38] transition-colors"
           >
-            Terminer
+            Complete
           </button>
           <button
             onClick={() => onAction('no_show', meeting)}
             className="py-2 px-3 text-xs font-medium uppercase tracking-wide text-text-muted border border-[#003D2B]/20 hover:bg-[#003D2B]/5 transition-colors"
           >
-            Absent
+            No show
           </button>
           <button
             onClick={() => onAction('cancel', meeting)}
             className="py-2 px-3 text-xs font-medium uppercase tracking-wide text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
           >
-            Annuler
+            Cancel
           </button>
         </div>
       )}

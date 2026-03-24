@@ -51,9 +51,9 @@ export function TodayMeetings() {
       <section className="mt-6 border bg-surface p-6" style={cardBorder}>
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-4 h-4 text-primary" strokeWidth={1.5} />
-          <span className="label text-text-muted">AUJOURD&apos;HUI</span>
+          <span className="label text-text-muted">TODAY</span>
         </div>
-        <p className="text-text-muted text-sm">Chargement...</p>
+        <p className="text-text-muted text-sm">Loading...</p>
       </section>
     )
   }
@@ -63,25 +63,25 @@ export function TodayMeetings() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" strokeWidth={1.5} />
-          <span className="label text-text-muted">AUJOURD&apos;HUI</span>
+          <span className="label text-text-muted">TODAY</span>
         </div>
         <Link
           href="/calendar"
           className="text-xs text-primary hover:text-primary-soft uppercase tracking-wide"
         >
-          Calendrier →
+          Calendar →
         </Link>
       </div>
 
       {meetings.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-text-muted text-sm mb-3">Aucun rendez-vous aujourd&apos;hui</p>
+          <p className="text-text-muted text-sm mb-3">No meetings today</p>
           <Link
             href="/calendar"
             className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wide text-primary border border-primary/20 hover:bg-primary/5 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Planifier un RDV
+            Schedule a meeting
           </Link>
         </div>
       ) : (
@@ -100,7 +100,7 @@ export function TodayMeetings() {
                 <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
                 <span className="text-sm font-medium text-text w-24">{timeRange}</span>
                 <span className={`px-2 py-0.5 text-xs rounded-full ${formatConfig.bgColor} ${formatConfig.textColor}`}>
-                  {formatConfig.icon} {formatConfig.labelFr}
+                  {formatConfig.icon} {formatConfig.label}
                 </span>
                 <div className="flex-1 min-w-0">
                   {meeting.client_name ? (
@@ -123,7 +123,7 @@ export function TodayMeetings() {
               href="/calendar"
               className="text-xs text-text-muted hover:text-primary uppercase tracking-wide"
             >
-              {meetings.length} rendez-vous aujourd&apos;hui
+              {meetings.length} meetings today
             </Link>
           </div>
         </div>

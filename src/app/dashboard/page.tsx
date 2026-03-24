@@ -28,10 +28,7 @@ export default async function DashboardPage() {
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
-  // Demo mode filter
-  const DEMO_MODE = false
-
-  const { data: tierCounts } = await supabase.from('clients').select('tier').eq('is_demo', DEMO_MODE)
+  const { data: tierCounts } = await supabase.from('clients').select('tier')
 
   const clientsByTier: Record<ClientTier, number> = {
     rainbow: 0,
@@ -90,7 +87,7 @@ export default async function DashboardPage() {
   const { data: clientsWithSeller } = await supabase
     .from('clients')
     .select('seller_id, tier')
-    .eq('is_demo', DEMO_MODE)
+    
 
   // Build seller tier breakdown
   const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
@@ -119,13 +116,13 @@ export default async function DashboardPage() {
   const { data: clientsForCA } = await supabase
     .from('clients')
     .select('seller_id, total_spend')
-    .eq('is_demo', DEMO_MODE)
+    
 
   // Fetch signal distribution per seller
   const { data: clientSignals } = await supabase
     .from('clients')
     .select('seller_id, seller_signal')
-    .eq('is_demo', DEMO_MODE)
+    
 
   // Build signal distribution data per seller
   type SignalCounts = Record<ClientSignal | 'null', number>

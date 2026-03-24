@@ -14,42 +14,36 @@ export const DEFAULT_BOUTIQUE_LOCATION = 'Casablanca Paris — Faubourg Saint-Ho
 // Format display configuration
 export const MEETING_FORMAT_CONFIG: Record<MeetingFormat, {
   label: string
-  labelFr: string
   icon: string
   bgColor: string
   textColor: string
 }> = {
   boutique: {
     label: 'In Store',
-    labelFr: 'En boutique',
     icon: '🏪',
     bgColor: 'bg-[#003D2B]/10',
     textColor: 'text-[#003D2B]',
   },
   external: {
     label: 'External',
-    labelFr: 'Exterieur',
     icon: '📍',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-700',
   },
   call: {
     label: 'Call',
-    labelFr: 'Appel',
     icon: '📞',
     bgColor: 'bg-orange-50',
     textColor: 'text-orange-700',
   },
   video: {
     label: 'Video',
-    labelFr: 'Video',
     icon: '📹',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-700',
   },
   whatsapp: {
     label: 'WhatsApp',
-    labelFr: 'WhatsApp',
     icon: '💬',
     bgColor: 'bg-teal-50',
     textColor: 'text-teal-700',
@@ -59,27 +53,22 @@ export const MEETING_FORMAT_CONFIG: Record<MeetingFormat, {
 // Status display configuration
 export const MEETING_STATUS_CONFIG: Record<MeetingStatus, {
   label: string
-  labelFr: string
   dotColor: string
 }> = {
   scheduled: {
     label: 'Scheduled',
-    labelFr: 'Prevu',
     dotColor: 'bg-green-500',
   },
   completed: {
     label: 'Completed',
-    labelFr: 'Termine',
     dotColor: 'bg-gray-400',
   },
   cancelled: {
     label: 'Cancelled',
-    labelFr: 'Annule',
-    dotColor: 'bg-red-500',
+    dotColor: 'bg-[#003D2B]/40',
   },
   no_show: {
     label: 'No Show',
-    labelFr: 'Absent',
     dotColor: 'bg-amber-500',
   },
 }
@@ -186,7 +175,7 @@ export function getWeekBounds(date: Date = new Date()): { start: Date; end: Date
 export function formatTimeRange(startTime: string, endTime: string): string {
   const start = new Date(startTime)
   const end = new Date(endTime)
-  const formatTime = (d: Date) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   return `${formatTime(start)} – ${formatTime(end)}`
 }
 

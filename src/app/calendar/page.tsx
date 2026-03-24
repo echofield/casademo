@@ -178,11 +178,11 @@ export default function CalendarPage() {
 
   return (
     <AppShell userRole={userRole} effectiveRole={effectiveRole} userName={userName}>
-      <div className="mx-auto max-w-6xl animate-fade-in">
+      <div className="mx-auto max-w-6xl animate-fade-in pb-24">
         {/* Header */}
         <header className="mb-8">
-          <p className="label mb-3 text-text-muted">Calendrier</p>
-          <h1 className="heading-1 text-text">Rendez-vous</h1>
+          <p className="label mb-3 text-text-muted">Calendar</p>
+          <h1 className="heading-1 text-text">Meetings</h1>
         </header>
 
         {/* Navigation */}
@@ -199,7 +199,7 @@ export default function CalendarPage() {
         {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-text-muted">Chargement...</p>
+            <p className="text-text-muted">Loading...</p>
           </div>
         ) : view === 'agenda' ? (
           <AgendaView
@@ -231,7 +231,7 @@ export default function CalendarPage() {
             transition-all duration-200
             hover:scale-105
           "
-          aria-label="Nouveau rendez-vous"
+          aria-label="New meeting"
         >
           <Plus className="w-6 h-6" />
         </button>

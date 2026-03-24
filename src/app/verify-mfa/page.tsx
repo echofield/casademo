@@ -73,7 +73,7 @@ export default function VerifyMFAPage() {
     })
 
     if (verifyError) {
-      setError('Code invalide. Reessayez.')
+      setError('Invalid code. Try again.')
       setVerifyCode('')
       setVerifying(false)
       return
@@ -92,7 +92,7 @@ export default function VerifyMFAPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
-        <p className="text-[#003D2B]/60">Chargement...</p>
+        <p className="text-[#003D2B]/60">Loading...</p>
       </main>
     )
   }
@@ -111,7 +111,7 @@ export default function VerifyMFAPage() {
             Verification
           </h1>
           <p className="text-[#003D2B]/60 text-center mb-8">
-            Entrez le code Google Authenticator
+            Enter your Google Authenticator code
           </p>
 
           <form onSubmit={handleVerify}>
@@ -153,7 +153,7 @@ export default function VerifyMFAPage() {
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
-              {verifying ? 'Verification...' : 'Verifier'}
+              {verifying ? 'Verifying...' : 'Verify'}
             </button>
           </form>
 
@@ -163,7 +163,7 @@ export default function VerifyMFAPage() {
               onClick={handleLogout}
               className="text-[#003D2B]/50 text-sm hover:text-[#003D2B] transition-colors"
             >
-              Deconnexion
+              Sign out
             </button>
           </div>
         </div>

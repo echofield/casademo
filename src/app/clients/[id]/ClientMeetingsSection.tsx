@@ -81,7 +81,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
   const cardBorder = { borderColor: 'rgba(28, 27, 25, 0.08)' }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -92,7 +92,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
     <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="label mb-2 text-text-muted">Rendez-vous</p>
+          <p className="label mb-2 text-text-muted">Schedule</p>
           <h2 className="font-serif text-2xl text-text">Meetings</h2>
         </div>
         {canEdit && (
@@ -101,19 +101,19 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
             className="flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wide text-white bg-[#003D2B] hover:bg-[#004D38] transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Planifier
+            Schedule
           </button>
         )}
       </div>
 
       {loading ? (
-        <p className="text-text-muted text-sm">Chargement...</p>
+        <p className="text-text-muted text-sm">Loading...</p>
       ) : (
         <>
           {/* Next meeting */}
           {nextMeeting ? (
             <div className="mb-6 p-4 bg-[#003D2B]/5 border border-[#003D2B]/10">
-              <p className="label text-text-muted mb-2">Prochain RDV</p>
+              <p className="label text-text-muted mb-2">Next meeting</p>
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary" />
                 <div>
@@ -122,7 +122,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`px-2 py-0.5 text-xs rounded-full ${MEETING_FORMAT_CONFIG[nextMeeting.format].bgColor} ${MEETING_FORMAT_CONFIG[nextMeeting.format].textColor}`}>
-                      {MEETING_FORMAT_CONFIG[nextMeeting.format].icon} {MEETING_FORMAT_CONFIG[nextMeeting.format].labelFr}
+                      {MEETING_FORMAT_CONFIG[nextMeeting.format].icon} {MEETING_FORMAT_CONFIG[nextMeeting.format].label}
                     </span>
                     <span className="text-xs text-text-muted">{nextMeeting.title}</span>
                   </div>
@@ -131,13 +131,13 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
             </div>
           ) : (
             <div className="mb-6 p-4 bg-bg-soft border" style={cardBorder}>
-              <p className="text-sm text-text-muted">Aucun rendez-vous prevu</p>
+              <p className="text-sm text-text-muted">No upcoming meetings</p>
             </div>
           )}
 
           {/* Past meetings */}
           <div>
-            <p className="label text-text-muted mb-3">Historique</p>
+            <p className="label text-text-muted mb-3">History</p>
             {pastMeetings.length > 0 ? (
               <div className="space-y-2">
                 {pastMeetings.map(meeting => {
@@ -157,14 +157,14 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
                       </span>
                       <span className="text-sm text-text flex-1 truncate">{meeting.title}</span>
                       {meeting.outcome_purchased && (
-                        <span className="text-xs text-green-600">Achat</span>
+                        <span className="text-xs text-green-600">Purchase</span>
                       )}
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <p className="text-sm text-text-muted">Aucun rendez-vous passe</p>
+              <p className="text-sm text-text-muted">No past meetings</p>
             )}
           </div>
 
@@ -173,7 +173,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
             href={`/calendar?client_id=${clientId}`}
             className="label mt-4 inline-block text-primary hover:text-primary-soft"
           >
-            Voir tout l&apos;historique →
+            View full history →
           </Link>
         </>
       )}

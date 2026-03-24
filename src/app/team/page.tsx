@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AppShell, TierBadge, CornerBrackets } from '@/components'
+import { AppShell, TeamAlerts, SellerCard } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 import {
   SellerActivityRadar,
@@ -21,8 +21,6 @@ export default async function TeamPage() {
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
 
-  // Demo mode filter
-  const DEMO_MODE = false
 
   // Fetch all active sellers
   const { data: allSellers } = await supabase
@@ -36,7 +34,7 @@ export default async function TeamPage() {
   const { data: clientsData } = await supabase
     .from('clients')
     .select('id, seller_id, tier, total_spend')
-    .eq('is_demo', DEMO_MODE)
+    
 
   // Fetch recent contacts (last 7 days)
   const weekAgo = new Date()
@@ -50,7 +48,7 @@ export default async function TeamPage() {
   const { data: overdueData } = await supabase
     .from('recontact_queue')
     .select('seller_id, days_overdue')
-    .eq('is_demo', DEMO_MODE)
+    
     .gt('days_overdue', 0)
 
   // Build seller stats with REAL data only
@@ -212,99 +210,7 @@ export default async function TeamPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sellerStats.map((seller) => (
-              <Link
-                key={seller.id}
-                href={`/clients?seller_id=${seller.id}`}
-                className="block p-5 relative group transition-all duration-200 hover:shadow-sm"
-                style={{
-                  background: 'var(--paper)',
-                  border: '0.5px solid var(--faint)',
-                  borderRadius: '2px',
-                }}
-              >
-                <CornerBrackets size="sm" opacity={0.2} />
-
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="w-10 h-10 flex items-center justify-center font-serif text-lg"
-                    style={{
-                      backgroundColor: 'var(--green-soft)',
-                      color: 'var(--green)',
-                      borderRadius: '2px',
-                    }}
-                  >
-                    {seller.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-serif text-text">{seller.name}</p>
-                    <p className="text-xs text-text-muted">{seller.clientCount} clients</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div>
-                    <p className="text-[10px] text-text-muted uppercase">Contacts</p>
-                    <p className="font-serif text-lg text-text">{seller.contactsWeek}</p>
-                    <p className="text-[9px] text-text-muted">this week</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-text-muted uppercase">Overdue</p>
-                    <p className={`font-serif text-lg ${seller.overdueCount > 0 ? 'text-danger' : 'text-primary'}`}>
-                      {seller.overdueCount}
-                    </p>
-                    <p className="text-[9px] text-text-muted">clients</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-text-muted uppercase">Revenue</p>
-                    <p className="font-serif text-lg text-gold">{formatCurrency(seller.totalSpend)}</p>
-                    <p className="text-[9px] text-text-muted">total</p>
-                  </div>
-                </div>
-
-                {/* À jour indicator */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] text-text-muted uppercase">Portfolio up to date</p>
-                    <span className={`text-xs font-medium ${seller.aJourPct >= 80 ? 'text-primary' : seller.aJourPct >= 50 ? 'text-gold' : 'text-danger'}`}>
-                      {seller.aJourPct}%
-                    </span>
-                  </div>
-                  <div
-                    className="h-1.5 overflow-hidden rounded-full"
-                    style={{ backgroundColor: 'var(--faint)' }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${seller.aJourPct}%`,
-                        backgroundColor: seller.aJourPct >= 80 ? 'var(--green)' : seller.aJourPct >= 50 ? 'var(--gold)' : 'var(--danger)',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Tier breakdown pills */}
-                {seller.clientCount > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {TIER_ORDER.map(tier => {
-                      const count = seller.tiers[tier]
-                      if (count === 0) return null
-                      return (
-                        <span
-                          key={tier}
-                          className="text-[10px] px-1.5 py-0.5"
-                          style={{
-                            backgroundColor: 'var(--faint)',
-                            borderRadius: '2px',
-                          }}
-                        >
-                          {tier.charAt(0).toUpperCase()}: {count}
-                        </span>
-                      )
-                    })}
-                  </div>
-                )}
-              </Link>
+              <SellerCard key={seller.id} seller={seller} tierOrder={TIER_ORDER} />
             ))}
           </div>
         </section>

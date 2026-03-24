@@ -57,7 +57,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (client.phone) {
-      window.location.href = `tel:${client.phone}`
+      window.location.href = `sms:${client.phone}`
     }
   }
 

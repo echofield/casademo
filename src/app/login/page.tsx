@@ -28,7 +28,7 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        setError('Email ou mot de passe incorrect')
+        setError('Invalid email or password')
         setLoading(false)
         return
       }
@@ -47,7 +47,7 @@ export default function LoginPage() {
         window.location.replace('/setup-mfa')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : 'Unknown error')
       setLoading(false)
     }
   }
@@ -81,7 +81,7 @@ export default function LoginPage() {
       })
 
       if (verifyError) {
-        setError('Code invalide. Veuillez reessayer.')
+        setError('Invalid code. Please try again.')
         setMfaCode('')
         setLoading(false)
         return
@@ -200,7 +200,7 @@ export default function LoginPage() {
                     focus:outline-none focus:border-[#003D2B]/50
                     transition-colors duration-200
                   "
-                  placeholder="votre@email.com"
+                  placeholder="your@email.com"
                 />
               </div>
 
@@ -239,7 +239,7 @@ export default function LoginPage() {
                 onClick={() => { setStep('forgot'); setError(null) }}
                 className="text-[#003D2B]/50 text-xs tracking-wide hover:text-[#003D2B] transition-colors"
               >
-                Mot de passe oublié ?
+                Forgot password?
               </button>
             </div>
 
@@ -261,12 +261,12 @@ export default function LoginPage() {
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
-              {loading ? 'Connexion...' : 'Continuer'}
+              {loading ? 'Signing in...' : 'Continuer'}
             </button>
 
             <div className="mt-8 flex items-center gap-4">
               <div className="flex-1 h-px bg-[#003D2B]/10" />
-              <span className="text-[#003D2B]/40 text-xs tracking-wide uppercase">ou</span>
+              <span className="text-[#003D2B]/40 text-xs tracking-wide uppercase">or</span>
               <div className="flex-1 h-px bg-[#003D2B]/10" />
             </div>
 
@@ -292,7 +292,7 @@ export default function LoginPage() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Continuer avec Google
+              Continue with Google
             </button>
           </form>
         )}
@@ -314,7 +314,7 @@ export default function LoginPage() {
                 Verification
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
-                Entrez le code Google Authenticator
+                Enter your Google Authenticator code
               </p>
             </div>
 
@@ -357,7 +357,7 @@ export default function LoginPage() {
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                {loading ? 'Verification...' : 'Verifier'}
+                {loading ? 'Verifying...' : 'Verifier'}
               </button>
             </form>
           </div>
@@ -380,7 +380,7 @@ export default function LoginPage() {
                 Mot de passe oublié
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
-                Un lien de réinitialisation sera envoyé à votre email
+                A reset link will be sent to your email
               </p>
             </div>
 
@@ -423,7 +423,7 @@ export default function LoginPage() {
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                {loading ? 'Envoi...' : 'Envoyer le lien'}
+                {loading ? 'Sending...' : 'Send reset link'}
               </button>
             </form>
           </div>
@@ -438,36 +438,36 @@ export default function LoginPage() {
               </svg>
             </div>
             <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-              Email envoyé
+              Email sent
             </h2>
             <p className="text-[#003D2B]/60 text-sm mb-2">
-              Un lien de réinitialisation a été envoyé à
+              A reset link has been sent to
             </p>
             <p className="text-[#003D2B] text-sm font-medium mb-8">
               {email}
             </p>
             <p className="text-[#003D2B]/40 text-xs mb-8">
-              Vérifiez votre boîte de réception et vos spams.
+              Check your inbox and spam folder.
             </p>
             <button
               type="button"
               onClick={() => { setStep('credentials'); setError(null) }}
               className="text-[#003D2B]/60 text-sm hover:text-[#003D2B] transition-colors"
             >
-              Retour à la connexion
+              Back to login
             </button>
           </div>
         )}
 
         <p className="mt-8 text-center text-[#003D2B]/40 text-xs">
-          Portail vendeurs et superviseurs
+          Seller and supervisor portal
         </p>
       </div>
 
       {/* Footer */}
       <footer className="px-8 py-6 text-center">
         <p className="text-[#003D2B]/30 text-xs tracking-wide">
-          2026 Casa One. Systeme de clienteling prive.
+          2026 Casa One. Private clienteling system.
         </p>
       </footer>
     </main>

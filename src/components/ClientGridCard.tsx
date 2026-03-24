@@ -53,7 +53,7 @@ export function ClientGridCard({
             <div className="mt-1 flex items-center gap-2">
               <span
                 role="link"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `tel:${client.phone}` }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `sms:${client.phone}` }}
                 className="body-small text-text-muted hover:text-primary cursor-pointer transition-colors"
               >
                 {client.phone}

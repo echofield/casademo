@@ -10,7 +10,7 @@ interface WeekViewProps {
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8:00 - 20:00
-const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export function WeekView({ meetings, weekStart, onMeetingClick }: WeekViewProps) {
   // Generate week days
@@ -74,7 +74,7 @@ export function WeekView({ meetings, weekStart, onMeetingClick }: WeekViewProps)
                 style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
               >
                 <div className={`text-xs uppercase tracking-wide ${isToday ? 'text-primary font-medium' : 'text-text-muted'}`}>
-                  {DAYS_FR[i]}
+                  {DAYS[i]}
                 </div>
                 <div className={`font-serif text-lg ${isToday ? 'text-primary' : 'text-text'}`}>
                   {day.getDate()}

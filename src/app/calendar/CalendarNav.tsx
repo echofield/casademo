@@ -25,8 +25,8 @@ export function CalendarNav({
   weekEnd.setDate(weekEnd.getDate() + 6)
 
   const formatRange = () => {
-    const startMonth = weekStart.toLocaleDateString('fr-FR', { month: 'short' })
-    const endMonth = weekEnd.toLocaleDateString('fr-FR', { month: 'short' })
+    const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short' })
+    const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short' })
 
     if (startMonth === endMonth) {
       return `${weekStart.getDate()} - ${weekEnd.getDate()} ${startMonth} ${weekEnd.getFullYear()}`
@@ -41,7 +41,7 @@ export function CalendarNav({
         <button
           onClick={onPrevWeek}
           className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
-          aria-label="Semaine precedente"
+          aria-label="Previous week"
         >
           <ChevronLeft className="w-5 h-5 text-text" />
         </button>
@@ -50,13 +50,13 @@ export function CalendarNav({
           onClick={onToday}
           className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted border border-[#003D2B]/20 hover:bg-[#003D2B]/5 transition-colors"
         >
-          Aujourd&apos;hui
+          Today
         </button>
 
         <button
           onClick={onNextWeek}
           className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
-          aria-label="Semaine suivante"
+          aria-label="Next week"
         >
           <ChevronRight className="w-5 h-5 text-text" />
         </button>

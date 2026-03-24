@@ -54,7 +54,7 @@ export function MeetingCompletionSheet({
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#003D2B]/10 flex items-center justify-between">
           <h2 className="font-serif text-xl text-[#003D2B]">
-            {completed ? 'Rendez-vous termine' : 'Marquer comme termine'}
+            {completed ? 'Meeting completed' : 'Mark as complete'}
           </h2>
           <button
             onClick={onClose}
@@ -70,7 +70,7 @@ export function MeetingCompletionSheet({
               {purchased ? '' : ''}
             </div>
             <p className="font-serif text-xl text-[#003D2B] mb-2">
-              {purchased ? 'Achat enregistre !' : 'Rendez-vous termine'}
+              {purchased ? 'Purchase recorded!' : 'Rendez-vous termine'}
             </p>
 
             {purchased && meeting.client_id && (
@@ -79,7 +79,7 @@ export function MeetingCompletionSheet({
                   href={`/clients/${meeting.client_id}`}
                   className="inline-flex items-center justify-center px-6 py-3 bg-[#003D2B] text-white text-sm tracking-wide uppercase hover:bg-[#004D38] transition-colors"
                 >
-                  Ajouter l&apos;achat au profil
+                  Add purchase to profile
                 </Link>
               </div>
             )}
@@ -88,7 +88,7 @@ export function MeetingCompletionSheet({
               onClick={onClose}
               className="mt-4 text-sm text-[#003D2B]/60 hover:text-[#003D2B]"
             >
-              Fermer
+              Close
             </button>
           </div>
         ) : (
@@ -104,7 +104,7 @@ export function MeetingCompletionSheet({
             {/* Purchased toggle */}
             <div>
               <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-3">
-                Le client a-t-il achete ?
+                Did the client make a purchase?
               </label>
               <div className="flex gap-3">
                 <button
@@ -118,7 +118,7 @@ export function MeetingCompletionSheet({
                     }
                   `}
                 >
-                  Oui
+                  Yes
                 </button>
                 <button
                   type="button"
@@ -131,7 +131,7 @@ export function MeetingCompletionSheet({
                     }
                   `}
                 >
-                  Non
+                  No
                 </button>
               </div>
             </div>
@@ -152,7 +152,7 @@ export function MeetingCompletionSheet({
                   placeholder:text-[#003D2B]/30
                   focus:outline-none focus:border-[#003D2B]/30
                 "
-                placeholder="Qu'est-ce qui s'est passe ? Produits essayes ?"
+                placeholder="What happened? Products tried?"
               />
             </div>
 
@@ -170,7 +170,7 @@ export function MeetingCompletionSheet({
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
-              {loading ? 'Enregistrement...' : 'Valider'}
+              {loading ? 'Saving...' : 'Submit'}
             </button>
           </form>
         )}

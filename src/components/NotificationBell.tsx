@@ -11,60 +11,6 @@ type NotificationsPayload = {
   fetch_error?: boolean
 }
 
-// Mock notifications for demo
-const DEMO_NOTIFICATIONS: NotificationRow[] = [
-  {
-    id: 'demo-1',
-    user_id: 'demo',
-    type: 'client_overdue',
-    title: 'Follow up: Marc Dubois',
-    message: 'This client is 5 days overdue. Please contact today.',
-    client_id: null,
-    read: false,
-    created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 min ago
-  },
-  {
-    id: 'demo-2',
-    user_id: 'demo',
-    type: 'client_overdue',
-    title: 'Urgent: Sophie Laurent',
-    message: 'Grand Prix client - 12 days overdue!',
-    client_id: null,
-    read: false,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-  },
-  {
-    id: 'demo-3',
-    user_id: 'demo',
-    type: 'manual',
-    title: 'Reminder from Hicham',
-    message: 'Please prioritize your overdue clients today.',
-    client_id: null,
-    read: false,
-    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-  },
-  {
-    id: 'demo-4',
-    user_id: 'demo',
-    type: 'tier_upgrade',
-    title: 'Jean-Pierre Martin upgraded to Kaizen',
-    message: 'Total spend: €3,500',
-    client_id: null,
-    read: true,
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-  },
-  {
-    id: 'demo-5',
-    user_id: 'demo',
-    type: 'big_purchase',
-    title: 'Big purchase: €5,200',
-    message: 'Claire Moreau - Tennis Club Printed Silk Shirt',
-    client_id: null,
-    read: true,
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-  },
-]
-
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationRow[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -79,28 +25,22 @@ export function NotificationBell() {
     try {
       const res = await fetch('/api/notifications')
       if (!res.ok) {
-        // Use demo notifications as fallback
-        setNotifications(DEMO_NOTIFICATIONS)
-        setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
+        setFetchError(true)
+        setNotifications([])
+        setUnreadCount(0)
         setInitialLoad(false)
         return
       }
       const data = (await res.json()) as NotificationsPayload
 
-      // If no real notifications, use demo data
-      if (!data.notifications || data.notifications.length === 0) {
-        setNotifications(DEMO_NOTIFICATIONS)
-        setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
-      } else {
-        setNotifications(data.notifications)
-        setUnreadCount(data.unread_count || 0)
-      }
+      setNotifications(data.notifications || [])
+      setUnreadCount(data.unread_count || 0)
       setSetupRequired(!!data.setup_required)
       setFetchError(false)
     } catch {
-      // Use demo notifications on error
-      setNotifications(DEMO_NOTIFICATIONS)
-      setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
+      setFetchError(true)
+      setNotifications([])
+      setUnreadCount(0)
     } finally {
       setInitialLoad(false)
     }
@@ -150,7 +90,7 @@ export function NotificationBell() {
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
   }
 
   const getTypeIcon = (type: NotificationType) => {
@@ -169,7 +109,7 @@ export function NotificationBell() {
         )
       case 'client_overdue':
         return (
-          <svg className="w-4 h-4 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
@@ -200,7 +140,7 @@ export function NotificationBell() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[#003D2B] px-1 text-[10px] font-semibold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -244,7 +184,7 @@ export function NotificationBell() {
               </div>
             ) : fetchError ? (
               <div className="p-4 text-center">
-                <p className="body-small text-danger">Could not load notifications.</p>
+                <p className="body-small text-amber-500">Could not load notifications.</p>
                 <button
                   type="button"
                   onClick={() => {
@@ -258,7 +198,10 @@ export function NotificationBell() {
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="body-small text-text-muted">You&apos;re all caught up.</p>
+                <svg className="w-10 h-10 mx-auto mb-3 text-[#003D2B]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <p className="body-small text-[#003D2B]/40">No notifications yet</p>
               </div>
             ) : (
               notifications.slice(0, 10).map((notification) => (

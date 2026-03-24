@@ -20,7 +20,6 @@ export async function GET() {
   try {
     await requireSupervisor()
     const supabase = await createClient()
-    const DEMO_MODE = false
 
     const { data: allSellers } = await supabase
       .from('profiles')
@@ -32,7 +31,7 @@ export async function GET() {
     const { data: clientSignals } = await supabase
       .from('clients')
       .select('seller_id, seller_signal')
-      .eq('is_demo', DEMO_MODE)
+      
 
     type SignalCounts = Record<ClientSignal | 'null', number>
     const sellerMap: Record<string, { name: string; signals: SignalCounts; total: number }> = {}
@@ -96,7 +95,7 @@ export async function GET() {
     const { data: recentChanges } = await supabase
       .from('clients')
       .select('seller_signal, signal_updated_at')
-      .eq('is_demo', DEMO_MODE)
+      
       .gte('signal_updated_at', weekAgoStr)
 
     const changes_this_week = {

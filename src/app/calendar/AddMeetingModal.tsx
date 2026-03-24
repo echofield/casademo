@@ -79,10 +79,10 @@ export function AddMeetingModal({
   // Auto-fill title based on client and format
   useEffect(() => {
     if (selectedClient) {
-      setTitle(`RDV — ${selectedClient.first_name} ${selectedClient.last_name}`)
+      setTitle(`Meeting — ${selectedClient.first_name} ${selectedClient.last_name}`)
     } else {
-      const formatLabel = MEETING_FORMAT_CONFIG[format].labelFr
-      setTitle(format === 'boutique' ? 'RDV boutique' : formatLabel)
+      const formatLabel = MEETING_FORMAT_CONFIG[format].label
+      setTitle(format === 'boutique' ? 'In-store meeting' : formatLabel)
     }
   }, [selectedClient, format])
 
@@ -157,7 +157,7 @@ export function AddMeetingModal({
       await onSubmit(meeting)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la creation')
+      setError(err instanceof Error ? err.message : 'Error creating meeting')
     } finally {
       setLoading(false)
     }
@@ -177,7 +177,7 @@ export function AddMeetingModal({
       <div className="relative w-full sm:max-w-md bg-[#F7F4EE] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-[#F7F4EE] px-6 py-4 border-b border-[#003D2B]/10 flex items-center justify-between">
-          <h2 className="font-serif text-xl text-[#003D2B]">Nouveau rendez-vous</h2>
+          <h2 className="font-serif text-xl text-[#003D2B]">New meeting</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-[#003D2B]/5 rounded-full transition-colors"
@@ -210,7 +210,7 @@ export function AddMeetingModal({
                     `}
                   >
                     <span>{config.icon}</span>
-                    <span>{config.labelFr}</span>
+                    <span>{config.label}</span>
                   </button>
                 )
               })}
@@ -220,7 +220,7 @@ export function AddMeetingModal({
           {/* Client Selection */}
           <div>
             <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-              Client (optionnel)
+              Client (optional)
             </label>
             {selectedClient ? (
               <div className="flex items-center justify-between p-3 bg-white border border-[#003D2B]/10 rounded">
@@ -249,7 +249,7 @@ export function AddMeetingModal({
                     setShowClientDropdown(true)
                   }}
                   onFocus={() => setShowClientDropdown(true)}
-                  placeholder="Rechercher un client..."
+                  placeholder="Search for a client..."
                   className="
                     w-full pl-10 pr-4 py-3
                     bg-white border border-[#003D2B]/10
@@ -268,7 +268,7 @@ export function AddMeetingModal({
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-[#003D2B]/60 hover:bg-[#003D2B]/5"
                     >
-                      Sans client
+                      No client
                     </button>
                     {clients.map((client) => (
                       <button
@@ -292,7 +292,7 @@ export function AddMeetingModal({
           {/* Title */}
           <div>
             <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-              Titre
+              Title
             </label>
             <input
               type="text"
@@ -307,7 +307,7 @@ export function AddMeetingModal({
                 placeholder:text-[#003D2B]/30
                 focus:outline-none focus:border-[#003D2B]/50
               "
-              placeholder="Titre du rendez-vous"
+              placeholder="Meeting title"
             />
           </div>
 
@@ -332,7 +332,7 @@ export function AddMeetingModal({
             </div>
             <div>
               <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                Heure debut
+                Start time
               </label>
               <input
                 type="time"
@@ -352,7 +352,7 @@ export function AddMeetingModal({
           {/* Duration */}
           <div>
             <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-3">
-              Duree
+              Duration
             </label>
             <div className="flex flex-wrap gap-2">
               {DURATION_PRESETS.map((preset) => (
@@ -378,7 +378,7 @@ export function AddMeetingModal({
           {format === 'external' && (
             <div>
               <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                Adresse *
+                Address *
               </label>
               <input
                 type="text"
@@ -393,7 +393,7 @@ export function AddMeetingModal({
                   placeholder:text-[#003D2B]/30
                   focus:outline-none focus:border-[#003D2B]/50
                 "
-                placeholder="Adresse du rendez-vous"
+                placeholder="Meeting address"
               />
             </div>
           )}
@@ -402,7 +402,7 @@ export function AddMeetingModal({
           {format === 'boutique' && (
             <div>
               <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-                Lieu
+                Location
               </label>
               <p className="text-[#003D2B]/50 text-sm">
                 {DEFAULT_BOUTIQUE_LOCATION}
@@ -413,7 +413,7 @@ export function AddMeetingModal({
           {/* Notes */}
           <div>
             <label className="block text-[#003D2B]/70 text-sm tracking-wide mb-2">
-              Notes (optionnel)
+              Notes (optional)
             </label>
             <textarea
               value={notes}
@@ -426,7 +426,7 @@ export function AddMeetingModal({
                 placeholder:text-[#003D2B]/30
                 focus:outline-none focus:border-[#003D2B]/30
               "
-              placeholder="Notes pour ce rendez-vous..."
+              placeholder="Notes for this meeting..."
             />
           </div>
 
@@ -449,7 +449,7 @@ export function AddMeetingModal({
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
-            {loading ? 'Creation...' : 'Creer le rendez-vous'}
+            {loading ? 'Creating...' : 'Create meeting'}
           </button>
         </form>
       </div>

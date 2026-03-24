@@ -61,7 +61,7 @@ export function RecontactQueueRow({
           <div className="flex flex-wrap items-center gap-4 body-small text-text-muted">
             {item.phone && (
               <a
-                href={`tel:${item.phone}`}
+                href={`sms:${item.phone}`}
                 onClick={(e) => e.stopPropagation()}
                 className="transition-colors duration-200 hover:text-primary"
               >

@@ -24,7 +24,7 @@ export function FormatBadge({ format, showIcon = true, size = 'md' }: FormatBadg
       `}
     >
       {showIcon && <span>{config.icon}</span>}
-      <span>{config.labelFr}</span>
+      <span>{config.label}</span>
     </span>
   )
 }

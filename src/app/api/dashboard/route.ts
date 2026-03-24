@@ -9,14 +9,11 @@ export async function GET() {
     await requireSupervisor()
     const supabase = await createClient()
 
-    // Demo mode filter
-    const DEMO_MODE = false
 
     // Get clients by tier
     const { data: clientsByTier, error: tierError } = await supabase
       .from('clients')
       .select('tier')
-      .eq('is_demo', DEMO_MODE)
 
     if (tierError) {
       return NextResponse.json({ error: tierError.message }, { status: 500 })
@@ -52,7 +49,6 @@ export async function GET() {
     const { data: overdueData, error: overdueError } = await supabase
       .from('recontact_queue')
       .select('seller_id, seller_name')
-      .eq('is_demo', DEMO_MODE)
       .gt('days_overdue', 0)
 
     if (overdueError) {

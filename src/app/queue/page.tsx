@@ -10,15 +10,13 @@ export default async function QueuePage() {
 
   const supabase = await createClient()
 
-  // Demo mode filter
-  const DEMO_MODE = false
   const isSeller = user.effectiveRole === 'seller'
 
   // Sellers only see their own clients, supervisors see all
   let query = supabase
     .from('recontact_queue')
     .select('*')
-    .eq('is_demo', DEMO_MODE)
+    
 
   if (isSeller) {
     query = query.eq('seller_id', user.id)

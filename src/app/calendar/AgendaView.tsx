@@ -35,11 +35,11 @@ export function AgendaView({ meetings, onAction }: AgendaViewProps) {
 
     let label: string
     if (date.toDateString() === today.toDateString()) {
-      label = "Aujourd'hui"
+      label = 'Today'
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      label = 'Demain'
+      label = 'Tomorrow'
     } else {
-      label = date.toLocaleDateString('fr-FR', {
+      label = date.toLocaleDateString('en-US', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -57,8 +57,8 @@ export function AgendaView({ meetings, onAction }: AgendaViewProps) {
   if (meetings.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="font-serif text-2xl text-text mb-2">Aucun rendez-vous</p>
-        <p className="text-text-muted">Cette semaine est libre.</p>
+        <p className="font-serif text-2xl text-text mb-2">No meetings</p>
+        <p className="text-text-muted">No meetings this week.</p>
       </div>
     )
   }
