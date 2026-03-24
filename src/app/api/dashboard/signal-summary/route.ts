@@ -20,7 +20,7 @@ export async function GET() {
   try {
     await requireSupervisor()
     const supabase = await createClient()
-    const DEMO_MODE = true
+    const DEMO_MODE = false
 
     const { data: allSellers } = await supabase
       .from('profiles')

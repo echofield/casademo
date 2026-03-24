@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   // Demo mode filter
-  const DEMO_MODE = true
+  const DEMO_MODE = false
 
   const { data: tierCounts } = await supabase.from('clients').select('tier').eq('is_demo', DEMO_MODE)
 

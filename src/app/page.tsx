@@ -13,7 +13,7 @@ export default async function HomePage() {
   const supabase = await createClient()
 
   // Demo mode filter
-  const DEMO_MODE = true
+  const DEMO_MODE = false
   const isSeller = user.profile.role === 'seller'
 
   // Sellers only see their own clients, supervisors see all

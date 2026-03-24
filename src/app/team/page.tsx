@@ -22,7 +22,7 @@ export default async function TeamPage() {
   const supabase = await createClient()
 
   // Demo mode filter
-  const DEMO_MODE = true
+  const DEMO_MODE = false
 
   // Fetch all active sellers
   const { data: allSellers } = await supabase

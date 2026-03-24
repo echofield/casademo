@@ -108,7 +108,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const sort = params.sort || 'alpha'
 
   // Demo mode: only show demo clients
-  const DEMO_MODE = true
+  const DEMO_MODE = false
 
   let query = supabase
     .from('clients')

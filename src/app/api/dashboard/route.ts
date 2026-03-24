@@ -10,7 +10,7 @@ export async function GET() {
     const supabase = await createClient()
 
     // Demo mode filter
-    const DEMO_MODE = true
+    const DEMO_MODE = false
 
     // Get clients by tier
     const { data: clientsByTier, error: tierError } = await supabase
