@@ -60,12 +60,13 @@ export default function SetupMFAPage() {
       // Enroll a fresh TOTP factor
       const { data, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'Casa One'
+        friendlyName: `Casa One ${Date.now()}`
       })
 
       // If enrollment fails due to existing factor, try one more cleanup and retry
       if (enrollError?.message?.includes('already exists')) {
         console.log('[MFA Setup] Factor exists error, attempting aggressive cleanup')
+        console.log('[MFA Setup] All factors:', JSON.stringify(retryFactors?.totp || []))
 
         // Fetch factors again and force-remove any with our friendly name
         const { data: retryFactors } = await supabase.auth.mfa.listFactors()
@@ -86,7 +87,7 @@ export default function SetupMFAPage() {
         // Retry enrollment
         const { data: retryData, error: retryError } = await supabase.auth.mfa.enroll({
           factorType: 'totp',
-          friendlyName: 'Casa One'
+          friendlyName: `Casa One ${Date.now()}`
         })
 
         if (retryError) {
