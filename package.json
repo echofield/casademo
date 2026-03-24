@@ -13,6 +13,7 @@
     "import:casablanca:dry": "npx tsx scripts/import-casablanca.ts --dry-run",
     "clean:demo": "npx tsx scripts/clean-demo-data.ts",
     "update:passwords": "npx tsx scripts/update-passwords.ts",
+    "migrate:accounts": "npx tsx scripts/migrate-to-real-accounts.ts",
     "validate:contacts": "npx tsx scripts/validate-seller-contacts.ts"
   },
   "dependencies": {

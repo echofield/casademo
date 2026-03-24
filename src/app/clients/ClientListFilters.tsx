@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react'
 import { ClientTier, ClientSignal, SIGNAL_CONFIG, SIGNAL_ORDER } from '@/lib/types'
 import { SignalDiamond } from '@/components'
 
-type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
+type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier' | 'tier_group'
 
 const SORT_LABELS: Record<SortOption, string> = {
   alpha: 'Name A→Z',
@@ -14,6 +14,7 @@ const SORT_LABELS: Record<SortOption, string> = {
   spend_desc: 'Spend ↓',
   last_contact: 'Last contact',
   tier: 'Tier',
+  tier_group: 'By tier',
 }
 
 interface InterestValue {

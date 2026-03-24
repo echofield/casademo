@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Paths that don't require authentication or MFA
-const PUBLIC_PATHS = ['/login', '/auth/callback']
+const PUBLIC_PATHS = ['/login', '/auth/callback', '/reset-password']
 const MFA_PATHS = ['/setup-mfa', '/verify-mfa']
 const API_AUTH_PATHS = ['/api/auth']
 
@@ -78,13 +78,19 @@ export async function middleware(request: NextRequest) {
   // Check MFA assurance level for authenticated users
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
+  const isOAuthSession = user.app_metadata?.provider === 'google' ||
+    user.app_metadata?.providers?.includes('google')
+
+  // OAuth users (Google) skip MFA — Google handles its own security
+  if (isOAuthSession) {
+    return supabaseResponse
+  }
+
   // If user has MFA enrolled (nextLevel is aal2) but hasn't verified this session (currentLevel is aal1)
   if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-    // Allow access to MFA pages
     if (isMfaPath) {
       return supabaseResponse
     }
-    // Redirect other pages to verify-mfa
     const url = request.nextUrl.clone()
     url.pathname = '/verify-mfa'
     return NextResponse.redirect(url)
@@ -92,11 +98,9 @@ export async function middleware(request: NextRequest) {
 
   // If user doesn't have MFA enrolled at all (nextLevel is aal1)
   if (aal?.nextLevel === 'aal1') {
-    // Allow access to setup-mfa
     if (pathname.startsWith('/setup-mfa')) {
       return supabaseResponse
     }
-    // Redirect to setup-mfa
     const url = request.nextUrl.clone()
     url.pathname = '/setup-mfa'
     return NextResponse.redirect(url)

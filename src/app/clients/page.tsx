@@ -1,12 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, PageHeader, ClientGridCard } from '@/components'
+import { AppShell, PageHeader, ClientGridCard, TierBadge } from '@/components'
 import { Client, ClientTier, ClientSignal, TIER_LABELS, TIER_ORDER, InterestItem } from '@/lib/types'
 import { ClientListFilters } from './ClientListFilters'
 import { AddClientButton } from './AddClientButton'
 
-type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
+type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier' | 'tier_group'
 
 interface Props {
   searchParams: Promise<{
@@ -115,6 +115,8 @@ export default async function ClientsPage({ searchParams }: Props) {
     .select('*', { count: 'exact' })
     .eq('is_demo', DEMO_MODE)
 
+  const isTierGroup = sort === 'tier_group'
+
   // Apply sorting
   switch (sort) {
     case 'alpha':
@@ -133,13 +135,16 @@ export default async function ClientsPage({ searchParams }: Props) {
       query = query.order('last_contact_date', { ascending: false, nullsFirst: true })
       break
     case 'tier':
-      query = query.order('tier', { ascending: false })
+    case 'tier_group':
+      query = query.order('total_spend', { ascending: false })
       break
     default:
       query = query.order('last_name', { ascending: true })
   }
 
-  query = query.range((page - 1) * limit, page * limit - 1)
+  if (!isTierGroup) {
+    query = query.range((page - 1) * limit, page * limit - 1)
+  }
 
   if (search) {
     query = query.or(
@@ -207,7 +212,31 @@ export default async function ClientsPage({ searchParams }: Props) {
     })
   }
 
-  const totalPages = Math.ceil((count || 0) / limit)
+  // Fetch last purchase per client
+  let lastPurchaseMap = new Map<string, { product_name: string | null; purchase_date: string; size: string | null; is_gift: boolean }>()
+
+  if (clientIds.length > 0) {
+    const { data: purchases } = await supabase
+      .from('purchases')
+      .select('client_id, product_name, purchase_date, size, is_gift')
+      .in('client_id', clientIds)
+      .order('purchase_date', { ascending: false })
+
+    if (purchases) {
+      for (const p of purchases) {
+        if (!lastPurchaseMap.has(p.client_id)) {
+          lastPurchaseMap.set(p.client_id, {
+            product_name: p.product_name,
+            purchase_date: p.purchase_date,
+            size: p.size,
+            is_gift: p.is_gift ?? false,
+          })
+        }
+      }
+    }
+  }
+
+  const totalPages = isTierGroup ? 1 : Math.ceil((count || 0) / limit)
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—'
@@ -282,7 +311,48 @@ export default async function ClientsPage({ searchParams }: Props) {
             <p className="body text-text-muted">No clients match your filters.</p>
             {search && <p className="body-small mt-2 text-text-muted">Try adjusting search or tier.</p>}
           </div>
+        ) : isTierGroup ? (
+          /* Tier-grouped view */
+          <div className="space-y-10">
+            {[...TIER_ORDER].reverse().map((tierKey) => {
+              const tierClients = list.filter(c => c.tier === tierKey)
+              if (tierClients.length === 0) return null
+              const tierSpend = tierClients.reduce((sum, c) => sum + c.total_spend, 0)
+              return (
+                <section key={tierKey}>
+                  <div className="mb-4 flex items-center gap-4 border-b pb-3" style={{ borderColor: 'rgba(28, 27, 25, 0.1)' }}>
+                    <TierBadge tier={tierKey} />
+                    <span className="text-text-muted text-sm">
+                      {tierClients.length} client{tierClients.length > 1 ? 's' : ''}
+                    </span>
+                    <span className="text-text-muted text-sm ml-auto">
+                      {formatCurrency(tierSpend)} total
+                    </span>
+                  </div>
+                  <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {tierClients.map((client) => (
+                      <li key={client.id}>
+                        <ClientGridCard
+                          client={{
+                            ...client,
+                            seller_signal: client.seller_signal ?? null,
+                            interests: clientInterestsMap.get(client.id) || null,
+                          }}
+                          spendLabel={formatCurrency(client.total_spend)}
+                          lastContactLabel={formatDate(client.last_contact_date)}
+                          nextRecontactLabel={formatDate(client.next_recontact_date)}
+                          sellerName={isSupervisor ? sellerMap.get(client.seller_id) : undefined}
+                          lastPurchase={lastPurchaseMap.get(client.id)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
         ) : (
+          /* Flat grid view */
           <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {list.map((client) => (
               <li key={client.id}>
@@ -296,13 +366,14 @@ export default async function ClientsPage({ searchParams }: Props) {
                   lastContactLabel={formatDate(client.last_contact_date)}
                   nextRecontactLabel={formatDate(client.next_recontact_date)}
                   sellerName={isSupervisor ? sellerMap.get(client.seller_id) : undefined}
+                  lastPurchase={lastPurchaseMap.get(client.id)}
                 />
               </li>
             ))}
           </ul>
         )}
 
-        {totalPages > 1 && (
+        {!isTierGroup && totalPages > 1 && (
           <nav
             className="mt-10 flex items-center justify-center gap-4 border-t pt-8"
             style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}

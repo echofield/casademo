@@ -32,29 +32,33 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 /** Supervisors */
 const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'REAL_EMAIL', full_name: 'Hasael Moussa', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Hicham EL Himar', password: 'REAL_PASSWORD' },
+  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
+  { email: 'hicham.elhimar@casablancaparis.com', full_name: 'Hicham EL Himar', password: 'Casaovervision26' },
 ]
 
 /** Sellers (full_name must match CSV `seller` column exactly) */
 const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'REAL_EMAIL', full_name: 'Elliott Nowack', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Hamza Said', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Helen Kidane', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Maxime Hudzevych', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Raphael Rivera', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Ryan Jackson', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Yassmine Moutaouakil', password: 'REAL_PASSWORD' },
+  { email: 'elliott.nowack@casablancaparis.com', full_name: 'Elliott Nowack', password: 'elliott1993casablanca' },
+  { email: 'helen.kidane@casablancaparis.com', full_name: 'Helen Kidane', password: 'Cropit2003' },
+  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
+  { email: 'maxime.hudzevych@casablancaparis.com', full_name: 'Maxime Hudzevych', password: 'Dyakuyumax26' },
+  { email: 'raphael.rivera@casablancaparis.com', full_name: 'Raphael Rivera', password: 'Badbunnybaby93' },
+  { email: 'yassmine.moutaouakil@casablancaparis.com', full_name: 'Yassmine Moutaouakil', password: 'Casayass26' },
 ]
 
+const supervisorEmails = new Set(SUPERVISORS.map(s => s.email.toLowerCase()))
+
 async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supervisor' = 'seller') {
+  // Supervisors who are also sellers keep the supervisor role
+  const effectiveRole = supervisorEmails.has(row.email.toLowerCase()) ? 'supervisor' : role
+
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email: row.email,
     password: row.password,
     email_confirm: true,
     user_metadata: {
       full_name: row.full_name,
-      role,
+      role: effectiveRole,
     },
   })
 
@@ -69,10 +73,10 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supe
             id: existing.id,
             email: row.email,
             full_name: row.full_name,
-            role,
+            role: effectiveRole,
             active: true,
           })
-        console.log(`Exists (synced profile): ${row.email}`)
+        console.log(`Exists (synced profile): ${row.email} [${effectiveRole}]`)
         return
       }
     }
@@ -85,7 +89,7 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supe
     id: userId,
     email: row.email,
     full_name: row.full_name,
-    role,
+    role: effectiveRole,
     active: true,
   })
 
@@ -93,7 +97,7 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supe
     console.error(`Profile ${row.email}:`, profileError.message)
     return
   }
-  console.log(`Created: ${row.full_name} <${row.email}>`)
+  console.log(`Created: ${row.full_name} <${row.email}> [${effectiveRole}]`)
 }
 
 async function main() {

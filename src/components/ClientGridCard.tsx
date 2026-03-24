@@ -4,6 +4,13 @@ import { SignalBadge } from './SignalBadge'
 import { InterestTag } from './InterestTag'
 import type { Client, ClientTier, ClientSignal, InterestItem } from '@/lib/types'
 
+interface LastPurchaseInfo {
+  product_name: string | null
+  purchase_date: string
+  size: string | null
+  is_gift: boolean
+}
+
 interface ClientGridCardProps {
   client: Client & {
     seller_signal?: ClientSignal | null
@@ -13,6 +20,7 @@ interface ClientGridCardProps {
   lastContactLabel: string
   nextRecontactLabel: string
   sellerName?: string
+  lastPurchase?: LastPurchaseInfo
 }
 
 const HIGH_VALUE: ClientTier[] = ['grand_prix', 'diplomatico']
@@ -23,6 +31,7 @@ export function ClientGridCard({
   lastContactLabel,
   nextRecontactLabel,
   sellerName,
+  lastPurchase,
 }: ClientGridCardProps) {
   const isHighValue = HIGH_VALUE.includes(client.tier)
 
@@ -67,6 +76,21 @@ export function ClientGridCard({
           <p className="body-small text-text">{nextRecontactLabel}</p>
         </div>
       </div>
+
+      {/* Last purchase */}
+      {lastPurchase?.product_name && (
+        <div className="mb-3 flex items-baseline gap-2 border-t pt-3" style={{ borderColor: 'rgba(28, 27, 25, 0.04)' }}>
+          <p className="body-small text-text truncate flex-1" title={lastPurchase.product_name}>
+            {lastPurchase.is_gift && <span className="text-pink-500 mr-1" title="Gift">♦</span>}
+            {lastPurchase.product_name}
+          </p>
+          {lastPurchase.size && (
+            <span className="text-[10px] text-text-muted bg-bg-soft px-1.5 py-0.5 rounded shrink-0">
+              {lastPurchase.size}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Interest tags */}
       {topInterests.length > 0 && (

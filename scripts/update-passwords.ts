@@ -30,18 +30,16 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
  */
 
 const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'REAL_EMAIL', full_name: 'Hasael Moussa', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Hicham EL Himar', password: 'REAL_PASSWORD' },
+  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
+  { email: 'hicham.elhimar@casablancaparis.com', full_name: 'Hicham EL Himar', password: 'Casaovervision26' },
 ]
 
 const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'REAL_EMAIL', full_name: 'Elliott Nowack', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Hamza Said', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Helen Kidane', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Maxime Hudzevych', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Raphael Rivera', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Ryan Jackson', password: 'REAL_PASSWORD' },
-  { email: 'REAL_EMAIL', full_name: 'Yassmine Moutaouakil', password: 'REAL_PASSWORD' },
+  { email: 'elliott.nowack@casablancaparis.com', full_name: 'Elliott Nowack', password: 'elliott1993casablanca' },
+  { email: 'helen.kidane@casablancaparis.com', full_name: 'Helen Kidane', password: 'Cropit2003' },
+  { email: 'maxime.hudzevych@casablancaparis.com', full_name: 'Maxime Hudzevych', password: 'Dyakuyumax26' },
+  { email: 'raphael.rivera@casablancaparis.com', full_name: 'Raphael Rivera', password: 'Badbunnybaby93' },
+  { email: 'yassmine.moutaouakil@casablancaparis.com', full_name: 'Yassmine Moutaouakil', password: 'Casayass26' },
 ]
 
 const ALL_USERS = [...SUPERVISORS, ...CASABLANCA_TEAM]
