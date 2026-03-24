@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       .from('meetings')
       .select(`
         *,
-        client:clients(first_name, last_name, tier),
+        client:clients(first_name, last_name, tier, phone),
         seller:profiles!meetings_seller_id_fkey(full_name)
       `)
       .gte('start_time', startParam)
@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
         ? `${m.client.first_name} ${m.client.last_name}`
         : null,
       client_tier: m.client?.tier || null,
+      client_phone: m.client?.phone || null,
       seller_name: m.seller?.full_name || 'Unknown',
     }))
 
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
       })
       .select(`
         *,
-        client:clients(first_name, last_name, tier),
+        client:clients(first_name, last_name, tier, phone),
         seller:profiles!meetings_seller_id_fkey(full_name)
       `)
       .single()

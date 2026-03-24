@@ -107,6 +107,7 @@ export interface Meeting {
 export interface MeetingWithDetails extends Meeting {
   client_name: string | null
   client_tier: string | null
+  client_phone: string | null
   seller_name: string
 }
 

@@ -46,6 +46,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         ? `${meeting.client.first_name} ${meeting.client.last_name}`
         : null,
       client_tier: meeting.client?.tier || null,
+      client_phone: meeting.client?.phone || null,
       seller_name: meeting.seller?.full_name || 'Unknown',
     }
 
@@ -120,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .eq('id', id)
       .select(`
         *,
-        client:clients(first_name, last_name, tier),
+        client:clients(first_name, last_name, tier, phone),
         seller:profiles!meetings_seller_id_fkey(full_name)
       `)
       .single()
@@ -137,6 +138,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ? `${meeting.client.first_name} ${meeting.client.last_name}`
         : null,
       client_tier: meeting.client?.tier || null,
+      client_phone: meeting.client?.phone || null,
       seller_name: meeting.seller?.full_name || 'Unknown',
     }
 
