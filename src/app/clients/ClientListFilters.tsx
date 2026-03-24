@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { ClientTier } from '@/lib/types'
+import { ClientTier, ClientSignal, SIGNAL_CONFIG, SIGNAL_ORDER } from '@/lib/types'
+import { SignalDiamond } from '@/components'
 
 type SortOption = 'alpha' | 'alpha_desc' | 'spend' | 'spend_desc' | 'last_contact' | 'tier'
 
@@ -15,16 +16,27 @@ const SORT_LABELS: Record<SortOption, string> = {
   tier: 'Tier',
 }
 
+interface InterestValue {
+  category: string
+  value: string
+  displayLabel: string
+  domain: string
+}
+
 interface Props {
   currentSearch: string
   currentTier?: ClientTier
   currentSeller?: string
   currentSort?: string
-  currentInterest?: string
+  currentInterest?: string // Legacy category filter
+  currentInterestVal?: string // New value-level filter
+  currentSignal?: ClientSignal | 'null'
+  currentLocale?: string
   tiers: ClientTier[]
   tierLabels: Record<ClientTier, string>
   sellers?: { id: string; full_name: string }[]
-  interests?: string[]
+  interests?: string[] // Legacy: categories
+  interestValues?: InterestValue[] // New: full taxonomy
   isSupervisor?: boolean
 }
 
@@ -34,10 +46,14 @@ export function ClientListFilters({
   currentSeller,
   currentSort = 'alpha',
   currentInterest,
+  currentInterestVal,
+  currentSignal,
+  currentLocale,
   tiers,
   tierLabels,
   sellers = [],
   interests = [],
+  interestValues = [],
   isSupervisor = false,
 }: Props) {
   const router = useRouter()
@@ -45,27 +61,54 @@ export function ClientListFilters({
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState(currentSearch)
 
-  const updateParams = (key: string, value: string | undefined) => {
+  const updateParams = (updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set(key, value)
-    } else {
-      params.delete(key)
-    }
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    })
     params.delete('page')
     startTransition(() => {
       router.push(`/clients?${params.toString()}`)
     })
   }
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateParams('search', search || undefined)
+  const updateParam = (key: string, value: string | undefined) => {
+    updateParams({ [key]: value })
   }
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    updateParam('search', search || undefined)
+  }
+
+  // Group interests by domain then category
+  const fashionValues = interestValues.filter(iv => iv.domain === 'fashion')
+  const lifeValues = interestValues.filter(iv => iv.domain === 'life')
+
+  const groupByCategory = (items: InterestValue[]) => {
+    return items.reduce((acc, iv) => {
+      if (!acc[iv.category]) acc[iv.category] = []
+      acc[iv.category].push(iv)
+      return acc
+    }, {} as Record<string, InterestValue[]>)
+  }
+
+  const fashionGrouped = groupByCategory(fashionValues)
+  const lifeGrouped = groupByCategory(lifeValues)
+
+  // Use value-level interest if available, otherwise fall back to category
+  const effectiveInterestFilter = currentInterestVal || currentInterest
+
+  const hasFilters = currentSearch || currentTier || currentSeller ||
+    currentSort !== 'alpha' || effectiveInterestFilter || currentSignal || currentLocale
+
   return (
-    <div className="flex flex-col md:flex-row gap-3 mb-6">
-      <form onSubmit={handleSearchSubmit} className="flex-1">
+    <div className="flex flex-col md:flex-row gap-3 mb-6 flex-wrap">
+      <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[200px]">
         <div className="relative">
           <input
             type="text"
@@ -88,8 +131,8 @@ export function ClientListFilters({
 
       <select
         value={currentTier || ''}
-        onChange={(e) => updateParams('tier', e.target.value || undefined)}
-        className="input-field md:w-48"
+        onChange={(e) => updateParam('tier', e.target.value || undefined)}
+        className="input-field md:w-40"
       >
         <option value="">All tiers</option>
         {tiers.map((tier) => (
@@ -99,10 +142,87 @@ export function ClientListFilters({
         ))}
       </select>
 
+      {/* Signal filter */}
+      <select
+        value={currentSignal || ''}
+        onChange={(e) => updateParam('signal', e.target.value || undefined)}
+        className="input-field md:w-36"
+      >
+        <option value="">All signals</option>
+        {SIGNAL_ORDER.map((signal) => (
+          <option key={signal} value={signal}>
+            {SIGNAL_CONFIG[signal].label}
+          </option>
+        ))}
+        <option value="null">Not assessed</option>
+      </select>
+
+      {/* Locale filter */}
+      <select
+        value={currentLocale || ''}
+        onChange={(e) => updateParam('locale', e.target.value || undefined)}
+        className="input-field md:w-32"
+      >
+        <option value="">All clients</option>
+        <option value="local">Local</option>
+        <option value="foreign">Foreign</option>
+      </select>
+
+      {/* Interest filter - value level with grouped options */}
+      {(interestValues.length > 0 || interests.length > 0) && (
+        <select
+          value={effectiveInterestFilter || ''}
+          onChange={(e) => {
+            // Clear both params then set the appropriate one
+            const value = e.target.value
+            if (!value) {
+              updateParams({ interest: undefined, interest_val: undefined })
+            } else {
+              updateParams({ interest: undefined, interest_val: value })
+            }
+          }}
+          className="input-field md:w-44"
+        >
+          <option value="">All interests</option>
+          {interestValues.length > 0 ? (
+            <>
+              {Object.keys(fashionGrouped).length > 0 && (
+                <optgroup label="── Fashion ──">
+                  {Object.entries(fashionGrouped).map(([cat, items]) => (
+                    items.map((iv) => (
+                      <option key={`f-${iv.value}`} value={iv.value}>
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}: {iv.displayLabel}
+                      </option>
+                    ))
+                  )).flat()}
+                </optgroup>
+              )}
+              {Object.keys(lifeGrouped).length > 0 && (
+                <optgroup label="── Life ──">
+                  {Object.entries(lifeGrouped).map(([cat, items]) => (
+                    items.map((iv) => (
+                      <option key={`l-${iv.value}`} value={iv.value}>
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}: {iv.displayLabel}
+                      </option>
+                    ))
+                  )).flat()}
+                </optgroup>
+              )}
+            </>
+          ) : (
+            interests.map((interest) => (
+              <option key={interest} value={interest}>
+                {interest.charAt(0).toUpperCase() + interest.slice(1)}
+              </option>
+            ))
+          )}
+        </select>
+      )}
+
       <select
         value={currentSort}
-        onChange={(e) => updateParams('sort', e.target.value === 'alpha' ? undefined : e.target.value)}
-        className="input-field md:w-44"
+        onChange={(e) => updateParam('sort', e.target.value === 'alpha' ? undefined : e.target.value)}
+        className="input-field md:w-36"
       >
         {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
           <option key={opt} value={opt}>
@@ -111,26 +231,11 @@ export function ClientListFilters({
         ))}
       </select>
 
-      {interests.length > 0 && (
-        <select
-          value={currentInterest || ''}
-          onChange={(e) => updateParams('interest', e.target.value || undefined)}
-          className="input-field md:w-44"
-        >
-          <option value="">All interests</option>
-          {interests.map((interest) => (
-            <option key={interest} value={interest}>
-              {interest.charAt(0).toUpperCase() + interest.slice(1)}
-            </option>
-          ))}
-        </select>
-      )}
-
       {isSupervisor && sellers.length > 0 && (
         <select
           value={currentSeller || ''}
-          onChange={(e) => updateParams('seller', e.target.value || undefined)}
-          className="input-field md:w-48"
+          onChange={(e) => updateParam('seller', e.target.value || undefined)}
+          className="input-field md:w-44"
         >
           <option value="">All sellers</option>
           {sellers.map((seller) => (
@@ -141,7 +246,7 @@ export function ClientListFilters({
         </select>
       )}
 
-      {(currentSearch || currentTier || currentSeller || currentSort !== 'alpha' || currentInterest) && (
+      {hasFilters && (
         <button
           onClick={() => {
             setSearch('')

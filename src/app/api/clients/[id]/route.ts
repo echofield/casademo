@@ -92,6 +92,12 @@ export async function PATCH(
       Object.entries(parsed.data).filter(([, v]) => v !== undefined)
     ) as Record<string, unknown>
 
+    // If signal is being updated, add timestamp and user
+    if ('seller_signal' in updates) {
+      updates.signal_updated_at = new Date().toISOString()
+      updates.signal_updated_by = user.id
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
     }

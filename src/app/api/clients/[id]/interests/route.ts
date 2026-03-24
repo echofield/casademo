@@ -3,10 +3,13 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 
+const DOMAINS = ['fashion', 'life'] as const
+
 const singleInterestSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   value: z.string().min(1, 'Value is required'),
   detail: z.string().optional().nullable(),
+  domain: z.enum(DOMAINS).default('fashion'),
 })
 
 const bulkInterestsSchema = z.object({
@@ -14,6 +17,7 @@ const bulkInterestsSchema = z.object({
     category: z.string().min(1),
     value: z.string().min(1),
     detail: z.string().optional().nullable(),
+    domain: z.enum(DOMAINS).default('fashion'),
   })),
 })
 
@@ -48,6 +52,7 @@ export async function POST(
         category: i.category,
         value: i.value,
         detail: i.detail || null,
+        domain: i.domain,
       }))
 
       const { data, error } = await supabase
@@ -79,6 +84,7 @@ export async function POST(
         category: parsed.data.category,
         value: parsed.data.value,
         detail: parsed.data.detail,
+        domain: parsed.data.domain,
       } as any)
       .select()
       .single()

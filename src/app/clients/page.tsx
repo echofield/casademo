@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AppShell, PageHeader, ClientGridCard } from '@/components'
-import { Client, ClientTier, TIER_LABELS, TIER_ORDER } from '@/lib/types'
+import { Client, ClientTier, ClientSignal, TIER_LABELS, TIER_ORDER, InterestItem } from '@/lib/types'
 import { ClientListFilters } from './ClientListFilters'
 import { AddClientButton } from './AddClientButton'
 
@@ -15,6 +15,10 @@ interface Props {
     seller?: string
     sort?: SortOption
     interest?: string
+    interest_val?: string
+    domain?: string
+    locale?: string
+    signal?: ClientSignal | 'null'
     page?: string
   }>
 }
@@ -28,6 +32,10 @@ export default async function ClientsPage({ searchParams }: Props) {
   const tier = params.tier
   const sellerId = params.seller
   const interestFilter = params.interest
+  const interestValFilter = params.interest_val
+  const domainFilter = params.domain
+  const localeFilter = params.locale
+  const signalFilter = params.signal
   const page = parseInt(params.page || '1', 10)
   const limit = 24
 
@@ -37,7 +45,6 @@ export default async function ClientsPage({ searchParams }: Props) {
   // Fetch sellers for filter (supervisors only)
   let sellers: { id: string; full_name: string }[] = []
   if (isSupervisor) {
-    // Get all profiles that have seller role (via profiles_roles table)
     const { data: sellerRoles } = await supabase
       .from('profiles_roles')
       .select('user_id')
@@ -56,10 +63,23 @@ export default async function ClientsPage({ searchParams }: Props) {
     }
   }
 
-  // Build seller lookup map
   const sellerMap = new Map(sellers.map(s => [s.id, s.full_name]))
 
-  // Fetch distinct interest categories for filter
+  // Fetch interest taxonomy for the grouped dropdown (with domain)
+  const { data: interestTaxonomy } = await supabase
+    .from('interest_taxonomy')
+    .select('category, value, display_label, domain')
+    .order('category')
+    .order('sort_order')
+
+  const interestValues = (interestTaxonomy || []).map(t => ({
+    category: t.category,
+    value: t.value,
+    displayLabel: t.display_label,
+    domain: (t.domain || 'fashion') as string,
+  }))
+
+  // Legacy: get distinct interest categories
   const { data: interestCategories } = await supabase
     .from('client_interests')
     .select('category')
@@ -67,9 +87,17 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   const uniqueInterests = Array.from(new Set((interestCategories || []).map(i => i.category))).filter(Boolean)
 
-  // If interest filter is active, get matching client IDs
+  // If interest filter is active (either category or value), get matching client IDs
   let interestClientIds: string[] | null = null
-  if (interestFilter) {
+  if (interestValFilter) {
+    let interestQuery = supabase
+      .from('client_interests')
+      .select('client_id')
+      .eq('value', interestValFilter)
+    if (domainFilter) interestQuery = interestQuery.eq('domain', domainFilter)
+    const { data: matchingInterests } = await interestQuery
+    interestClientIds = matchingInterests?.map(i => i.client_id) || []
+  } else if (interestFilter) {
     const { data: matchingInterests } = await supabase
       .from('client_interests')
       .select('client_id')
@@ -105,7 +133,6 @@ export default async function ClientsPage({ searchParams }: Props) {
       query = query.order('last_contact_date', { ascending: false, nullsFirst: true })
       break
     case 'tier':
-      // Order by tier priority (grand_prix first = descending since enum order is rainbow→grand_prix)
       query = query.order('tier', { ascending: false })
       break
     default:
@@ -124,11 +151,24 @@ export default async function ClientsPage({ searchParams }: Props) {
     query = query.eq('tier', tier)
   }
 
+  // Signal filter
+  if (signalFilter) {
+    if (signalFilter === 'null') {
+      query = query.is('seller_signal', null)
+    } else {
+      query = query.eq('seller_signal', signalFilter)
+    }
+  }
+
+  // Locale filter
+  if (localeFilter) {
+    query = query.eq('locale', localeFilter)
+  }
+
   // Sellers can only see their own clients
   if (!isSupervisor) {
     query = query.eq('seller_id', user.id)
   } else if (sellerId) {
-    // Supervisor filtering by specific seller
     query = query.eq('seller_id', sellerId)
   }
 
@@ -136,12 +176,36 @@ export default async function ClientsPage({ searchParams }: Props) {
     if (interestClientIds.length > 0) {
       query = query.in('id', interestClientIds)
     } else {
-      // No clients have this interest, return empty
       query = query.eq('id', '00000000-0000-0000-0000-000000000000')
     }
   }
 
   const { data: clients, count } = await query
+
+  // Fetch interests for the clients to display on cards
+  const clientIds = (clients || []).map(c => c.id)
+  let clientInterestsMap = new Map<string, InterestItem[]>()
+
+  if (clientIds.length > 0) {
+    const { data: allInterests } = await supabase
+      .from('client_interests')
+      .select('id, client_id, category, value, detail, domain')
+      .in('client_id', clientIds)
+
+    // Group by client_id — only fashion interests on cards
+    ;(allInterests || []).forEach((interest) => {
+      if (interest.domain === 'life') return
+      const existing = clientInterestsMap.get(interest.client_id) || []
+      existing.push({
+        id: interest.id,
+        category: interest.category,
+        value: interest.value,
+        detail: interest.detail,
+        domain: (interest.domain || 'fashion') as 'fashion' | 'life',
+      })
+      clientInterestsMap.set(interest.client_id, existing)
+    })
+  }
 
   const totalPages = Math.ceil((count || 0) / limit)
 
@@ -161,14 +225,18 @@ export default async function ClientsPage({ searchParams }: Props) {
     }).format(amount)
   }
 
-  const list = (clients || []) as Client[]
+  const list = (clients || []) as (Client & { seller_signal?: ClientSignal | null })[]
 
   const paginationHref = (p: number) => {
     const sp = new URLSearchParams()
     if (search) sp.set('search', search)
     if (tier) sp.set('tier', tier)
     if (sellerId) sp.set('seller', sellerId)
-    if (interestFilter) sp.set('interest', interestFilter)
+    if (interestValFilter) sp.set('interest_val', interestValFilter)
+    else if (interestFilter) sp.set('interest', interestFilter)
+    if (domainFilter) sp.set('domain', domainFilter)
+    if (localeFilter) sp.set('locale', localeFilter)
+    if (signalFilter) sp.set('signal', signalFilter)
     if (sort && sort !== 'alpha') sp.set('sort', sort)
     if (p > 1) sp.set('page', String(p))
     const q = sp.toString()
@@ -195,10 +263,14 @@ export default async function ClientsPage({ searchParams }: Props) {
           currentSeller={sellerId}
           currentSort={sort}
           currentInterest={interestFilter}
+          currentInterestVal={interestValFilter}
+          currentSignal={signalFilter}
+          currentLocale={localeFilter}
           tiers={TIER_ORDER}
           tierLabels={TIER_LABELS}
           sellers={sellers}
           interests={uniqueInterests}
+          interestValues={interestValues}
           isSupervisor={isSupervisor}
         />
 
@@ -215,7 +287,11 @@ export default async function ClientsPage({ searchParams }: Props) {
             {list.map((client) => (
               <li key={client.id}>
                 <ClientGridCard
-                  client={client}
+                  client={{
+                    ...client,
+                    seller_signal: client.seller_signal ?? null,
+                    interests: clientInterestsMap.get(client.id) || null,
+                  }}
                   spendLabel={formatCurrency(client.total_spend)}
                   lastContactLabel={formatDate(client.last_contact_date)}
                   nextRecontactLabel={formatDate(client.next_recontact_date)}

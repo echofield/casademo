@@ -1,27 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 
-// Casablanca-aligned interest templates
-const INTEREST_OPTIONS: Record<string, string[]> = {
-  Products: ['Silk shirts', 'T-shirts', 'Knitwear', 'Shorts', 'Tracksuits', 'Sneakers', 'Accessories', 'Trousers', 'Outerwear'],
-  Collections: ['Tennis Club', 'Maison De Rêve', 'Gradient Wave', 'Monogram', 'Sunset Landscape'],
-  Styles: ['Printed', 'Crochet', 'Knitted', 'Tailored', 'Graphic', 'Relaxed'],
-  Colors: ['Green', 'Gold', 'Navy', 'White', 'Multicolor', 'Black', 'Red'],
-  Occasions: ['Resort', 'Leisure', 'Evening', 'Travel', 'Sport'],
-  Lifestyle: ['Tennis', 'Golf', 'Motorsport', 'Yachting', 'Art', 'Music', 'Wine', 'Watches', 'Travel', 'Fitness'],
+interface TaxonomyItem {
+  category: string
+  value: string
+  display_label: string
 }
-
-const CATEGORIES = Object.keys(INTEREST_OPTIONS)
 
 interface Props {
   clientId: string
   canEdit: boolean
+  domain: 'fashion' | 'life'
 }
 
-export function ClientInterestAdd({ clientId, canEdit }: Props) {
+export function ClientInterestAdd({ clientId, canEdit, domain }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [category, setCategory] = useState('')
@@ -29,14 +24,29 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
   const [detail, setDetail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [taxonomy, setTaxonomy] = useState<TaxonomyItem[]>([])
+  const [taxonomyLoaded, setTaxonomyLoaded] = useState(false)
+
+  useEffect(() => {
+    if (open && !taxonomyLoaded) {
+      fetch(`/api/taxonomy?domain=${domain}`)
+        .then(res => res.json())
+        .then((data: TaxonomyItem[]) => {
+          setTaxonomy(data || [])
+          setTaxonomyLoaded(true)
+        })
+        .catch(() => setTaxonomyLoaded(true))
+    }
+  }, [open, taxonomyLoaded, domain])
 
   if (!canEdit) return null
 
-  const availableValues = category ? INTEREST_OPTIONS[category] || [] : []
+  const categories = Array.from(new Set(taxonomy.map(t => t.category)))
+  const availableValues = taxonomy.filter(t => t.category === category)
 
   const handleCategoryChange = (newCategory: string) => {
     setCategory(newCategory)
-    setValue('') // Reset value when category changes
+    setValue('')
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -51,6 +61,7 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
           category: category.trim(),
           value: value.trim(),
           detail: detail.trim() || null,
+          domain,
         }),
       })
       const json = await res.json()
@@ -67,6 +78,9 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
     }
   }
 
+  const label = domain === 'life' ? 'Add a life interest' : 'Add an interest'
+  const categoryLabel = (cat: string) => cat.charAt(0).toUpperCase() + cat.slice(1)
+
   return (
     <div className="mt-4 border-t pt-4" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
       {!open ? (
@@ -75,7 +89,7 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
           onClick={() => setOpen(true)}
           className="label text-primary transition-colors duration-200 hover:text-primary-soft"
         >
-          + Add an interest
+          + {label}
         </button>
       ) : (
         <form onSubmit={submit} className="space-y-3">
@@ -89,8 +103,8 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
                 required
               >
                 <option value="">Select category</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{categoryLabel(cat)}</option>
                 ))}
               </select>
             </div>
@@ -104,8 +118,8 @@ export function ClientInterestAdd({ clientId, canEdit }: Props) {
                 disabled={!category}
               >
                 <option value="">{category ? 'Select value' : 'Select category first'}</option>
-                {availableValues.map((val) => (
-                  <option key={val} value={val}>{val}</option>
+                {availableValues.map((item) => (
+                  <option key={item.value} value={item.value}>{item.display_label}</option>
                 ))}
               </select>
             </div>

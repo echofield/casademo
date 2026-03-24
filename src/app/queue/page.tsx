@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AppShell, QueueStack } from '@/components'
-import { RecontactQueueItem } from '@/lib/types'
+import { RecontactQueueItem, InterestItem, ClientSignal } from '@/lib/types'
 
 export default async function QueuePage() {
   const user = await getCurrentUser()
@@ -24,9 +24,36 @@ export default async function QueuePage() {
     query = query.eq('seller_id', user.id)
   }
 
-  const { data: queue } = await query.order('days_overdue', { ascending: false })
+  // The view now orders by signal priority, then days_overdue, then tier
+  const { data: queue } = await query
 
-  const items = (queue || []) as RecontactQueueItem[]
+  const items = (queue || []) as (RecontactQueueItem & {
+    seller_signal?: ClientSignal | null
+    signal_note?: string | null
+  })[]
+
+  // Fetch interests for queue clients
+  const clientIds = items.map(i => i.id)
+  let clientInterestsMap = new Map<string, InterestItem[]>()
+
+  if (clientIds.length > 0) {
+    const { data: allInterests } = await supabase
+      .from('client_interests')
+      .select('id, client_id, category, value, detail, domain')
+      .in('client_id', clientIds)
+
+    ;(allInterests || []).forEach((interest) => {
+      const existing = clientInterestsMap.get(interest.client_id) || []
+      existing.push({
+        id: interest.id,
+        category: interest.category,
+        value: interest.value,
+        detail: interest.detail,
+        domain: (interest.domain || 'fashion') as 'fashion' | 'life',
+      })
+      clientInterestsMap.set(interest.client_id, existing)
+    })
+  }
 
   // Pre-format dates server-side
   const formatDate = (dateStr: string | null) => {
@@ -49,6 +76,10 @@ export default async function QueuePage() {
     seller_name: item.seller_name,
     lastContactLabel: formatDate(item.last_contact_date),
     nextContactLabel: formatDate(item.next_recontact_date),
+    seller_signal: item.seller_signal ?? null,
+    signal_note: item.signal_note ?? null,
+    interests: clientInterestsMap.get(item.id) || null,
+    locale: (item as any).locale || 'local',
   }))
 
   const overdueCount = items.filter(i => (i.days_overdue ?? 0) > 0).length

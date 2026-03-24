@@ -23,6 +23,12 @@ export function ClientActions({ clientId }: Props) {
   const [purchaseAmount, setPurchaseAmount] = useState('')
   const [purchaseDescription, setPurchaseDescription] = useState('')
   const [purchaseSource, setPurchaseSource] = useState('casa_one')
+  const [purchaseProductName, setPurchaseProductName] = useState('')
+  const [purchaseCategory, setPurchaseCategory] = useState('')
+  const [purchaseSize, setPurchaseSize] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0])
+  const [purchaseIsGift, setPurchaseIsGift] = useState(false)
+  const [purchaseGiftRecipient, setPurchaseGiftRecipient] = useState('')
 
   const handleLogContact = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +72,13 @@ export function ClientActions({ clientId }: Props) {
     setLoading(true)
 
     try {
+      const sizeVal = purchaseSize.trim() || null
+      let sizeType: string | null = null
+      if (sizeVal) {
+        if (['S', 'M', 'L', 'XL', 'XXL'].includes(sizeVal.toUpperCase())) sizeType = 'letter'
+        else if (/^\d+$/.test(sizeVal)) sizeType = parseInt(sizeVal) >= 38 && parseInt(sizeVal) <= 47 ? 'shoe' : 'number'
+      }
+
       const res = await fetch(`/api/clients/${clientId}/purchases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,6 +86,13 @@ export function ClientActions({ clientId }: Props) {
           amount,
           description: purchaseDescription.trim() || null,
           source: purchaseSource,
+          product_name: purchaseProductName.trim() || null,
+          product_category: purchaseCategory || null,
+          size: sizeVal,
+          size_type: sizeType,
+          purchase_date: purchaseDate || undefined,
+          is_gift: purchaseIsGift,
+          gift_recipient: purchaseIsGift ? purchaseGiftRecipient.trim() || null : null,
         }),
       })
 
@@ -85,6 +105,12 @@ export function ClientActions({ clientId }: Props) {
       setPurchaseAmount('')
       setPurchaseDescription('')
       setPurchaseSource('casa_one')
+      setPurchaseProductName('')
+      setPurchaseCategory('')
+      setPurchaseSize('')
+      setPurchaseDate(new Date().toISOString().split('T')[0])
+      setPurchaseIsGift(false)
+      setPurchaseGiftRecipient('')
       router.refresh()
     } catch (err) {
       setPurchaseError(err instanceof Error ? err.message : 'Error')
@@ -196,20 +222,72 @@ export function ClientActions({ clientId }: Props) {
               </p>
               <form onSubmit={handleLogPurchase}>
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Amount (€)</label>
+                  <label className="label mb-2 block text-text-muted">Product name</label>
                   <input
                     type="text"
-                    inputMode="decimal"
-                    value={purchaseAmount}
-                    onChange={(e) => setPurchaseAmount(e.target.value)}
+                    value={purchaseProductName}
+                    onChange={(e) => setPurchaseProductName(e.target.value)}
                     className="input-field"
-                    placeholder="e.g. 450"
-                    required
+                    placeholder="e.g. Shearling Floral Embroidery Jacket"
                   />
                 </div>
 
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="label mb-2 block text-text-muted">Category</label>
+                    <select
+                      value={purchaseCategory}
+                      onChange={(e) => setPurchaseCategory(e.target.value)}
+                      className="input-field"
+                    >
+                      <option value="">—</option>
+                      <option value="jacket">Jacket / Outerwear</option>
+                      <option value="trousers">Trousers / Pants</option>
+                      <option value="shirt">Shirt / Top</option>
+                      <option value="knitwear">Knitwear</option>
+                      <option value="shoes">Shoes</option>
+                      <option value="accessories">Accessories</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label mb-2 block text-text-muted">Size</label>
+                    <input
+                      type="text"
+                      value={purchaseSize}
+                      onChange={(e) => setPurchaseSize(e.target.value)}
+                      className="input-field"
+                      placeholder="e.g. M, 48, 42"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="label mb-2 block text-text-muted">Amount (€)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={purchaseAmount}
+                      onChange={(e) => setPurchaseAmount(e.target.value)}
+                      className="input-field"
+                      placeholder="e.g. 450"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="label mb-2 block text-text-muted">Date</label>
+                    <input
+                      type="date"
+                      value={purchaseDate}
+                      onChange={(e) => setPurchaseDate(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Source (required)</label>
+                  <label className="label mb-2 block text-text-muted">Source</label>
                   <select
                     value={purchaseSource}
                     onChange={(e) => setPurchaseSource(e.target.value)}
@@ -226,15 +304,38 @@ export function ClientActions({ clientId }: Props) {
                   </select>
                 </div>
 
-                <div className="mb-6">
-                  <label className="label mb-2 block text-text-muted">Description (recommended)</label>
+                <div className="mb-4">
+                  <label className="label mb-2 block text-text-muted">Notes (optional)</label>
                   <input
                     type="text"
                     value={purchaseDescription}
                     onChange={(e) => setPurchaseDescription(e.target.value)}
                     className="input-field"
-                    placeholder="e.g. Silk shirt"
+                    placeholder="Additional notes..."
                   />
+                </div>
+
+                <div className="mb-6 border-t pt-4" style={{ borderColor: 'rgba(28, 27, 25, 0.06)' }}>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={purchaseIsGift}
+                      onChange={(e) => setPurchaseIsGift(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="label text-text-muted">This is a gift</span>
+                  </label>
+                  {purchaseIsGift && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={purchaseGiftRecipient}
+                        onChange={(e) => setPurchaseGiftRecipient(e.target.value)}
+                        className="input-field"
+                        placeholder="For whom? e.g. wife, business partner Marc..."
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {purchaseError && <p className="body-small mb-4 text-danger">{purchaseError}</p>}

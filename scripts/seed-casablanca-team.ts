@@ -20,22 +20,31 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
+/**
+ * ============================================================================
+ * PRODUCTION CREDENTIALS — FILL IN BEFORE RUNNING
+ * ============================================================================
+ * Replace 'REAL_EMAIL' and 'REAL_PASSWORD' with actual credentials.
+ * DO NOT commit real passwords to git. Consider using environment variables
+ * or a separate .credentials.json file (git-ignored) for production.
+ * ============================================================================
+ */
+
 /** Supervisors */
 const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'julane.moussa@casaone.fr', full_name: 'Hasael Moussa', password: 'casablanca-supervisor' },
-  { email: 'hicham.elhimar@casaone.fr', full_name: 'Hicham EL Himar', password: 'casablanca-supervisor' },
+  { email: 'REAL_EMAIL', full_name: 'Hasael Moussa', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Hicham EL Himar', password: 'REAL_PASSWORD' },
 ]
 
 /** Sellers (full_name must match CSV `seller` column exactly) */
 const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'elliott.nowack@casaone.fr', full_name: 'Elliott Nowack', password: 'casablanca-seller' },
-  { email: 'hamza.said@casaone.fr', full_name: 'Hamza Said', password: 'casablanca-seller' },
-  { email: 'helen.kidane@casaone.fr', full_name: 'Helen Kidane', password: 'casablanca-seller' },
-  { email: 'julane.moussa@casaone.fr', full_name: 'Hasael Moussa', password: 'casablanca-seller' }, // Also supervisor
-  { email: 'maxime.hudzevych@casaone.fr', full_name: 'Maxime Hudzevych', password: 'casablanca-seller' },
-  { email: 'raphael.rivera@casaone.fr', full_name: 'Raphael Rivera', password: 'casablanca-seller' },
-  { email: 'ryan.jackson@casaone.fr', full_name: 'Ryan Jackson', password: 'casablanca-seller' },
-  { email: 'yassmine.moutaouakil@casaone.fr', full_name: 'Yassmine Moutaouakil', password: 'casablanca-seller' },
+  { email: 'REAL_EMAIL', full_name: 'Elliott Nowack', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Hamza Said', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Helen Kidane', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Maxime Hudzevych', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Raphael Rivera', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Ryan Jackson', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Yassmine Moutaouakil', password: 'REAL_PASSWORD' },
 ]
 
 async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supervisor' = 'seller') {

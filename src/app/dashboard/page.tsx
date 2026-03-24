@@ -10,7 +10,10 @@ import {
   RhythmIndicator,
   HealthBar,
   SellerTierBreakdown,
+  SignalDistribution,
+  SignalMatrix,
 } from '@/components/dashboard'
+import { ClientSignal } from '@/lib/types'
 import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
@@ -117,6 +120,42 @@ export default async function DashboardPage() {
     .from('clients')
     .select('seller_id, total_spend')
     .eq('is_demo', DEMO_MODE)
+
+  // Fetch signal distribution per seller
+  const { data: clientSignals } = await supabase
+    .from('clients')
+    .select('seller_id, seller_signal')
+    .eq('is_demo', DEMO_MODE)
+
+  // Build signal distribution data per seller
+  type SignalCounts = Record<ClientSignal | 'null', number>
+  const sellerSignalMap: Record<string, { name: string; signals: SignalCounts; total: number }> = {}
+
+  ;(allSellers || []).forEach((seller) => {
+    sellerSignalMap[seller.id] = {
+      name: seller.full_name,
+      signals: { very_hot: 0, hot: 0, warm: 0, cold: 0, lost: 0, null: 0 },
+      total: 0,
+    }
+  })
+
+  ;(clientSignals || []).forEach((c) => {
+    if (sellerSignalMap[c.seller_id]) {
+      const signalKey = (c.seller_signal || 'null') as ClientSignal | 'null'
+      sellerSignalMap[c.seller_id].signals[signalKey]++
+      sellerSignalMap[c.seller_id].total++
+    }
+  })
+
+  const signalDistributionData = Object.entries(sellerSignalMap)
+    .map(([id, data]) => ({
+      seller_id: id,
+      seller_name: data.name,
+      signals: data.signals,
+      total: data.total,
+    }))
+    .filter(s => s.total > 0)
+    .sort((a, b) => b.total - a.total)
 
   // Build seller data for radar - ALL REAL DATA
   const sellerRadarData = (allSellers || []).slice(0, 4).map((seller) => {
@@ -254,6 +293,20 @@ export default async function DashboardPage() {
             </div>
           </div>
         </section>
+
+        {/* Signal Overview — second block, first-class feature */}
+        {signalDistributionData.length > 0 && (
+          <>
+            <SignalMatrix
+              sellers={signalDistributionData}
+              className="mb-6"
+            />
+            <SignalDistribution
+              sellers={signalDistributionData}
+              className="mb-10"
+            />
+          </>
+        )}
 
         {/* Two column layout */}
         <div className="grid lg:grid-cols-3 gap-8 mb-10">
@@ -393,6 +446,7 @@ export default async function DashboardPage() {
 
           <SellerTierBreakdown sellers={sellerBreakdownData} />
         </div>
+
       </div>
     </AppShell>
   )

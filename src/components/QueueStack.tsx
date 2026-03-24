@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FocusedClientCard } from './FocusedClientCard'
 import { transitions } from '@/lib/motion'
-import type { ClientTier } from '@/lib/types'
+import type { ClientTier, ClientSignal, InterestItem } from '@/lib/types'
 
 interface QueueClient {
   id: string
@@ -18,6 +18,10 @@ interface QueueClient {
   seller_name: string
   lastContactLabel: string
   nextContactLabel: string
+  seller_signal?: ClientSignal | null
+  signal_note?: string | null
+  interests?: InterestItem[] | null
+  locale?: string | null
 }
 
 interface Props {

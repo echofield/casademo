@@ -22,6 +22,7 @@ interface Props {
     email: string | null
     phone: string | null
     notes: string | null
+    locale: string
   }
   /** Active sellers for reassignment (supervisor only) */
   sellerOptions?: SellerOption[]
@@ -50,6 +51,7 @@ export function ClientEditControls({
   const [email, setEmail] = useState(initial.email ?? '')
   const [phone, setPhone] = useState(initial.phone ?? '')
   const [notes, setNotes] = useState(initial.notes ?? '')
+  const [locale, setLocale] = useState(initial.locale || 'local')
 
   const [newSellerId, setNewSellerId] = useState('')
 
@@ -59,6 +61,7 @@ export function ClientEditControls({
     setEmail(initial.email ?? '')
     setPhone(initial.phone ?? '')
     setNotes(initial.notes ?? '')
+    setLocale(initial.locale || 'local')
     setError(null)
     setShowEdit(true)
   }
@@ -77,6 +80,7 @@ export function ClientEditControls({
           email: email.trim(),
           phone: phone.trim(),
           notes: notes.trim(),
+          locale,
         }),
       })
       const json = await res.json()
@@ -207,6 +211,17 @@ export function ClientEditControls({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
+              </div>
+              <div>
+                <label className="small-caps block mb-1">Client type</label>
+                <select
+                  className="input-field"
+                  value={locale}
+                  onChange={(e) => setLocale(e.target.value)}
+                >
+                  <option value="local">Local</option>
+                  <option value="foreign">Foreign</option>
+                </select>
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
               <div className="flex gap-3">

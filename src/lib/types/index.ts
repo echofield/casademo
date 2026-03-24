@@ -1,4 +1,5 @@
 import type { Database } from './database'
+import type { ClientSignal } from './signal'
 
 // Enums
 export type UserRole = Database['public']['Enums']['user_role']
@@ -41,6 +42,31 @@ export const TIER_ORDER: ClientTier[] = [
   'diplomatico',
   'grand_prix',
 ]
+
+// Client locale
+export type ClientLocale = 'local' | 'foreign'
+
+export const LOCALE_LABELS: Record<ClientLocale, string> = {
+  local: 'Local',
+  foreign: 'Foreign',
+}
+
+// First impact — how the client entered the brand
+export type FirstImpact = 'flash_entry' | 'strong_entry' | 'progressive' | 'unknown'
+
+export const FIRST_IMPACT_CONFIG: Record<FirstImpact, { label: string; description: string; color: string }> = {
+  flash_entry: { label: 'Flash', description: 'First purchase ≥ 2 500 €', color: '#C34747' },
+  strong_entry: { label: 'Strong', description: 'First purchase ≥ 1 000 €', color: '#D97706' },
+  progressive: { label: 'Progressive', description: 'Building over time', color: '#2F6B4F' },
+  unknown: { label: '—', description: 'No purchase yet', color: '#999' },
+}
+
+// Locale-aware recontact multiplier
+// Foreign clients get 2x the cadence (e.g., 14 days → 28 days)
+export const LOCALE_RECONTACT_MULTIPLIER: Record<ClientLocale, number> = {
+  local: 1,
+  foreign: 2,
+}
 
 // Table types
 export type Profile = Database['public']['Tables']['profiles']['Row']
@@ -96,6 +122,12 @@ export interface Client360 {
   origin: ClientOrigin | null
   is_personal_shopper: boolean
   heat_score: number
+  seller_signal: ClientSignal | null
+  signal_note: string | null
+  signal_updated_at: string | null
+  life_notes: string | null
+  locale: ClientLocale
+  first_impact: FirstImpact
   created_at: string
   updated_at: string
   seller_name: string
@@ -103,6 +135,7 @@ export interface Client360 {
   contact_history: ContactHistoryItem[] | null
   purchase_history: PurchaseHistoryItem[] | null
   sizing: SizingItem[] | null
+  known_sizes: KnownSizeItem[] | null
   visit_history: VisitItem[] | null
 }
 
@@ -128,6 +161,7 @@ export interface InterestItem {
   category: string
   value: string
   detail: string | null
+  domain: 'fashion' | 'life'
 }
 
 export interface ContactHistoryItem {
@@ -143,7 +177,34 @@ export interface PurchaseHistoryItem {
   date: string
   amount: number
   description: string | null
+  product_name: string | null
+  product_category: string | null
+  size: string | null
+  size_type: string | null
+  is_gift: boolean
+  gift_recipient: string | null
 }
+
+export interface KnownSizeItem {
+  client_id: string
+  category: string
+  size: string
+  size_type: string | null
+  last_product: string | null
+  last_purchase_date: string | null
+}
+
+export const PRODUCT_CATEGORIES = [
+  { value: 'jacket', label: 'Jacket / Outerwear' },
+  { value: 'trousers', label: 'Trousers / Pants' },
+  { value: 'shirt', label: 'Shirt / Top' },
+  { value: 'knitwear', label: 'Knitwear' },
+  { value: 'shoes', label: 'Shoes' },
+  { value: 'accessories', label: 'Accessories' },
+  { value: 'other', label: 'Other' },
+] as const
+
+export type ProductCategory = typeof PRODUCT_CATEGORIES[number]['value']
 
 // API types
 export interface ClientListParams {
@@ -185,3 +246,9 @@ export interface AuthUser {
   email: string
   profile: Profile
 }
+
+// Meeting types - re-export from meetings.ts
+export * from './meetings'
+
+// Signal types - re-export from signal.ts
+export * from './signal'

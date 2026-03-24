@@ -21,6 +21,7 @@ export function Nav({ userRole, userName }: NavProps) {
     { href: '/', label: 'Home' },
     { href: '/queue', label: 'Queue' },
     { href: '/clients', label: 'Clients' },
+    { href: '/calendar', label: 'Calendrier' },
     ...(userRole === 'supervisor' ? [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/team', label: 'Team' },

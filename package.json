@@ -10,7 +10,10 @@
     "seed": "npx tsx scripts/seed.ts",
     "seed:casablanca-team": "npx tsx scripts/seed-casablanca-team.ts",
     "import:casablanca": "npx tsx scripts/import-casablanca.ts",
-    "import:casablanca:dry": "npx tsx scripts/import-casablanca.ts --dry-run"
+    "import:casablanca:dry": "npx tsx scripts/import-casablanca.ts --dry-run",
+    "clean:demo": "npx tsx scripts/clean-demo-data.ts",
+    "update:passwords": "npx tsx scripts/update-passwords.ts",
+    "validate:contacts": "npx tsx scripts/validate-seller-contacts.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

@@ -1,6 +1,11 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Paths that don't require authentication or MFA
+const PUBLIC_PATHS = ['/login', '/auth/callback']
+const MFA_PATHS = ['/setup-mfa', '/verify-mfa']
+const API_AUTH_PATHS = ['/api/auth']
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -29,13 +34,27 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  const pathname = request.nextUrl.pathname
+
+  // Check if this is a public path
+  const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p))
+  const isMfaPath = MFA_PATHS.some(p => pathname.startsWith(p))
+  const isApiAuthPath = API_AUTH_PATHS.some(p => pathname.startsWith(p))
+  const isStaticPath = pathname.startsWith('/_next') ||
+    pathname.includes('.') // Static files like .svg, .png, etc.
+
+  // Skip middleware for static assets
+  if (isStaticPath) {
+    return supabaseResponse
+  }
+
   // Refresh session if expired
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   // Protect API routes (except auth routes)
-  if (request.nextUrl.pathname.startsWith('/api') && !request.nextUrl.pathname.startsWith('/api/auth')) {
+  if (pathname.startsWith('/api') && !isApiAuthPath) {
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -44,23 +63,46 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect app routes (except login and auth callback)
-  if (
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth/callback') &&
-    !request.nextUrl.pathname.startsWith('/api') &&
-    !request.nextUrl.pathname.startsWith('/_next') &&
-    !user
-  ) {
+  // Allow public paths without auth
+  if (isPublicPath) {
+    return supabaseResponse
+  }
+
+  // If no user, redirect to login
+  if (!user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Do not redirect /login → / when a session exists. Home uses getCurrentUser()
-  // (auth + profiles row); redirecting here caused a loop when those disagreed
-  // and triggered Chrome navigation throttling (crbug.com/1038223).
+  // Check MFA assurance level for authenticated users
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
+  // If user has MFA enrolled (nextLevel is aal2) but hasn't verified this session (currentLevel is aal1)
+  if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+    // Allow access to MFA pages
+    if (isMfaPath) {
+      return supabaseResponse
+    }
+    // Redirect other pages to verify-mfa
+    const url = request.nextUrl.clone()
+    url.pathname = '/verify-mfa'
+    return NextResponse.redirect(url)
+  }
+
+  // If user doesn't have MFA enrolled at all (nextLevel is aal1)
+  if (aal?.nextLevel === 'aal1') {
+    // Allow access to setup-mfa
+    if (pathname.startsWith('/setup-mfa')) {
+      return supabaseResponse
+    }
+    // Redirect to setup-mfa
+    const url = request.nextUrl.clone()
+    url.pathname = '/setup-mfa'
+    return NextResponse.redirect(url)
+  }
+
+  // User is authenticated and has verified MFA (aal2)
   return supabaseResponse
 }
 

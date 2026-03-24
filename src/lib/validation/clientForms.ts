@@ -17,6 +17,9 @@ export const createClientBodySchema = z
   })
   .strict()
 
+// Valid signal values
+const signalValues = ['very_hot', 'hot', 'warm', 'cold', 'lost'] as const
+
 export const updateClientBodySchema = z
   .object({
     first_name: z.string().min(1).optional(),
@@ -33,5 +36,23 @@ export const updateClientBodySchema = z
       .string()
       .optional()
       .transform((v) => (v === undefined ? undefined : v.trim() === '' ? null : v)),
+    life_notes: z
+      .string()
+      .nullable()
+      .optional()
+      .transform((v) => (v === undefined ? undefined : v?.trim() === '' ? null : v?.trim())),
+    locale: z
+      .enum(['local', 'foreign'])
+      .optional(),
+    // Signal fields
+    seller_signal: z
+      .enum(signalValues)
+      .nullable()
+      .optional(),
+    signal_note: z
+      .string()
+      .nullable()
+      .optional()
+      .transform((v) => (v === undefined ? undefined : v?.trim() === '' ? null : v?.trim())),
   })
   .strict()

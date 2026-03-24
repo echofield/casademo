@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { tierBorders } from '@/lib/motion'
 import { createClient } from '@/lib/supabase/client'
 import { ClickableSellerBadge } from './ClickableSellerBadge'
-import type { ClientTier } from '@/lib/types'
+import { SignalBadge } from './SignalBadge'
+import { InterestTag } from './InterestTag'
+import type { ClientTier, ClientSignal, InterestItem } from '@/lib/types'
 
 interface Props {
   client: {
@@ -21,6 +23,10 @@ interface Props {
     seller_name: string
     lastContactLabel: string
     nextContactLabel: string
+    seller_signal?: ClientSignal | null
+    signal_note?: string | null
+    interests?: InterestItem[] | null
+    locale?: string | null
   }
   userRole?: 'seller' | 'supervisor'
   currentUserId?: string
@@ -44,6 +50,9 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
 
   const tierLabel = client.tier.replace('_', ' ').toUpperCase()
   const borderColor = tierBorders[client.tier] || tierBorders.rainbow
+
+  // Get top 3 interests for display
+  const topInterests = client.interests?.slice(0, 3) || []
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -112,10 +121,16 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
           <h2 className="mb-2 font-serif text-3xl tracking-tight text-text md:text-4xl">
             {client.first_name} {client.last_name}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="label" style={{ color: borderColor, letterSpacing: '0.15em' }}>
               {tierLabel}
             </span>
+            <SignalBadge signal={client.seller_signal ?? null} size="sm" />
+            {client.locale === 'foreign' && (
+              <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700">
+                Foreign
+              </span>
+            )}
             <span className="text-xs">
               <ClickableSellerBadge
                 sellerId={client.seller_id}
@@ -137,6 +152,21 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
             {formatCurrency(client.total_spend)}
           </span>
         </div>
+
+        {/* Interest tags */}
+        {topInterests.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-1.5">
+            {topInterests.map((interest) => (
+              <InterestTag
+                key={interest.id}
+                category={interest.category}
+                value={interest.value}
+                clickable={false} // Prevent navigation from card click
+                size="sm"
+              />
+            ))}
+          </div>
+        )}
 
         <div className="mb-10 flex gap-10">
           <div>

@@ -1,9 +1,14 @@
 import Link from 'next/link'
 import { TierBadge } from './TierBadge'
-import type { Client, ClientTier } from '@/lib/types'
+import { SignalBadge } from './SignalBadge'
+import { InterestTag } from './InterestTag'
+import type { Client, ClientTier, ClientSignal, InterestItem } from '@/lib/types'
 
 interface ClientGridCardProps {
-  client: Client
+  client: Client & {
+    seller_signal?: ClientSignal | null
+    interests?: InterestItem[] | null
+  }
   spendLabel: string
   lastContactLabel: string
   nextRecontactLabel: string
@@ -20,6 +25,9 @@ export function ClientGridCard({
   sellerName,
 }: ClientGridCardProps) {
   const isHighValue = HIGH_VALUE.includes(client.tier)
+
+  // Get top 3 interests for display
+  const topInterests = client.interests?.slice(0, 3) || []
 
   return (
     <Link
@@ -39,7 +47,10 @@ export function ClientGridCard({
             </p>
           )}
         </div>
-        <TierBadge tier={client.tier} />
+        <div className="flex flex-col items-end gap-2">
+          <TierBadge tier={client.tier} />
+          <SignalBadge signal={client.seller_signal ?? null} size="sm" />
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-x-6 gap-y-2 border-t pt-4" style={{ borderColor: 'rgba(28, 27, 25, 0.06)' }}>
@@ -56,6 +67,21 @@ export function ClientGridCard({
           <p className="body-small text-text">{nextRecontactLabel}</p>
         </div>
       </div>
+
+      {/* Interest tags */}
+      {topInterests.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {topInterests.map((interest) => (
+            <InterestTag
+              key={interest.id}
+              category={interest.category}
+              value={interest.value}
+              clickable={false} // Prevent navigation from card click
+              size="sm"
+            />
+          ))}
+        </div>
+      )}
 
       <p className="label text-text-muted">View profile →</p>
     </Link>

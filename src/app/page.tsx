@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AppShell, RecontactQueueSection, TierBadge } from '@/components'
+import { AppShell, RecontactQueueSection, TierBadge, TodayMeetings } from '@/components'
 import { RecontactQueueItem, ClientTier, TIER_ORDER } from '@/lib/types'
 import { Users, Phone, TrendingUp } from 'lucide-react'
 
@@ -147,6 +147,9 @@ export default async function HomePage() {
             </div>
           </div>
         )}
+
+        {/* Today's Meetings */}
+        <TodayMeetings />
 
         <div
           className="mb-12 border bg-surface p-6 md:p-8"

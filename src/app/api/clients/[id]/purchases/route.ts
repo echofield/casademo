@@ -13,11 +13,23 @@ const PURCHASE_SOURCES = [
   'other',
 ] as const
 
+const PRODUCT_CATEGORY_VALUES = [
+  'jacket', 'trousers', 'shirt', 'knitwear', 'shoes', 'accessories', 'other',
+] as const
+
+const SIZE_TYPE_VALUES = ['letter', 'number', 'shoe'] as const
+
 const createPurchaseSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
   description: z.string().optional().nullable(),
   purchase_date: z.string().optional(),
   source: z.enum(PURCHASE_SOURCES),
+  product_name: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  product_category: z.enum(PRODUCT_CATEGORY_VALUES).optional().nullable(),
+  size: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  size_type: z.enum(SIZE_TYPE_VALUES).optional().nullable(),
+  is_gift: z.boolean().optional().default(false),
+  gift_recipient: z.string().optional().nullable().transform((v) => v?.trim() || null),
 })
 
 // POST /api/clients/[id]/purchases - Log purchase
@@ -60,6 +72,12 @@ export async function POST(
         description: parsed.data.description,
         purchase_date: parsed.data.purchase_date || new Date().toISOString().split('T')[0],
         source: parsed.data.source,
+        product_name: parsed.data.product_name ?? null,
+        product_category: parsed.data.product_category ?? null,
+        size: parsed.data.size ?? null,
+        size_type: parsed.data.size_type ?? null,
+        is_gift: parsed.data.is_gift ?? false,
+        gift_recipient: parsed.data.gift_recipient ?? null,
       } as any)
       .select()
       .single()

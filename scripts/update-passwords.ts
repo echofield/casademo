@@ -1,0 +1,125 @@
+/**
+ * Update Passwords Script
+ * Updates passwords for existing users who were seeded with placeholder passwords.
+ *
+ * Run: npm run update:passwords
+ */
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+  process.exit(1)
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
+
+/**
+ * ============================================================================
+ * PRODUCTION CREDENTIALS - FILL IN BEFORE RUNNING
+ * ============================================================================
+ * Replace 'REAL_EMAIL' and 'REAL_PASSWORD' with actual credentials.
+ * ============================================================================
+ */
+
+const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
+  { email: 'REAL_EMAIL', full_name: 'Hasael Moussa', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Hicham EL Himar', password: 'REAL_PASSWORD' },
+]
+
+const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
+  { email: 'REAL_EMAIL', full_name: 'Elliott Nowack', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Hamza Said', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Helen Kidane', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Maxime Hudzevych', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Raphael Rivera', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Ryan Jackson', password: 'REAL_PASSWORD' },
+  { email: 'REAL_EMAIL', full_name: 'Yassmine Moutaouakil', password: 'REAL_PASSWORD' },
+]
+
+const ALL_USERS = [...SUPERVISORS, ...CASABLANCA_TEAM]
+
+async function updatePassword(row: typeof ALL_USERS[0]) {
+  // Skip placeholder entries
+  if (row.email === 'REAL_EMAIL' || row.password === 'REAL_PASSWORD') {
+    console.log(`SKIPPED (placeholder): ${row.full_name}`)
+    return { success: false, skipped: true }
+  }
+
+  // Find user by email
+  const { data: list } = await supabase.auth.admin.listUsers()
+  const user = list?.users?.find((u) => u.email?.toLowerCase() === row.email.toLowerCase())
+
+  if (!user) {
+    console.log(`NOT FOUND: ${row.email} (${row.full_name})`)
+    return { success: false, skipped: false }
+  }
+
+  // Update password
+  const { error } = await supabase.auth.admin.updateUserById(user.id, {
+    password: row.password,
+  })
+
+  if (error) {
+    console.error(`FAILED: ${row.email} - ${error.message}`)
+    return { success: false, skipped: false }
+  }
+
+  console.log(`UPDATED: ${row.full_name} <${row.email}>`)
+  return { success: true, skipped: false }
+}
+
+async function main() {
+  console.log('='.repeat(60))
+  console.log('UPDATING USER PASSWORDS')
+  console.log('='.repeat(60))
+  console.log()
+
+  // Check for placeholder values
+  const hasPlaceholders = ALL_USERS.some(
+    u => u.email === 'REAL_EMAIL' || u.password === 'REAL_PASSWORD'
+  )
+
+  if (hasPlaceholders) {
+    console.log('WARNING: Some users have placeholder credentials.')
+    console.log('Please fill in real emails and passwords before running.')
+    console.log()
+  }
+
+  let updated = 0
+  let skipped = 0
+  let failed = 0
+
+  console.log('--- Supervisors ---')
+  for (const row of SUPERVISORS) {
+    const result = await updatePassword(row)
+    if (result.success) updated++
+    else if (result.skipped) skipped++
+    else failed++
+  }
+
+  console.log('\n--- Sellers ---')
+  for (const row of CASABLANCA_TEAM) {
+    const result = await updatePassword(row)
+    if (result.success) updated++
+    else if (result.skipped) skipped++
+    else failed++
+  }
+
+  console.log()
+  console.log('='.repeat(60))
+  console.log('SUMMARY')
+  console.log('='.repeat(60))
+  console.log(`Updated: ${updated}`)
+  console.log(`Skipped: ${skipped} (placeholders)`)
+  console.log(`Failed:  ${failed}`)
+}
+
+main().catch(console.error)

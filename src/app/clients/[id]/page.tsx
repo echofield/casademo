@@ -1,14 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
-import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin } from '@/lib/types'
+import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator, InterestTag } from '@/components'
+import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact } from '@/lib/types'
+import { FIRST_IMPACT_CONFIG, LOCALE_LABELS } from '@/lib/types'
+import { ClientLifeNotes } from './ClientLifeNotes'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
 import { ClientActions } from './ClientActions'
 import { ClientEditControls } from './ClientEditControls'
 import { ClientInterestAdd } from './ClientInterestAdd'
 import { NotifySellerButton } from './NotifySellerButton'
+import { ClientMeetingsSection } from './ClientMeetingsSection'
+import { ClientSignalSection } from './ClientSignalSection'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -57,10 +61,10 @@ export default async function Client360Page({ params }: Props) {
     notFound()
   }
 
-  // Fetch interests
+  // Fetch interests (with domain)
   const { data: interests } = await supabase
     .from('client_interests')
-    .select('id, category, value, detail')
+    .select('id, category, value, detail, domain')
     .eq('client_id', id)
     .order('created_at', { ascending: false })
 
@@ -78,13 +82,19 @@ export default async function Client360Page({ params }: Props) {
     .order('contact_date', { ascending: false })
     .limit(20)
 
-  // Fetch purchases
+  // Fetch purchases (with product details)
   const { data: purchases } = await supabase
     .from('purchases')
-    .select('id, purchase_date, amount, description')
+    .select('id, purchase_date, amount, description, product_name, product_category, size, size_type, is_gift, gift_recipient')
     .eq('client_id', id)
     .order('purchase_date', { ascending: false })
     .limit(20)
+
+  // Fetch derived sizes from purchase history
+  const { data: knownSizes } = await supabase
+    .from('client_known_sizes' as any)
+    .select('*')
+    .eq('client_id', id)
 
   // Fetch sizing
   const { data: sizing } = await supabase
@@ -100,6 +110,28 @@ export default async function Client360Page({ params }: Props) {
     .eq('client_id', id)
     .order('visit_date', { ascending: false })
     .limit(20)
+
+  // Fetch interest counts for the seller's portfolio (A.3)
+  // First get all client IDs for this seller
+  const { data: sellerClientIds } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('seller_id', client.seller_id)
+
+  const clientIdList = (sellerClientIds || []).map(c => c.id)
+
+  const { data: interestCounts } = clientIdList.length > 0
+    ? await supabase
+        .from('client_interests')
+        .select('value')
+        .in('client_id', clientIdList)
+    : { data: [] }
+
+  // Build interest count map
+  const interestCountMap = new Map<string, number>()
+  ;(interestCounts || []).forEach((i: { value: string }) => {
+    interestCountMap.set(i.value, (interestCountMap.get(i.value) || 0) + 1)
+  })
 
   // Build Client360 object
   const clientData: Client360 = {
@@ -118,13 +150,22 @@ export default async function Client360Page({ params }: Props) {
     origin: client.origin || null,
     is_personal_shopper: client.is_personal_shopper || false,
     heat_score: client.heat_score || 50,
+    seller_signal: client.seller_signal || null,
+    signal_note: client.signal_note || null,
+    signal_updated_at: client.signal_updated_at || null,
+    life_notes: client.life_notes || null,
+    locale: (client.locale || 'local') as ClientLocale,
+    first_impact: (client.first_impact || 'unknown') as FirstImpact,
     created_at: client.created_at,
     updated_at: client.updated_at,
     seller_name: (() => {
       const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
       return Array.isArray(s) ? s[0]?.full_name : s?.full_name
     })() || 'Unassigned',
-    interests: interests || [],
+    interests: (interests || []).map(i => ({
+      ...i,
+      domain: (i.domain || 'fashion') as 'fashion' | 'life',
+    })),
     contact_history: (contacts || []).map(c => {
       const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
       const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
@@ -141,6 +182,12 @@ export default async function Client360Page({ params }: Props) {
       date: p.purchase_date,
       amount: p.amount,
       description: p.description,
+      product_name: p.product_name || null,
+      product_category: p.product_category || null,
+      size: p.size || null,
+      size_type: p.size_type || null,
+      is_gift: p.is_gift || false,
+      gift_recipient: p.gift_recipient || null,
     })),
     sizing: (sizing || []).map(s => ({
       id: s.id,
@@ -149,6 +196,14 @@ export default async function Client360Page({ params }: Props) {
       fit_preference: s.fit_preference,
       notes: s.notes,
     })),
+    known_sizes: ((knownSizes || []) as any[]).map((ks: any) => ({
+      client_id: ks.client_id,
+      category: ks.category,
+      size: ks.size,
+      size_type: ks.size_type,
+      last_product: ks.last_product,
+      last_purchase_date: ks.last_purchase_date,
+    })) as KnownSizeItem[],
     visit_history: (visits || []).map(v => ({
       id: v.id,
       date: v.visit_date,
@@ -240,9 +295,38 @@ export default async function Client360Page({ params }: Props) {
                   <TierBadge tier={clientData.tier} size="md" />
                   <OriginBadge origin={clientData.origin} size="md" />
                   <PersonalShopperBadge isPersonalShopper={clientData.is_personal_shopper} size="md" />
+                  {clientData.locale === 'foreign' && (
+                    <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+                      Foreign
+                    </span>
+                  )}
+                  {clientData.first_impact !== 'unknown' && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                      style={{
+                        backgroundColor: `${FIRST_IMPACT_CONFIG[clientData.first_impact].color}10`,
+                        color: FIRST_IMPACT_CONFIG[clientData.first_impact].color,
+                      }}
+                      title={FIRST_IMPACT_CONFIG[clientData.first_impact].description}
+                    >
+                      {FIRST_IMPACT_CONFIG[clientData.first_impact].label} entry
+                    </span>
+                  )}
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-text-muted">Temperature:</span>
+                {/* Signal badge - primary seller assessment */}
+                <div className="mt-3">
+                  <ClientSignalSection
+                    clientId={id}
+                    clientName={`${clientData.first_name} ${clientData.last_name}`}
+                    currentSignal={clientData.seller_signal}
+                    signalNote={clientData.signal_note}
+                    signalUpdatedAt={clientData.signal_updated_at}
+                    canEdit={canEdit}
+                  />
+                </div>
+                {/* Heat score - secondary system metric */}
+                <div className="mt-2 flex items-center gap-2 opacity-60">
+                  <span className="text-xs text-text-muted">Activite:</span>
                   <HeatIndicator score={clientData.heat_score} size="sm" />
                 </div>
                 <p className={`font-serif text-3xl ${isPremium ? 'text-gold' : 'text-primary'}`}>
@@ -279,6 +363,7 @@ export default async function Client360Page({ params }: Props) {
                       email: clientData.email,
                       phone: clientData.phone,
                       notes: clientData.notes,
+                      locale: clientData.locale,
                     }}
                     sellerOptions={sellerOptions}
                   />
@@ -372,58 +457,179 @@ export default async function Client360Page({ params }: Props) {
               Go to actions →
             </a>
           </section>
+
+          {/* Profile completeness */}
+          {canEdit && (() => {
+            const fashionInterests = (clientData.interests || []).filter(i => i.domain !== 'life')
+            const lifeInterests = (clientData.interests || []).filter(i => i.domain === 'life')
+
+            const checks = [
+              { label: 'Signal assessed', done: !!clientData.seller_signal, anchor: undefined as string | undefined },
+              { label: 'Fashion interests', done: fashionInterests.length > 0, anchor: '#fashion-interests' },
+              { label: 'Life interests', done: lifeInterests.length > 0, anchor: '#life-interests' },
+              { label: 'Life notes', done: !!clientData.life_notes, anchor: '#life-interests' },
+              { label: 'Client type set', done: clientData.locale !== 'local' || true, anchor: undefined },
+              { label: 'Sizing data', done: (clientData.known_sizes || []).length > 0 || (clientData.sizing || []).length > 0, anchor: '#sizes' },
+            ]
+
+            const completed = checks.filter(c => c.done).length
+            const total = checks.length
+            const pct = Math.round((completed / total) * 100)
+            const incomplete = checks.filter(c => !c.done)
+
+            if (incomplete.length === 0) return null
+
+            return (
+              <section className="border bg-surface p-5" style={cardBorder}>
+                <p className="label mb-3 text-text-muted">Profile completeness</p>
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-1.5 flex-1 rounded-full bg-bg-soft overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: pct >= 80 ? '#2F6B4F' : pct >= 50 ? '#D97706' : '#C34747',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-text-muted">{completed}/{total}</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {incomplete.map((check) => (
+                    <li key={check.label} className="flex items-center gap-2 text-xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                      {check.anchor ? (
+                        <a href={check.anchor} className="text-text-muted hover:text-primary transition-colors">
+                          {check.label}
+                        </a>
+                      ) : (
+                        <span className="text-text-muted">{check.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          })()}
         </div>
 
-        {/* Interests */}
-        <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Interests</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">What they like</h2>
-          {clientData.interests && clientData.interests.length > 0 ? (
-            <ul className="flex flex-wrap gap-2">
-              {clientData.interests.map((interest) => (
-                <li
-                  key={interest.id}
-                  className="border bg-bg-soft px-3 py-2 body-small text-text"
-                  style={cardBorder}
-                  title={interest.detail || undefined}
-                >
-                  <span className="text-text-muted">{interest.category}:</span> {interest.value}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="body-small text-text-muted">No interests recorded yet.</p>
-          )}
-          <ClientInterestAdd clientId={id} canEdit={canEdit} />
+        {/* Fashion Interests */}
+        <section id="fashion-interests" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
+          <p className="label mb-2 text-text-muted">Interets mode</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Ce qu&apos;il aime</h2>
+          {(() => {
+            const fashionInterests = (clientData.interests || []).filter(i => i.domain !== 'life')
+            return fashionInterests.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {fashionInterests.map((interest) => (
+                  <InterestTag
+                    key={interest.id}
+                    category={interest.category}
+                    value={interest.value}
+                    detail={interest.detail}
+                    domain="fashion"
+                    clickable={true}
+                    size="md"
+                    count={Math.max(0, (interestCountMap.get(interest.value) || 0) - 1)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="body-small text-text-muted">Aucun interet mode enregistre.</p>
+            )
+          })()}
+          <ClientInterestAdd clientId={id} canEdit={canEdit} domain="fashion" />
         </section>
 
-        {/* Sizing */}
-        <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Sizing</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">Sizes by category</h2>
-          {clientData.sizing && clientData.sizing.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {clientData.sizing.map((s) => (
-                <div
-                  key={s.id}
-                  className="border bg-bg-soft p-4"
-                  style={cardBorder}
-                >
-                  <p className="label text-text-muted mb-1">{s.category}</p>
-                  <p className="font-serif text-lg text-text">{s.size}</p>
-                  {s.fit_preference && (
-                    <p className="text-xs text-text-muted mt-1">Fit: {s.fit_preference}</p>
-                  )}
-                  {s.notes && (
-                    <p className="text-xs text-text-soft mt-1">{s.notes}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="body-small text-text-muted">No sizing recorded.</p>
-          )}
+        {/* Life Interests */}
+        <section id="life-interests" className="mt-6 border bg-surface p-6 md:p-8" style={{ ...cardBorder, borderLeftWidth: 3, borderLeftColor: 'rgba(14, 165, 233, 0.3)' }}>
+          <p className="label mb-2 text-text-muted">Life</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Qui il est</h2>
+          {(() => {
+            const lifeInterests = (clientData.interests || []).filter(i => i.domain === 'life')
+            return lifeInterests.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {lifeInterests.map((interest) => (
+                  <InterestTag
+                    key={interest.id}
+                    category={interest.category}
+                    value={interest.value}
+                    detail={interest.detail}
+                    domain="life"
+                    clickable={true}
+                    size="md"
+                    count={Math.max(0, (interestCountMap.get(interest.value) || 0) - 1)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="body-small text-text-muted">Aucun interet personnel enregistre.</p>
+            )
+          })()}
+          <ClientInterestAdd clientId={id} canEdit={canEdit} domain="life" />
+          <ClientLifeNotes
+            clientId={id}
+            initialNotes={clientData.life_notes}
+            canEdit={canEdit}
+          />
         </section>
+
+        {/* Sizes — derived from purchases + manual */}
+        <section id="sizes" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
+          <p className="label mb-2 text-text-muted">Sizes</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">From purchases</h2>
+          {(() => {
+            const derived = clientData.known_sizes || []
+            const manualSizing = clientData.sizing || []
+            const derivedCategories = new Set(derived.map(d => d.category))
+            const manualOnly = manualSizing.filter(s => !derivedCategories.has(s.category.toLowerCase()))
+            const categoryLabel = (cat: string) => cat.charAt(0).toUpperCase() + cat.slice(1)
+
+            if (derived.length === 0 && manualOnly.length === 0) {
+              return <p className="body-small text-text-muted">No sizing data yet. Add purchases with size info to build this automatically.</p>
+            }
+
+            return (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b text-xs text-text-muted" style={cardBorder}>
+                      <th className="pb-2 pr-4 font-medium">Category</th>
+                      <th className="pb-2 pr-4 font-medium">Size</th>
+                      <th className="pb-2 pr-4 font-medium">Source</th>
+                      <th className="pb-2 font-medium">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="body-small">
+                    {derived.map((ks) => (
+                      <tr key={ks.category} className="border-b last:border-0" style={cardBorder}>
+                        <td className="py-2.5 pr-4 font-medium text-text">{categoryLabel(ks.category)}</td>
+                        <td className="py-2.5 pr-4 font-serif text-lg text-text">{ks.size}</td>
+                        <td className="py-2.5 pr-4 text-text-muted">{ks.last_product || '—'}</td>
+                        <td className="py-2.5 text-text-muted">{ks.last_purchase_date ? formatDateShort(ks.last_purchase_date) : '—'}</td>
+                      </tr>
+                    ))}
+                    {manualOnly.map((s) => (
+                      <tr key={s.id} className="border-b last:border-0 opacity-60" style={cardBorder}>
+                        <td className="py-2.5 pr-4 font-medium text-text">{s.category}</td>
+                        <td className="py-2.5 pr-4 font-serif text-lg text-text">{s.size}</td>
+                        <td className="py-2.5 pr-4 text-text-muted italic">Manual{s.fit_preference ? ` · ${s.fit_preference}` : ''}</td>
+                        <td className="py-2.5 text-text-muted">—</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          })()}
+        </section>
+
+        {/* Meetings */}
+        <ClientMeetingsSection
+          clientId={id}
+          clientName={`${clientData.first_name} ${clientData.last_name}`}
+          canEdit={canEdit}
+        />
 
         {/* History */}
         <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
@@ -465,10 +671,20 @@ export default async function Client360Page({ params }: Props) {
                     ) : (
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <div>
-                          <p className="body font-medium text-text">Purchase</p>
+                          <p className="body font-medium text-text">
+                            {ev.data.product_name || 'Purchase'}
+                            {ev.data.size && <span className="ml-2 text-text-muted font-normal text-sm">({ev.data.size})</span>}
+                            {ev.data.is_gift && <span className="ml-2 text-xs text-rose-500">Gift</span>}
+                          </p>
                           <p className="body-small text-text-muted">{formatDateShort(ev.data.date)}</p>
-                          {ev.data.description && (
+                          {ev.data.gift_recipient && (
+                            <p className="body-small mt-0.5 text-rose-400 italic">For {ev.data.gift_recipient}</p>
+                          )}
+                          {ev.data.description && !ev.data.product_name && (
                             <p className="body-small mt-1 text-text">{ev.data.description}</p>
+                          )}
+                          {ev.data.product_category && (
+                            <p className="body-small mt-0.5 text-text-muted capitalize">{ev.data.product_category}</p>
                           )}
                         </div>
                         <p className={`font-serif text-lg ${isPremium ? 'text-gold' : 'text-primary'}`}>
