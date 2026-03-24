@@ -13,6 +13,7 @@ import { ClientInterestAdd } from './ClientInterestAdd'
 import { NotifySellerButton } from './NotifySellerButton'
 import { ClientMeetingsSection } from './ClientMeetingsSection'
 import { ClientSignalSection } from './ClientSignalSection'
+import { MarkDoneButton } from './MarkDoneButton'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -463,6 +464,12 @@ export default async function Client360Page({ params }: Props) {
             >
               Go to actions →
             </a>
+            {canEdit && (
+              <MarkDoneButton
+                clientId={id}
+                clientName={`${clientData.first_name} ${clientData.last_name}`}
+              />
+            )}
           </section>
 
           {/* Profile completeness */}
