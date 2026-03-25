@@ -228,12 +228,7 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
   const nextR = addDaysIso(lastD, intervalDays)
 
   const userNotes = findColumn(row, 'notes')
-  const tag = CASABLANCA_IMPORT_TAG
-  const noContactTag = (!emailRaw && !phoneRaw) ? ` ${NO_CONTACT_TAG}` : ''
-  const redirectTag = SELLER_REDIRECT[sellerNameLower] ? ` [ex:${sellerNameRaw}]` : ''
-  const notes = userNotes
-    ? `${tag}${noContactTag}${redirectTag} ${userNotes}`
-    : `${tag}${noContactTag}${redirectTag}`
+  const notes = userNotes ? userNotes.trim() : null
 
   const purchaseRaw = findColumn(row, 'purchase_history')
   const purchaseDescription = purchaseRaw

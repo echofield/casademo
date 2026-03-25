@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from './NotificationBell'
+import { SystemHelper } from './SystemHelper'
 
 interface NavProps {
   userRole: 'seller' | 'supervisor'
@@ -83,6 +84,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
             className="flex items-center gap-5 pl-8"
             style={{ borderLeft: '0.5px solid var(--faint)' }}
           >
+            <SystemHelper role={effectiveRole} pathname={pathname} />
             <NotificationBell />
             {canSwitch && (
               <button
@@ -118,6 +120,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
             Casa One
           </Link>
           <div className="flex items-center gap-2">
+            <SystemHelper role={effectiveRole} pathname={pathname} />
             <NotificationBell />
             <button
               type="button"
