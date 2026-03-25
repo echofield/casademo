@@ -190,3 +190,92 @@ export function isMeetingToday(startTime: string): boolean {
 export function isMeetingFuture(startTime: string): boolean {
   return new Date(startTime) > new Date()
 }
+
+// ============================================================================
+// Calendar Grid Types
+// ============================================================================
+
+// For the grid rendering, parsed to local time
+export interface CalendarEvent {
+  id: string
+  date: string        // YYYY-MM-DD (local)
+  startHour: number   // 0-23
+  startMinute: number // 0-59
+  endHour: number
+  endMinute: number
+  durationMinutes: number
+  title: string
+  format: MeetingFormat
+  status: MeetingStatus
+  clientName: string | null
+  sellerId: string
+  sellerName: string | null
+  // Keep reference to original for editing
+  originalMeeting: MeetingWithDetails
+}
+
+// Seller colors for supervisor "All sellers" view
+export const SELLER_COLORS = [
+  { bg: 'bg-[#003D2B]/10', border: 'border-[#003D2B]' },
+  { bg: 'bg-blue-50', border: 'border-blue-400' },
+  { bg: 'bg-purple-50', border: 'border-purple-400' },
+  { bg: 'bg-amber-50', border: 'border-amber-400' },
+  { bg: 'bg-rose-50', border: 'border-rose-400' },
+  { bg: 'bg-teal-50', border: 'border-teal-400' },
+  { bg: 'bg-orange-50', border: 'border-orange-400' },
+  { bg: 'bg-sky-50', border: 'border-sky-400' },
+] as const
+
+// Format-based border colors for individual seller view
+export const FORMAT_BORDER_COLORS: Record<MeetingFormat, string> = {
+  boutique: 'border-[#003D2B]',
+  external: 'border-blue-400',
+  call: 'border-orange-400',
+  video: 'border-purple-400',
+  whatsapp: 'border-teal-400',
+}
+
+// Parse Meeting to CalendarEvent
+export function toCalendarEvent(meeting: MeetingWithDetails): CalendarEvent {
+  const start = new Date(meeting.start_time)
+  const end = new Date(meeting.end_time)
+
+  const endHour = end.getHours()
+  let durationMinutes = (end.getTime() - start.getTime()) / 60000
+
+  // If duration is negative or zero, default to minimum
+  if (durationMinutes <= 0) {
+    durationMinutes = 15
+  }
+
+  return {
+    id: meeting.id,
+    date: start.toISOString().split('T')[0],
+    startHour: start.getHours(),
+    startMinute: start.getMinutes(),
+    endHour,
+    endMinute: end.getMinutes(),
+    durationMinutes,
+    title: meeting.title,
+    format: meeting.format,
+    status: meeting.status,
+    clientName: meeting.client_name || null,
+    sellerId: meeting.seller_id,
+    sellerName: meeting.seller_name || null,
+    originalMeeting: meeting,
+  }
+}
+
+// Generate time options for dropdown (15-minute increments)
+export function generateTimeOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = []
+  for (let hour = 8; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+      options.push({ value, label: value })
+    }
+  }
+  // Add 00:00 as end time option
+  options.push({ value: '00:00', label: '00:00' })
+  return options
+}
