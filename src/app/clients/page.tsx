@@ -28,20 +28,8 @@ export default async function ClientsPage({ searchParams }: Props) {
   const supabase = await createClient()
   const isSupervisor = user.effectiveRole === 'supervisor'
 
-  // Fetch sellers for AddClientButton (supervisors only)
-  let sellers: { id: string; full_name: string }[] = []
-  if (isSupervisor) {
-    const { data: s } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('role', 'seller')
-      .eq('active', true)
-      .order('full_name')
-    sellers = s || []
-  }
-
-  // Build query - select only needed columns
-  let query = supabase
+  // Build clients query - select only needed columns
+  let clientsQuery = supabase
     .from('clients')
     .select('id, first_name, last_name, phone, tier, total_spend, last_contact_date, next_recontact_date, seller_id', { count: 'exact' })
     .order('last_name', { ascending: true })
@@ -50,22 +38,37 @@ export default async function ClientsPage({ searchParams }: Props) {
 
   // Search filter
   if (search) {
-    query = query.or(
+    clientsQuery = clientsQuery.or(
       `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
     )
   }
 
   // Tier filter
   if (tier) {
-    query = query.eq('tier', tier)
+    clientsQuery = clientsQuery.eq('tier', tier)
   }
 
   // Sellers can only see their own clients
   if (!isSupervisor) {
-    query = query.eq('seller_id', user.id)
+    clientsQuery = clientsQuery.eq('seller_id', user.id)
   }
 
-  const { data: clients, count } = await query
+  // Run queries in parallel - sellers query only for supervisors
+  const [clientsResult, sellersResult] = await Promise.all([
+    clientsQuery,
+    isSupervisor
+      ? supabase
+          .from('profiles')
+          .select('id, full_name')
+          .eq('role', 'seller')
+          .eq('active', true)
+          .order('full_name')
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const clients = clientsResult.data
+  const count = clientsResult.count
+  const sellers = (sellersResult.data || []) as { id: string; full_name: string }[]
 
   const totalPages = Math.ceil((count || 0) / limit)
 

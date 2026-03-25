@@ -62,7 +62,8 @@ export default async function Client360Page({ params }: Props) {
     notFound()
   }
 
-  // PARALLELIZED QUERIES - all these can run simultaneously
+  // PARALLELIZED QUERIES - all these run simultaneously
+  const isSupervisor = user.effectiveRole === 'supervisor'
   const [
     { data: interests },
     { data: contacts },
@@ -71,6 +72,7 @@ export default async function Client360Page({ params }: Props) {
     { data: sizing },
     { data: visits },
     { data: sellerClientIds },
+    sellersResult,
   ] = await Promise.all([
     // Fetch interests (with domain)
     supabase
@@ -78,24 +80,24 @@ export default async function Client360Page({ params }: Props) {
       .select('id, category, value, detail')
       .eq('client_id', id)
       .order('created_at', { ascending: false }),
-    // Fetch contacts with seller name
+    // Fetch contacts with seller name - limit 15
     supabase
       .from('contacts')
       .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
       .eq('client_id', id)
       .order('contact_date', { ascending: false })
       .limit(15),
-    // Fetch purchases
+    // Fetch purchases - limit 20
     supabase
       .from('purchases')
       .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
       .eq('client_id', id)
       .order('purchase_date', { ascending: false })
-      .limit(15),
+      .limit(20),
     // Fetch derived sizes from purchase history
     supabase
       .from('client_known_sizes' as any)
-      .select('*')
+      .select('client_id, category, size, size_type, last_product, last_purchase_date')
       .eq('client_id', id),
     // Fetch sizing
     supabase
@@ -103,7 +105,7 @@ export default async function Client360Page({ params }: Props) {
       .select('id, category, size, fit_preference, notes')
       .eq('client_id', id)
       .order('category'),
-    // Fetch visits
+    // Fetch visits - limit 10
     supabase
       .from('visits')
       .select('id, visit_date, duration_minutes, tried_products, notes, converted')
@@ -115,7 +117,18 @@ export default async function Client360Page({ params }: Props) {
       .from('clients')
       .select('id')
       .eq('seller_id', client.seller_id),
+    // Fetch sellers for reassignment (supervisors only)
+    isSupervisor
+      ? supabase
+          .from('profiles')
+          .select('id, full_name')
+          .eq('role', 'seller')
+          .eq('active', true)
+          .order('full_name')
+      : Promise.resolve({ data: null }),
   ])
+
+  const sellerOptions = sellersResult.data as { id: string; full_name: string }[] | undefined
 
   // Fetch interest counts (depends on sellerClientIds)
   const clientIdList = (sellerClientIds || []).map(c => c.id)
@@ -215,17 +228,6 @@ export default async function Client360Page({ params }: Props) {
   }
 
   const canEdit = user.effectiveRole === 'supervisor' || clientData.seller_id === user.id
-
-  let sellerOptions: { id: string; full_name: string }[] | undefined
-  if (user.effectiveRole === 'supervisor') {
-    const { data: sellers } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('role', 'seller')
-      .eq('active', true)
-      .order('full_name')
-    sellerOptions = sellers || []
-  }
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '—'

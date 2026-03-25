@@ -13,33 +13,38 @@ export default async function TeamPage() {
 
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
-
-  // Fetch all active sellers
-  const { data: allSellers } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .eq('role', 'seller')
-    .eq('active', true)
-    .order('full_name')
-
-  // Fetch all clients with their seller
-  const { data: clientsData } = await supabase
-    .from('clients')
-    .select('id, seller_id, tier, total_spend')
-
-  // Fetch recent contacts (last 7 days)
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
-  const { data: recentContacts } = await supabase
-    .from('contacts')
-    .select('seller_id')
-    .gte('contact_date', weekAgo.toISOString())
 
-  // Fetch overdue clients from recontact_queue
-  const { data: overdueData } = await supabase
-    .from('recontact_queue')
-    .select('seller_id, days_overdue')
-    .gt('days_overdue', 0)
+  // PARALLEL: Fetch all data at once
+  const [
+    { data: allSellers },
+    { data: clientsData },
+    { data: recentContacts },
+    { data: overdueData },
+  ] = await Promise.all([
+    // Active sellers
+    supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('role', 'seller')
+      .eq('active', true)
+      .order('full_name'),
+    // All clients with seller
+    supabase
+      .from('clients')
+      .select('id, seller_id, tier, total_spend'),
+    // Contacts this week
+    supabase
+      .from('contacts')
+      .select('seller_id')
+      .gte('contact_date', weekAgo.toISOString()),
+    // Overdue clients
+    supabase
+      .from('recontact_queue')
+      .select('seller_id, days_overdue')
+      .gt('days_overdue', 0),
+  ])
 
   // Build seller stats
   const sellerStats = (allSellers || []).map(seller => {

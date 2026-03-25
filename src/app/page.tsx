@@ -13,20 +13,40 @@ export default async function HomePage() {
   const supabase = await createClient()
 
   const isSeller = user.effectiveRole === 'seller'
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
 
-  // Sellers only see their own clients, supervisors see all
-  let query = supabase
+  // Build all queries - will run in parallel
+  // Use select('*') for view - it already returns optimized columns
+  const queueQuery = supabase
     .from('recontact_queue')
     .select('*')
-    
+    .order('days_overdue', { ascending: false })
+    .limit(50) // Home preview - not full queue
 
-  if (isSeller) {
-    query = query.eq('seller_id', user.id)
-  }
+  // Apply seller filter if needed
+  const filteredQueueQuery = isSeller ? queueQuery.eq('seller_id', user.id) : queueQuery
 
-  const { data: queue } = await query.order('days_overdue', { ascending: false })
+  // Seller stats queries (only run if seller)
+  const sellerStatsPromises = isSeller ? [
+    supabase
+      .from('clients')
+      .select('id, total_spend, tier')
+      .eq('seller_id', user.id),
+    supabase
+      .from('contacts')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', user.id)
+      .gte('contact_date', weekAgo.toISOString()),
+  ] : []
 
-  const items = (queue || []) as RecontactQueueItem[]
+  // Run all queries in parallel
+  const [queueResult, ...sellerResults] = await Promise.all([
+    filteredQueueQuery,
+    ...sellerStatsPromises,
+  ])
+
+  const items = (queueResult.data || []) as RecontactQueueItem[]
 
   const overdue = items.filter((i) => (i.days_overdue ?? 0) > 0)
   const dueToday = items.filter((i) => (i.days_overdue ?? 0) === 0)
@@ -34,39 +54,28 @@ export default async function HomePage() {
 
   const urgentTotal = overdue.length + dueToday.length
 
-  // Seller-specific stats
+  // Process seller stats if available
   let sellerStats = null
-  if (isSeller) {
-    // Get seller's clients with spend and tier
-    const { data: myClients } = await supabase
-      .from('clients')
-      .select('id, total_spend, tier')
-      
-      .eq('seller_id', user.id)
-
-    // Get seller's contacts this week
-    const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-    const { count: contactsThisWeek } = await supabase
-      .from('contacts')
-      .select('*', { count: 'exact', head: true })
-      .eq('seller_id', user.id)
-      .gte('contact_date', weekAgo.toISOString())
+  if (isSeller && sellerResults.length === 2) {
+    const clientsResult = sellerResults[0] as { data: { id: string; total_spend: number; tier: string }[] | null }
+    const contactsResult = sellerResults[1] as { count: number | null }
+    const myClients = clientsResult.data || []
+    const contactsThisWeek = contactsResult.count || 0
 
     // Calculate tier breakdown
     const tierCounts: Record<ClientTier, number> = {
       rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0
     }
     let totalSpend = 0
-    ;(myClients || []).forEach(c => {
+    myClients.forEach((c) => {
       if (c.tier) tierCounts[c.tier as ClientTier]++
       totalSpend += c.total_spend || 0
     })
 
     sellerStats = {
-      totalClients: myClients?.length || 0,
+      totalClients: myClients.length,
       totalSpend,
-      contactsThisWeek: contactsThisWeek || 0,
+      contactsThisWeek,
       tierCounts,
     }
   }

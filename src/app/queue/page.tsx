@@ -14,6 +14,7 @@ export default async function QueuePage() {
 
   // Sellers only see their own clients, supervisors see all
   // Limit to 50 items max - a seller can't act on hundreds at once
+  // Use select('*') for view - it already returns optimized columns
   let query = supabase
     .from('recontact_queue')
     .select('*')
