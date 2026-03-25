@@ -219,10 +219,10 @@ export function ProductPreferencesPanel({ clientId, interests, canEdit }: Props)
                 options={taxonomyOptions(cat)}
                 selected={selections[cat] || []}
                 onChange={vals => updateCategorySelection(cat, vals)}
-                allowCustom={cat === 'products'}
+                allowCustom
               />
             ) : (
-              <div className="text-xs text-text-muted">Loading options…</div>
+              <div className="text-xs text-text-muted">Loading options...</div>
             )}
           </div>
         </div>

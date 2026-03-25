@@ -302,24 +302,18 @@ export function LifestyleInterestsPanel({ clientId, interests, canEdit }: Props)
       <div>
         <p className="label mb-1.5 text-text-muted">Add new</p>
         {!taxonomyLoaded ? (
-          <p className="body-small text-text-muted animate-pulse">Loading options…</p>
-        ) : chipOptions.length > 0 ? (
+          <p className="body-small text-text-muted animate-pulse">Loading options...</p>
+        ) : (
           <ChipSelector
             options={chipOptions}
             selected={newSelections[activeCategory] || []}
             onChange={(vals) =>
               setNewSelections((prev) => ({ ...prev, [activeCategory]: vals }))
             }
-            allowCustom={chipOptions.length > 8}
+            allowCustom
             searchable={chipOptions.length > 8}
-            placeholder={`Search ${activeCategory}…`}
+            placeholder={`Search ${activeCategory}...`}
           />
-        ) : (
-          <p className="body-small text-text-muted">
-            {existingValuesForCategory.size > 0
-              ? 'All available options already added.'
-              : 'No taxonomy options for this category yet. Use custom input below.'}
-          </p>
         )}
       </div>
 

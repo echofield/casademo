@@ -52,9 +52,13 @@ export function ChipSelector({
 
   const sizeClasses = size === 'sm' ? 'text-xs px-2.5 py-1' : 'text-sm px-3 py-1.5'
 
+  const optionValues = new Set(options.map(o => o.value))
+  const customSelected = selected.filter(v => !optionValues.has(v))
+  const formatLabel = (v: string) => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+
   return (
     <div className="space-y-2">
-      {searchable && (
+      {searchable && options.length > 0 && (
         <input
           type="text"
           value={search}
@@ -63,35 +67,47 @@ export function ChipSelector({
           className="input-field w-full text-sm"
         />
       )}
-      <div className="flex flex-wrap gap-1.5">
-        {filtered.map((opt) => {
-          const isSelected = selected.includes(opt.value)
-          return (
+      {(filtered.length > 0 || customSelected.length > 0) && (
+        <div className="flex flex-wrap gap-1.5">
+          {filtered.map((opt) => {
+            const isSelected = selected.includes(opt.value)
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => toggle(opt.value)}
+                className={`
+                  ${sizeClasses} rounded-full border transition-all duration-150 font-medium
+                  ${isSelected
+                    ? 'bg-[#003D2B] text-white border-[#003D2B]'
+                    : 'bg-transparent text-text border-text/20 hover:border-text/40'
+                  }
+                `}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+          {customSelected.map((val) => (
             <button
-              key={opt.value}
+              key={val}
               type="button"
-              onClick={() => toggle(opt.value)}
-              className={`
-                ${sizeClasses} rounded-full border transition-all duration-150 font-medium
-                ${isSelected
-                  ? 'bg-[#003D2B] text-white border-[#003D2B]'
-                  : 'bg-transparent text-text border-text/20 hover:border-text/40'
-                }
-              `}
+              onClick={() => toggle(val)}
+              className={`${sizeClasses} rounded-full border transition-all duration-150 font-medium bg-[#003D2B] text-white border-[#003D2B]`}
             >
-              {opt.label}
+              {formatLabel(val)} ×
             </button>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
       {allowCustom && (
-        <div className="flex gap-2 items-center mt-1">
+        <div className="flex gap-2 items-center">
           <input
             type="text"
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustom())}
-            placeholder="Add custom..."
+            placeholder="Type and press Enter..."
             className="input-field flex-1 text-sm"
           />
           <button
