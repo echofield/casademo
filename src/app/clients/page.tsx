@@ -31,16 +31,32 @@ export default async function ClientsPage({ searchParams }: Props) {
   // Build clients query - select only needed columns
   let clientsQuery = supabase
     .from('clients')
-    .select('id, first_name, last_name, phone, tier, total_spend, last_contact_date, next_recontact_date, seller_id', { count: 'exact' })
+    .select('id, first_name, last_name, phone, tier, total_spend, last_contact_date, next_recontact_date, seller_id, seller:profiles!clients_seller_id_fkey(full_name)', { count: 'exact' })
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
     .range((page - 1) * limit, page * limit - 1)
 
-  // Search filter
+  // Search filter — supports partial, full name ("Kevin Leone"), and reversed name
   if (search) {
-    clientsQuery = clientsQuery.or(
-      `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
-    )
+    const parts = search.trim().split(/\s+/)
+    if (parts.length >= 2) {
+      const [a, ...rest] = parts
+      const b = rest.join(' ')
+      clientsQuery = clientsQuery.or(
+        [
+          `first_name.ilike.%${search}%`,
+          `last_name.ilike.%${search}%`,
+          `email.ilike.%${search}%`,
+          `phone.ilike.%${search}%`,
+          `and(first_name.ilike.%${a}%,last_name.ilike.%${b}%)`,
+          `and(first_name.ilike.%${b}%,last_name.ilike.%${a}%)`,
+        ].join(',')
+      )
+    } else {
+      clientsQuery = clientsQuery.or(
+        `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
+      )
+    }
   }
 
   // Tier filter
@@ -141,6 +157,7 @@ export default async function ClientsPage({ searchParams }: Props) {
                 spendLabel={formatCurrency(client.total_spend)}
                 lastContactLabel={formatDate(client.last_contact_date)}
                 nextRecontactLabel={formatDate(client.next_recontact_date)}
+                sellerName={(client as any).seller?.full_name || null}
               />
             ))}
           </div>

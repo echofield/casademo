@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 import type { NotificationRow, NotificationType } from '@/lib/types'
 
 type NotificationsPayload = {
@@ -20,8 +21,9 @@ export function NotificationBell() {
   const [setupRequired, setSetupRequired] = useState(false)
   const [fetchError, setFetchError] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch('/api/notifications')
       if (!res.ok) {
@@ -44,13 +46,61 @@ export function NotificationBell() {
     } finally {
       setInitialLoad(false)
     }
-  }
+  }, [])
 
+  // Initial fetch + polling fallback (30s)
   useEffect(() => {
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, 60000)
+    const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  // Supabase real-time subscription for instant notifications
+  useEffect(() => {
+    const supabase = createClient()
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+
+      const channel = supabase
+        .channel('notifications-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const newNotif = payload.new as NotificationRow
+            setNotifications((prev) => {
+              if (prev.some((n) => n.id === newNotif.id)) return prev
+              return [newNotif, ...prev].slice(0, 50)
+            })
+            setUnreadCount((prev) => prev + 1)
+          }
+        )
+        .subscribe()
+
+      channelRef.current = channel
+    })
+
+    return () => {
+      if (channelRef.current) {
+        const supabase = createClient()
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
   }, [])
+
+  // Refetch when dropdown opens to ensure fresh data
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications()
+    }
+  }, [isOpen, fetchNotifications])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

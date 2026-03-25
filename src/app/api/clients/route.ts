@@ -112,6 +112,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Notify the assigned seller when a supervisor creates the client for them
+    if (bodySellerId && bodySellerId !== user.id && data) {
+      const clientName = [data.first_name, data.last_name].filter(Boolean).join(' ') || 'New client'
+      await supabase.from('notifications').insert({
+        user_id: bodySellerId,
+        type: 'new_client_assigned',
+        title: `New client: ${clientName}`,
+        message: `Assigned to you by ${user.profile.full_name}`,
+        client_id: data.id,
+      }).then(({ error: notifErr }) => {
+        if (notifErr) console.error('Failed to send assignment notification:', notifErr)
+      })
+    }
+
     return NextResponse.json(data, { status: 201 })
   } catch (err) {
     if (err instanceof AuthError) {

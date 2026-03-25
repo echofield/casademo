@@ -5,6 +5,7 @@ import { requireSupervisor, AuthError } from '@/lib/auth'
 import type { ImportResult } from '@/lib/types'
 import {
   type CsvRow,
+  type ImportWarning,
   prepareRowFromCsv,
   importPreparedRow,
   profilesToSellerMap,
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
       errors: result.errors,
     }
 
+    const warnings: ImportWarning[] = []
+
     for (let i = 0; i < rows.length; i++) {
       const rowNum = i + 2
       const prepared = prepareRowFromCsv(rows[i], rowNum)
@@ -63,6 +66,10 @@ export async function POST(request: NextRequest) {
       if (!prepared.ok) {
         result.errors.push({ row: rowNum, message: prepared.message })
         continue
+      }
+
+      if (prepared.data.warnings.length > 0) {
+        warnings.push(...prepared.data.warnings)
       }
 
       const sellerId = sellerMap.get(prepared.data.sellerKey)
@@ -80,7 +87,10 @@ export async function POST(request: NextRequest) {
     result.created = counters.created
     result.skipped = counters.skipped
 
-    return NextResponse.json(result)
+    return NextResponse.json({
+      ...result,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    })
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status })

@@ -13,6 +13,8 @@ export const SELLER_REDIRECT: Record<string, string> = {
   'naima mastour': 'hasael moussa',
   'julane moussa': 'hasael moussa',  // Same person, name change
   'hasael moussa': 'hasael moussa',  // Ensure correct mapping
+  'hamza said': 'hasael moussa',     // Departed seller
+  'ryan jackson': 'hasael moussa',   // Departed seller
 }
 
 export type CsvRow = Record<string, string | undefined>
@@ -64,14 +66,14 @@ export function findColumn(row: CsvRow, field: string): string | undefined {
   return undefined
 }
 
-/** Casablanca cleanup uses #N/A, 0, empty for missing names */
-export function normalizeNamePart(raw: string | undefined, fallback: string): string {
-  if (raw === undefined || raw === null) return fallback
+/** Casablanca cleanup uses #N/A, 0, empty for missing names - normalize to "N/A" */
+export function normalizeNamePart(raw: string | undefined): string {
+  if (raw === undefined || raw === null) return 'N/A'
   const s = String(raw).trim()
-  if (!s) return fallback
+  if (!s) return 'N/A'
   const lower = s.toLowerCase()
-  if (lower === '#n/a' || lower === 'n/a' || lower === 'na') return fallback
-  if (s === '0') return fallback
+  if (lower === '#n/a' || lower === 'n/a' || lower === 'na') return 'N/A'
+  if (s === '0') return 'N/A'
   return s
 }
 
@@ -121,6 +123,12 @@ export function addDaysIso(isoDate: string | null, days: number): string | null 
   return d.toISOString().split('T')[0]
 }
 
+export interface ImportWarning {
+  row: number
+  type: 'name_inversion' | 'seller_redirect' | 'missing_contact'
+  message: string
+}
+
 export interface PreparedImportRow {
   first_name: string
   last_name: string
@@ -135,11 +143,31 @@ export interface PreparedImportRow {
   interests: Array<{ category: string; value: string }>
   notes: string | null
   purchaseDescription: string | null
+  warnings: ImportWarning[]
 }
 
 export type PrepareRowResult =
   | { ok: true; rowNum: number; data: PreparedImportRow }
   | { ok: false; rowNum: number; message: string }
+
+/**
+ * Heuristic: if the email local part contains lastname before firstname,
+ * the CSV columns are likely swapped.
+ * e.g. email = "jessi.garro@..." but first_name = "Garro", last_name = "Jessica"
+ */
+function detectNameInversion(first: string, last: string, email: string | null): boolean {
+  if (!email || first === 'N/A' || last === 'N/A') return false
+  if (first.toLowerCase() === last.toLowerCase()) return false
+  const local = email.split('@')[0]?.toLowerCase() || ''
+  if (!local) return false
+  const f = first.toLowerCase()
+  const l = last.toLowerCase()
+  const lastInLocal = local.includes(l)
+  const firstInLocal = local.includes(f)
+  // If last_name appears in email but first_name doesn't, names are likely swapped
+  if (firstInLocal && !lastInLocal) return true
+  return false
+}
 
 export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult {
   const rawFirst = findColumn(row, 'first_name')
@@ -147,25 +175,18 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
   const emailRaw = findColumn(row, 'email')
   const phoneRaw = findColumn(row, 'phone')
 
-  let first = normalizeNamePart(rawFirst, '')
-  let last = normalizeNamePart(rawLast, '')
+  const first = normalizeNamePart(rawFirst)
+  const last = normalizeNamePart(rawLast)
 
-  if (!first && !last) {
-    if (emailRaw) {
-      const local = emailRaw.split('@')[0]?.replace(/[.+_]/g, ' ').trim() || 'Client'
-      first = local.slice(0, 1).toUpperCase() + local.slice(1) || 'Unknown'
-      last = '—'
-    } else if (phoneRaw) {
-      first = 'Client'
-      last = phoneRaw.replace(/\D/g, '').slice(-4) || 'Unknown'
-    } else {
-      // Cleanup export: some rows have only seller + spend (no PII)
-      first = 'Client'
-      last = `#${rowNum}`
-    }
-  } else {
-    if (!first) first = 'Unknown'
-    if (!last) last = '—'
+  const warnings: ImportWarning[] = []
+
+  // Detect likely name inversion
+  if (detectNameInversion(first, last, emailRaw || null)) {
+    warnings.push({
+      row: rowNum,
+      type: 'name_inversion',
+      message: `Likely swapped: first="${first}" last="${last}" (email suggests "${last} ${first}")`,
+    })
   }
 
   const sellerNameRaw = findColumn(row, 'seller')
@@ -173,9 +194,25 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
     return { ok: false, rowNum, message: 'Missing seller' }
   }
 
-  // Apply seller redirect (e.g., Kevin → Hasael)
   const sellerNameLower = sellerNameRaw.trim().toLowerCase()
   const sellerName = SELLER_REDIRECT[sellerNameLower] || sellerNameRaw
+
+  // Log seller redirects
+  if (SELLER_REDIRECT[sellerNameLower] && SELLER_REDIRECT[sellerNameLower] !== sellerNameLower) {
+    warnings.push({
+      row: rowNum,
+      type: 'seller_redirect',
+      message: `Seller redirect: "${sellerNameRaw}" → "${SELLER_REDIRECT[sellerNameLower]}"`,
+    })
+  }
+
+  if (!emailRaw && !phoneRaw) {
+    warnings.push({
+      row: rowNum,
+      type: 'missing_contact',
+      message: `No email or phone for ${first} ${last}`,
+    })
+  }
 
   const totalSpendRaw = findColumn(row, 'total_spend')
   let totalSpend = 0
@@ -220,6 +257,7 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
       interests: parseInterests(findColumn(row, 'interests')),
       notes,
       purchaseDescription,
+      warnings,
     },
   }
 }

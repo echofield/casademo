@@ -13,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireSupervisor()
+    const user = await requireSupervisor()
     const supabase = await createClient()
     const { id: client_id } = await params
 
@@ -52,6 +52,20 @@ export async function PATCH(
         return NextResponse.json({ error: 'Client not found' }, { status: 404 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Notify the newly assigned seller
+    if (data) {
+      const clientName = [data.first_name, data.last_name].filter(Boolean).join(' ') || 'Client'
+      await supabase.from('notifications').insert({
+        user_id: parsed.data.new_seller_id,
+        type: 'new_client_assigned' as any,
+        title: `New client: ${clientName}`,
+        message: `Reassigned to you by ${user.profile.full_name}`,
+        client_id: client_id,
+      }).then(({ error: notifErr }) => {
+        if (notifErr) console.error('Failed to send reassignment notification:', notifErr)
+      })
     }
 
     return NextResponse.json({

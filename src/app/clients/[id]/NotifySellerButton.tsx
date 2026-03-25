@@ -21,13 +21,17 @@ export function NotifySellerButton({ clientId, sellerId, sellerName, clientName 
 
     try {
       const supabase = createClient()
-      await supabase.from('notifications').insert({
+      const { error } = await supabase.from('notifications').insert({
         user_id: sellerId,
-        type: 'client_reminder',
+        type: 'manual',
         title: `Follow up with ${clientName}`,
         message: `Supervisor reminder: Please check in with this client.`,
         client_id: clientId,
       })
+      if (error) {
+        console.error('Failed to notify:', error)
+        return
+      }
       setSent(true)
     } catch (err) {
       console.error('Failed to notify:', err)

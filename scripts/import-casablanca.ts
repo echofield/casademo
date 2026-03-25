@@ -15,6 +15,7 @@ import { createClient } from '@supabase/supabase-js'
 import {
   CASABLANCA_IMPORT_TAG,
   type CsvRow,
+  type ImportWarning,
   prepareRowFromCsv,
   importPreparedRow,
   profilesToSellerMap,
@@ -195,12 +196,18 @@ async function main() {
   }
 
   const counters: ImportCounters = { created: 0, skipped: 0, errors: [] }
+  const allWarnings: ImportWarning[] = []
   let importedSpendSum = 0
 
   for (let i = 0; i < rows.length; i++) {
     const rowNum = i + 2
     const prepared = prepareRowFromCsv(rows[i], rowNum)
     if (!prepared.ok) continue
+
+    // Collect warnings (name inversions, redirects, missing contact)
+    if (prepared.data.warnings.length > 0) {
+      allWarnings.push(...prepared.data.warnings)
+    }
 
     const sellerId = sellerMap.get(prepared.data.sellerKey)
     if (!sellerId) {
@@ -217,6 +224,37 @@ async function main() {
 
   console.log('\n── Import result ──')
   console.log(JSON.stringify(counters, null, 2))
+
+  // Report warnings
+  if (allWarnings.length > 0) {
+    const byType = {
+      name_inversion: allWarnings.filter(w => w.type === 'name_inversion'),
+      seller_redirect: allWarnings.filter(w => w.type === 'seller_redirect'),
+      missing_contact: allWarnings.filter(w => w.type === 'missing_contact'),
+    }
+
+    console.log('\n── Import warnings ──')
+    if (byType.name_inversion.length > 0) {
+      console.log(`\nLIKELY SWAPPED NAMES (${byType.name_inversion.length}):`)
+      byType.name_inversion.forEach(w => console.log(`  Row ${w.row}: ${w.message}`))
+    }
+    if (byType.seller_redirect.length > 0) {
+      const uniqueRedirects = new Map<string, number>()
+      byType.seller_redirect.forEach(w => {
+        const key = w.message
+        uniqueRedirects.set(key, (uniqueRedirects.get(key) || 0) + 1)
+      })
+      console.log(`\nSELLER REDIRECTS (${byType.seller_redirect.length} rows):`)
+      uniqueRedirects.forEach((count, msg) => console.log(`  ${msg} (${count} clients)`))
+    }
+    if (byType.missing_contact.length > 0) {
+      console.log(`\nMISSING CONTACT INFO (${byType.missing_contact.length}):`)
+      byType.missing_contact.slice(0, 10).forEach(w => console.log(`  Row ${w.row}: ${w.message}`))
+      if (byType.missing_contact.length > 10) {
+        console.log(`  ... and ${byType.missing_contact.length - 10} more`)
+      }
+    }
+  }
 
   await postVerify(counters.created, importedSpendSum)
 }

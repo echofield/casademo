@@ -1,19 +1,18 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { AppShell, TierBadge, CornerBrackets } from '@/components'
-import { ClientTier, TIER_ORDER } from '@/lib/types'
+import { AppShell, CornerBrackets } from '@/components'
+import { ClientTier } from '@/lib/types'
 import {
   QuickActions,
   ComplexionDots,
   RhythmIndicator,
-  HealthBar,
-  SellerTierBreakdown,
   SignalDistribution,
   SignalMatrix,
   ConversionMetrics,
+  TierSegmentControl,
 } from '@/components/dashboard'
 import { ClientSignal } from '@/lib/types'
-import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
+import { Users, Phone, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
@@ -184,7 +183,7 @@ export default async function DashboardPage() {
     }
   }).filter(s => s.clients > 0)
 
-  const maxTierCount = Math.max(...Object.values(clientsByTier), 1)
+
   const contactsWeek = contactsThisWeek || 0
   const overdueTotal = totalOverdue || 0
 
@@ -437,47 +436,12 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Tier Distribution + Seller Breakdown */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-10">
-          <section
-            className="p-6 md:p-8 relative"
-            style={{
-              background: 'var(--paper)',
-              border: '0.5px solid var(--faint)',
-              borderRadius: '2px',
-            }}
-          >
-            <CornerBrackets size="md" opacity={0.3} />
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
-              <span className="label text-text-muted">TIER DISTRIBUTION</span>
-            </div>
-            <div className="space-y-4">
-              {TIER_ORDER.map((tier) => {
-                const count = clientsByTier[tier]
-
-                return (
-                  <div key={tier} className="flex items-center gap-4">
-                    <div className="w-28 shrink-0">
-                      <TierBadge tier={tier} />
-                    </div>
-                    <div className="flex-1">
-                      <HealthBar
-                        value={count}
-                        max={maxTierCount}
-                        variant="good"
-                      />
-                    </div>
-                    <span className="w-8 shrink-0 text-right font-serif text-lg text-text">
-                      {count}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          <SellerTierBreakdown sellers={sellerBreakdownData} />
+        {/* Tier Distribution + Seller Breakdown (interactive) */}
+        <div className="mb-10">
+          <TierSegmentControl
+            clientsByTier={clientsByTier}
+            sellers={sellerBreakdownData}
+          />
         </div>
 
       </div>

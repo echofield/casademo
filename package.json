@@ -14,7 +14,9 @@
     "clean:demo": "npx tsx scripts/clean-demo-data.ts",
     "update:passwords": "npx tsx scripts/update-passwords.ts",
     "migrate:accounts": "npx tsx scripts/migrate-to-real-accounts.ts",
-    "validate:contacts": "npx tsx scripts/validate-seller-contacts.ts"
+    "validate:contacts": "npx tsx scripts/validate-seller-contacts.ts",
+    "verify:data": "npx tsx scripts/verify-data-alignment.ts",
+    "dedupe:clients": "npx tsx scripts/deduplicate-clients.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

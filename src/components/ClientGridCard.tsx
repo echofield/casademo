@@ -34,6 +34,7 @@ interface ClientGridCardProps {
   spendLabel: string
   lastContactLabel: string
   nextRecontactLabel: string
+  sellerName?: string | null
 }
 
 export function ClientGridCard({
@@ -41,6 +42,7 @@ export function ClientGridCard({
   spendLabel,
   lastContactLabel,
   nextRecontactLabel,
+  sellerName,
 }: ClientGridCardProps) {
   const isHighValue = HIGH_VALUE.includes(client.tier)
   const tierColor = TIER_COLORS[client.tier]
@@ -64,13 +66,20 @@ export function ClientGridCard({
         </span>
       </div>
 
-      {/* Phone */}
-      {client.phone && (
-        <p className="text-sm text-text-muted mb-6">
-          {client.phone}
-        </p>
-      )}
-      {!client.phone && <div className="mb-6" />}
+      {/* Phone + Seller */}
+      <div className="mb-6">
+        {client.phone && (
+          <p className="text-sm text-text-muted">
+            {client.phone}
+          </p>
+        )}
+        {sellerName && (
+          <p className="text-[11px] tracking-wide text-text-muted/70 mt-1">
+            {sellerName}
+          </p>
+        )}
+        {!client.phone && !sellerName && <div />}
+      </div>
 
       {/* Stats row */}
       <div className="flex gap-8 mb-6">
