@@ -3,13 +3,13 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
 
-const DOMAINS = ['fashion', 'life'] as const
+const DOMAINS = ['product', 'life'] as const
 
 const singleInterestSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   value: z.string().min(1, 'Value is required'),
   detail: z.string().optional().nullable(),
-  domain: z.enum(DOMAINS).default('fashion'),
+  domain: z.enum(DOMAINS).default('product'),
 })
 
 const bulkInterestsSchema = z.object({
@@ -17,11 +17,11 @@ const bulkInterestsSchema = z.object({
     category: z.string().min(1),
     value: z.string().min(1),
     detail: z.string().optional().nullable(),
-    domain: z.enum(DOMAINS).default('fashion'),
+    domain: z.enum(DOMAINS).default('product'),
   })),
 })
 
-// POST /api/clients/[id]/interests - Add interest(s)
+// POST /api/clients/[id]/interests - Add interest(s) with dedupe
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,7 +31,6 @@ export async function POST(
     const supabase = await createClient()
     const { id: client_id } = await params
 
-    // Verify client exists and is accessible
     const { data: client, error: clientError } = await supabase
       .from('clients')
       .select('id')
@@ -44,10 +43,29 @@ export async function POST(
 
     const body = await request.json()
 
+    // Fetch existing active interests for dedupe
+    const { data: existing } = await supabase
+      .from('client_interests')
+      .select('domain, category, value')
+      .eq('client_id', client_id)
+      .eq('is_deleted', false)
+
+    const existingSet = new Set(
+      (existing || []).map((e: any) => `${e.domain}::${e.category}::${e.value}`)
+    )
+
     // Check if bulk format
     const bulkParsed = bulkInterestsSchema.safeParse(body)
     if (bulkParsed.success) {
-      const inserts = bulkParsed.data.interests.map(i => ({
+      const deduped = bulkParsed.data.interests.filter(
+        i => !existingSet.has(`${i.domain}::${i.category}::${i.value}`)
+      )
+
+      if (deduped.length === 0) {
+        return NextResponse.json([], { status: 200 })
+      }
+
+      const inserts = deduped.map(i => ({
         client_id,
         category: i.category,
         value: i.value,
@@ -75,6 +93,11 @@ export async function POST(
         { error: 'Validation failed', details: parsed.error.flatten() },
         { status: 400 }
       )
+    }
+
+    const key = `${parsed.data.domain}::${parsed.data.category}::${parsed.data.value}`
+    if (existingSet.has(key)) {
+      return NextResponse.json({ message: 'Already exists' }, { status: 200 })
     }
 
     const { data, error } = await supabase

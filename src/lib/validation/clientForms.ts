@@ -54,5 +54,10 @@ export const updateClientBodySchema = z
       .nullable()
       .optional()
       .transform((v) => (v === undefined ? undefined : v?.trim() === '' ? null : v?.trim())),
+    // Fashion interest signal
+    interest_in_fashion: z
+      .enum(['low', 'medium', 'high'] as const)
+      .nullable()
+      .optional(),
   })
   .strict()

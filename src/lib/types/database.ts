@@ -107,6 +107,9 @@ export type Database = {
           category: string
           value: string
           detail: string | null
+          domain: string
+          is_deleted: boolean
+          deleted_at: string | null
           created_at: string
         }
         Insert: {
@@ -115,6 +118,9 @@ export type Database = {
           category: string
           value: string
           detail?: string | null
+          domain?: string
+          is_deleted?: boolean
+          deleted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -123,7 +129,45 @@ export type Database = {
           category?: string
           value?: string
           detail?: string | null
+          domain?: string
+          is_deleted?: boolean
+          deleted_at?: string | null
           created_at?: string
+        }
+      }
+      client_brand_affinity: {
+        Row: {
+          id: string
+          client_id: string
+          familiarity: string | null
+          sensitivity: string | null
+          purchase_behavior: string | null
+          contact_preference: string | null
+          channel: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          familiarity?: string | null
+          sensitivity?: string | null
+          purchase_behavior?: string | null
+          contact_preference?: string | null
+          channel?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          familiarity?: string | null
+          sensitivity?: string | null
+          purchase_behavior?: string | null
+          contact_preference?: string | null
+          channel?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       contacts: {
@@ -198,6 +242,7 @@ export type Database = {
           size: string
           fit_preference: string | null
           notes: string | null
+          size_system: string | null
           created_at: string
           updated_at: string
         }
@@ -208,6 +253,7 @@ export type Database = {
           size: string
           fit_preference?: string | null
           notes?: string | null
+          size_system?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -218,6 +264,7 @@ export type Database = {
           size?: string
           fit_preference?: string | null
           notes?: string | null
+          size_system?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -1,19 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator, InterestTag } from '@/components'
-import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource } from '@/lib/types'
+import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
+import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource, BrandAffinity, FashionInterestLevel } from '@/lib/types'
 import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel, SIGNAL_LABELS, getCadenceLabel, getChannelHint } from '@/lib/types'
 import { ClientLifeNotes } from './ClientLifeNotes'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
 import { ClientActions } from './ClientActions'
 import { ClientEditControls } from './ClientEditControls'
-import { ClientInterestAdd } from './ClientInterestAdd'
 import { NotifySellerButton } from './NotifySellerButton'
 import { ClientMeetingsSection } from './ClientMeetingsSection'
 import { ClientSignalSection } from './ClientSignalSection'
 import { MarkDoneButton } from './MarkDoneButton'
+import { BrandAffinityPanel } from './BrandAffinityPanel'
+import { LifestyleInterestsPanel } from './LifestyleInterestsPanel'
+import { ProductPreferencesPanel } from './ProductPreferencesPanel'
+import { SizingPanel } from './SizingPanel'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -70,7 +73,6 @@ export default async function Client360Page({ params }: Props) {
   const supabase = await createClient()
 
   let sellerOptions: { id: string; full_name: string }[] | undefined
-  let interestCountMap = new Map<string, number>()
   let clientData: Client360
 
   try {
@@ -97,14 +99,15 @@ export default async function Client360Page({ params }: Props) {
       { data: knownSizes },
       { data: sizing },
       { data: visits },
-      { data: sellerClientIds },
       sellersResult,
+      { data: brandAffinityRow },
     ] = await Promise.all([
-      // Fetch interests (with domain)
+      // Fetch interests (with domain, excluding soft-deleted)
       supabase
         .from('client_interests')
-        .select('id, category, value, detail')
+        .select('id, category, value, detail, domain')
         .eq('client_id', id)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false }),
       // Fetch contacts with seller name - limit 15
       supabase
@@ -128,7 +131,7 @@ export default async function Client360Page({ params }: Props) {
       // Fetch sizing
       supabase
         .from('client_sizing')
-        .select('id, category, size, fit_preference, notes')
+        .select('id, category, size, fit_preference, notes, size_system')
         .eq('client_id', id)
         .order('category'),
       // Fetch visits - limit 10
@@ -138,11 +141,6 @@ export default async function Client360Page({ params }: Props) {
         .eq('client_id', id)
         .order('visit_date', { ascending: false })
         .limit(10),
-      // Fetch seller's client IDs for interest counts
-      supabase
-        .from('clients')
-        .select('id')
-        .eq('seller_id', client.seller_id),
       // Fetch sellers for reassignment (supervisors only)
       isSupervisor
         ? supabase
@@ -152,25 +150,17 @@ export default async function Client360Page({ params }: Props) {
             .eq('active', true)
             .order('full_name')
         : Promise.resolve({ data: null }),
+      // Fetch brand affinity
+      supabase
+        .from('client_brand_affinity' as any)
+        .select('*')
+        .eq('client_id', id)
+        .maybeSingle(),
     ])
 
     sellerOptions = Array.isArray(sellersResult.data)
       ? (sellersResult.data as { id: string; full_name: string }[])
       : undefined
-
-    // Fetch interest counts (depends on sellerClientIds)
-    const clientIdList = (sellerClientIds || []).map(c => c.id)
-    const { data: interestCounts } = clientIdList.length > 0
-      ? await supabase
-          .from('client_interests')
-          .select('value')
-          .in('client_id', clientIdList)
-      : { data: [] }
-
-    // Build interest count map
-    ;(interestCounts || []).forEach((i: { value: string }) => {
-      interestCountMap.set(i.value, (interestCountMap.get(i.value) || 0) + 1)
-    })
 
     // Build Client360 object
     clientData = {
@@ -201,10 +191,12 @@ export default async function Client360Page({ params }: Props) {
         const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
         return Array.isArray(s) ? s[0]?.full_name : s?.full_name
       })() || 'Unassigned',
+      interest_in_fashion: ((client as any).interest_in_fashion as FashionInterestLevel) || null,
+      brand_affinity: brandAffinityRow ? (brandAffinityRow as unknown as BrandAffinity) : null,
       interests: (interests || []).map(i => ({
         ...i,
-        domain: 'fashion' as 'fashion' | 'life',
-      })),
+        domain: (i as any).domain || 'product',
+      })) as Client360['interests'],
       contact_history: (contacts || []).map(c => {
         const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
         const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
@@ -235,6 +227,7 @@ export default async function Client360Page({ params }: Props) {
         size: s.size,
         fit_preference: s.fit_preference,
         notes: s.notes,
+        size_system: (s as any).size_system || null,
       })),
       known_sizes: ((knownSizes || []) as any[]).map((ks: any) => ({
         client_id: ks.client_id,
@@ -530,16 +523,16 @@ export default async function Client360Page({ params }: Props) {
 
           {/* Profile completeness */}
           {canEdit && (() => {
-            const fashionInterests = (clientData.interests || []).filter(i => i.domain !== 'life')
+            const productInterests = (clientData.interests || []).filter(i => i.domain === 'product')
             const lifeInterests = (clientData.interests || []).filter(i => i.domain === 'life')
 
             const checks = [
               { label: 'Signal assessed', done: !!clientData.seller_signal, anchor: undefined as string | undefined },
-              { label: 'Fashion interests', done: fashionInterests.length > 0, anchor: '#fashion-interests' },
-              { label: 'Life interests', done: lifeInterests.length > 0, anchor: '#life-interests' },
-              { label: 'Life notes', done: !!clientData.life_notes, anchor: '#life-interests' },
-              { label: 'Client type set', done: clientData.locale !== 'local' || true, anchor: undefined },
+              { label: 'Brand affinity', done: !!clientData.brand_affinity?.familiarity, anchor: '#brand-affinity' },
+              { label: 'Lifestyle interests', done: lifeInterests.length > 0, anchor: '#lifestyle' },
+              { label: 'Product preferences', done: productInterests.length > 0, anchor: '#product-preferences' },
               { label: 'Sizing data', done: (clientData.known_sizes || []).length > 0 || (clientData.sizing || []).length > 0, anchor: '#sizes' },
+              { label: 'Life notes', done: !!clientData.life_notes, anchor: '#lifestyle' },
             ]
 
             const completed = checks.filter(c => c.done).length
@@ -583,60 +576,27 @@ export default async function Client360Page({ params }: Props) {
           })()}
         </div>
 
-        {/* Fashion Interests */}
-        <section id="fashion-interests" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">FASHION INTERESTS</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">What they like</h2>
-          {(() => {
-            const fashionInterests = (clientData.interests || []).filter(i => i.domain !== 'life')
-            return fashionInterests.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {fashionInterests.map((interest) => (
-                  <InterestTag
-                    key={interest.id}
-                    category={interest.category}
-                    value={interest.value}
-                    detail={interest.detail}
-                    domain="fashion"
-                    clickable={true}
-                    size="md"
-                    count={Math.max(0, (interestCountMap.get(interest.value) || 0) - 1)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="body-small text-text-muted">No fashion interests recorded.</p>
-            )
-          })()}
-          <ClientInterestAdd clientId={id} canEdit={canEdit} domain="fashion" />
+        {/* Brand Affinity */}
+        <section id="brand-affinity" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
+          <p className="label mb-2 text-text-muted">BRAND AFFINITY</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Brand relationship</h2>
+          <BrandAffinityPanel
+            clientId={id}
+            initialAffinity={clientData.brand_affinity}
+            initialFashionInterest={clientData.interest_in_fashion}
+            canEdit={canEdit}
+          />
         </section>
 
-        {/* Life Interests */}
-        <section id="life-interests" className="mt-6 border bg-surface p-6 md:p-8" style={{ ...cardBorder, borderLeftWidth: 3, borderLeftColor: 'rgba(14, 165, 233, 0.3)' }}>
-          <p className="label mb-2 text-text-muted">LIFESTYLE</p>
+        {/* Lifestyle & Interests */}
+        <section id="lifestyle" className="mt-6 border bg-surface p-6 md:p-8" style={{ ...cardBorder, borderLeftWidth: 3, borderLeftColor: 'rgba(14, 165, 233, 0.3)' }}>
+          <p className="label mb-2 text-text-muted">LIFESTYLE & INTERESTS</p>
           <h2 className="mb-4 font-serif text-2xl text-text">Who they are</h2>
-          {(() => {
-            const lifeInterests = (clientData.interests || []).filter(i => i.domain === 'life')
-            return lifeInterests.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {lifeInterests.map((interest) => (
-                  <InterestTag
-                    key={interest.id}
-                    category={interest.category}
-                    value={interest.value}
-                    detail={interest.detail}
-                    domain="life"
-                    clickable={true}
-                    size="md"
-                    count={Math.max(0, (interestCountMap.get(interest.value) || 0) - 1)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="body-small text-text-muted">No personal interests recorded.</p>
-            )
-          })()}
-          <ClientInterestAdd clientId={id} canEdit={canEdit} domain="life" />
+          <LifestyleInterestsPanel
+            clientId={id}
+            interests={(clientData.interests || []).filter(i => i.domain === 'life')}
+            canEdit={canEdit}
+          />
           <ClientLifeNotes
             clientId={id}
             initialNotes={clientData.life_notes}
@@ -644,54 +604,27 @@ export default async function Client360Page({ params }: Props) {
           />
         </section>
 
-        {/* Sizes — derived from purchases + manual */}
+        {/* Product Preferences */}
+        <section id="product-preferences" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
+          <p className="label mb-2 text-text-muted">PRODUCT PREFERENCES</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">What they like</h2>
+          <ProductPreferencesPanel
+            clientId={id}
+            interests={(clientData.interests || []).filter(i => i.domain === 'product')}
+            canEdit={canEdit}
+          />
+        </section>
+
+        {/* Sizes */}
         <section id="sizes" className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
-          <p className="label mb-2 text-text-muted">Sizes</p>
-          <h2 className="mb-4 font-serif text-2xl text-text">From purchases</h2>
-          {(() => {
-            const derived = clientData.known_sizes || []
-            const manualSizing = clientData.sizing || []
-            const derivedCategories = new Set(derived.map(d => d.category))
-            const manualOnly = manualSizing.filter(s => !derivedCategories.has(s.category.toLowerCase()))
-            const categoryLabel = (cat: string) => cat.charAt(0).toUpperCase() + cat.slice(1)
-
-            if (derived.length === 0 && manualOnly.length === 0) {
-              return <p className="body-small text-text-muted">No sizing data yet. Add purchases with size info to build this automatically.</p>
-            }
-
-            return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b text-xs text-text-muted" style={cardBorder}>
-                      <th className="pb-2 pr-4 font-medium">Category</th>
-                      <th className="pb-2 pr-4 font-medium">Size</th>
-                      <th className="pb-2 pr-4 font-medium">Source</th>
-                      <th className="pb-2 font-medium">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="body-small">
-                    {derived.map((ks) => (
-                      <tr key={ks.category} className="border-b last:border-0" style={cardBorder}>
-                        <td className="py-2.5 pr-4 font-medium text-text">{categoryLabel(ks.category)}</td>
-                        <td className="py-2.5 pr-4 font-serif text-lg text-text">{ks.size}</td>
-                        <td className="py-2.5 pr-4 text-text-muted">{ks.last_product || '—'}</td>
-                        <td className="py-2.5 text-text-muted">{ks.last_purchase_date ? formatDateShort(ks.last_purchase_date) : '—'}</td>
-                      </tr>
-                    ))}
-                    {manualOnly.map((s) => (
-                      <tr key={s.id} className="border-b last:border-0 opacity-60" style={cardBorder}>
-                        <td className="py-2.5 pr-4 font-medium text-text">{s.category}</td>
-                        <td className="py-2.5 pr-4 font-serif text-lg text-text">{s.size}</td>
-                        <td className="py-2.5 pr-4 text-text-muted italic">Manual{s.fit_preference ? ` · ${s.fit_preference}` : ''}</td>
-                        <td className="py-2.5 text-text-muted">—</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          })()}
+          <p className="label mb-2 text-text-muted">SIZES</p>
+          <h2 className="mb-4 font-serif text-2xl text-text">Client sizing</h2>
+          <SizingPanel
+            clientId={id}
+            sizing={clientData.sizing || []}
+            knownSizes={clientData.known_sizes || []}
+            canEdit={canEdit}
+          />
         </section>
 
         {/* Meetings */}

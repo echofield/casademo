@@ -13,7 +13,7 @@ interface TaxonomyItem {
 interface Props {
   clientId: string
   canEdit: boolean
-  domain: 'fashion' | 'life'
+  domain: 'product' | 'life'
 }
 
 export function ClientInterestAdd({ clientId, canEdit, domain }: Props) {

@@ -161,10 +161,12 @@ export interface Client360 {
   life_notes: string | null
   locale: ClientLocale
   first_impact: FirstImpact
+  interest_in_fashion: FashionInterestLevel | null
   created_at: string
   updated_at: string
   seller_name: string
   interests: InterestItem[] | null
+  brand_affinity: BrandAffinity | null
   contact_history: ContactHistoryItem[] | null
   purchase_history: PurchaseHistoryItem[] | null
   sizing: SizingItem[] | null
@@ -178,6 +180,7 @@ export interface SizingItem {
   size: string
   fit_preference: string | null
   notes: string | null
+  size_system: SizeSystem | null
 }
 
 export interface VisitItem {
@@ -194,8 +197,85 @@ export interface InterestItem {
   category: string
   value: string
   detail: string | null
-  domain: 'fashion' | 'life'
+  domain: 'product' | 'life'
 }
+
+// Brand affinity — 1:1 with client, upsert-only (never deleted from UI)
+export interface BrandAffinity {
+  id?: string
+  client_id: string
+  familiarity: BrandFamiliarity | null
+  sensitivity: BrandSensitivity | null
+  purchase_behavior: PurchaseBehavior | null
+  contact_preference: ContactPreference | null
+  channel: BrandChannel | null
+}
+
+export type BrandFamiliarity = 'new' | 'aware' | 'regular' | 'loyal' | 'vip'
+export type BrandSensitivity = 'price_sensitive' | 'value_driven' | 'exclusivity_driven'
+export type PurchaseBehavior = 'occasional' | 'seasonal' | 'frequent' | 'collector'
+export type ContactPreference = 'passive' | 'reactive' | 'proactive'
+export type BrandChannel = 'in_store' | 'online' | 'mixed'
+export type FashionInterestLevel = 'low' | 'medium' | 'high'
+export type SizeSystem = 'EU' | 'US' | 'UK' | 'INTL'
+
+export const BRAND_FAMILIARITY_OPTIONS: { value: BrandFamiliarity; label: string }[] = [
+  { value: 'new', label: 'New' },
+  { value: 'aware', label: 'Aware' },
+  { value: 'regular', label: 'Regular' },
+  { value: 'loyal', label: 'Loyal' },
+  { value: 'vip', label: 'VIP' },
+]
+
+export const SENSITIVITY_OPTIONS: { value: BrandSensitivity; label: string }[] = [
+  { value: 'price_sensitive', label: 'Price' },
+  { value: 'value_driven', label: 'Value' },
+  { value: 'exclusivity_driven', label: 'Exclusivity' },
+]
+
+export const PURCHASE_BEHAVIOR_OPTIONS: { value: PurchaseBehavior; label: string }[] = [
+  { value: 'occasional', label: 'Occasional' },
+  { value: 'seasonal', label: 'Seasonal' },
+  { value: 'frequent', label: 'Frequent' },
+  { value: 'collector', label: 'Collector' },
+]
+
+export const CONTACT_PREFERENCE_OPTIONS: { value: ContactPreference; label: string }[] = [
+  { value: 'passive', label: 'Passive' },
+  { value: 'reactive', label: 'Reactive' },
+  { value: 'proactive', label: 'Proactive' },
+]
+
+export const CHANNEL_OPTIONS: { value: BrandChannel; label: string }[] = [
+  { value: 'in_store', label: 'In-store' },
+  { value: 'online', label: 'Online' },
+  { value: 'mixed', label: 'Mixed' },
+]
+
+export const FASHION_INTEREST_LEVELS: { value: FashionInterestLevel; label: string }[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+]
+
+export const LIFESTYLE_CATEGORIES = [
+  'music', 'culture', 'food', 'sport', 'travel', 'art', 'design',
+  'nightlife', 'wellness', 'technology', 'cars', 'watches', 'books',
+  'cinema', 'business',
+] as const
+
+export type LifestyleCategory = typeof LIFESTYLE_CATEGORIES[number]
+
+export const PRODUCT_PREF_CATEGORIES = [
+  'products', 'fit', 'colors', 'materials', 'styles', 'avoided',
+] as const
+
+export const SIZE_SYSTEMS: { value: SizeSystem; label: string }[] = [
+  { value: 'EU', label: 'EU' },
+  { value: 'US', label: 'US' },
+  { value: 'UK', label: 'UK' },
+  { value: 'INTL', label: 'INTL' },
+]
 
 export interface ContactHistoryItem {
   id: string

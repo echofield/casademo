@@ -50,6 +50,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
       .from('client_interests')
       .select('id, client_id, category, value, detail, domain')
       .in('client_id', clientIds)
+      .eq('is_deleted', false)
 
     ;(allInterests || []).forEach((interest) => {
       const existing = clientInterestsMap.get(interest.client_id) || []
@@ -58,7 +59,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
         category: interest.category,
         value: interest.value,
         detail: interest.detail,
-        domain: (interest.domain || 'fashion') as 'fashion' | 'life',
+        domain: (interest.domain || 'product') as 'product' | 'life',
       })
       clientInterestsMap.set(interest.client_id, existing)
     })
