@@ -6,6 +6,15 @@ import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
 import { PURCHASE_SOURCES, PurchaseSource } from '@/lib/types'
 
+const CONTACT_CHANNELS = [
+  { value: 'whatsapp', label: 'WhatsApp' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'sms', label: 'SMS' },
+  { value: 'email', label: 'E-mail' },
+  { value: 'in_store', label: 'In-store' },
+  { value: 'other', label: 'Other' },
+] as const
+
 interface Props {
   clientId: string
 }
@@ -162,20 +171,27 @@ export function ClientActions({ clientId }: Props) {
                 Log a contact
               </h3>
               <form onSubmit={handleLogContact}>
-                <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Channel</label>
-                  <select
-                    value={contactChannel}
-                    onChange={(e) => setContactChannel(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="whatsapp">WhatsApp</option>
-                    <option value="phone">Phone</option>
-                    <option value="sms">SMS</option>
-                    <option value="email">E-mail</option>
-                    <option value="in_store">In-store</option>
-                    <option value="other">Other</option>
-                  </select>
+                <div className="mb-5">
+                  <label className="label mb-2 block text-text-muted">How did you reach them?</label>
+                  <div className="flex flex-wrap gap-2">
+                    {CONTACT_CHANNELS.map((ch) => {
+                      const isSelected = contactChannel === ch.value
+                      return (
+                        <button
+                          key={ch.value}
+                          type="button"
+                          onClick={() => setContactChannel(ch.value)}
+                          className={`px-4 py-2.5 text-xs font-medium transition-all duration-200 border ${
+                            isSelected
+                              ? 'bg-[#003D2B] text-white border-[#003D2B]'
+                              : 'bg-transparent text-text-muted border-[rgba(28,27,25,0.12)] hover:border-text hover:text-text'
+                          }`}
+                        >
+                          {ch.label}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <div className="mb-6">
