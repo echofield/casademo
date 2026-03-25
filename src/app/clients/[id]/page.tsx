@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator, InterestTag } from '@/components'
 import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource } from '@/lib/types'
-import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel } from '@/lib/types'
+import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel, getRecontactDays, SIGNAL_LABELS } from '@/lib/types'
 import { ClientLifeNotes } from './ClientLifeNotes'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
@@ -427,6 +427,10 @@ export default async function Client360Page({ params }: Props) {
               <div>
                 <p className="label mb-1 text-text-muted">Next follow-up</p>
                 <p className="body-small text-text">{formatDate(clientData.next_recontact_date)}</p>
+                <p className="text-[10px] text-text-muted mt-1">
+                  Every {getRecontactDays(clientData.tier, clientData.seller_signal, clientData.locale)} days
+                  {clientData.seller_signal && ` · ${SIGNAL_LABELS[clientData.seller_signal]}`}
+                </p>
               </div>
             </div>
 

@@ -74,7 +74,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
 
         <div className="flex items-center gap-10">
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass(link.href)}>
+            <Link key={link.href} href={link.href} className={`${linkClass(link.href)} active:opacity-70`}>
               {link.label}
             </Link>
           ))}
@@ -147,7 +147,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`block py-2 text-sm font-medium uppercase tracking-[0.08em] transition-colors duration-200 ${
+                  className={`block py-2 text-sm font-medium uppercase tracking-[0.08em] transition-colors duration-200 active:opacity-70 ${
                     isActive(link.href) ? 'text-text' : 'text-text-muted'
                   }`}
                 >

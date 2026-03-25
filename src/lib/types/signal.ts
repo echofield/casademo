@@ -71,6 +71,15 @@ export const NULL_SIGNAL_CONFIG = {
 // Display order for signal selector
 export const SIGNAL_ORDER: ClientSignal[] = ['very_hot', 'hot', 'warm', 'cold', 'lost']
 
+// Simple label lookup
+export const SIGNAL_LABELS: Record<ClientSignal, string> = {
+  very_hot: 'Locked',
+  hot: 'Strong',
+  warm: 'Open',
+  cold: 'Low',
+  lost: 'Off',
+}
+
 // Priority for sorting (lower = higher priority)
 // null gets priority 3 in sorting (middle of the pack)
 export const SIGNAL_PRIORITY: Record<ClientSignal, number> = {

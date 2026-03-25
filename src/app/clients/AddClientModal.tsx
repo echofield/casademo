@@ -124,7 +124,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
         role="presentation"
       >
         <div
-          className="my-auto w-full max-w-md border bg-surface p-6 shadow-lg"
+          className="my-auto w-full max-w-md border bg-surface p-6 shadow-lg animate-slide-up"
           style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"

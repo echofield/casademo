@@ -123,7 +123,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
           handleCardClick()
         }
       }}
-      className="cursor-pointer bg-surface transition-colors duration-200 hover:bg-bg-soft"
+      className="cursor-pointer bg-surface transition-all duration-200 hover:bg-bg-soft active:scale-[0.99]"
       style={{
         border: '1px solid rgba(28, 27, 25, 0.08)',
         borderLeftWidth: 4,
@@ -217,14 +217,14 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
                 <button
                   type="button"
                   onClick={handleCall}
-                  className="flex-1 bg-primary py-4 text-xs font-medium uppercase tracking-[0.12em] text-white transition-colors duration-200 hover:bg-primary-soft sm:min-w-[160px]"
+                  className="flex-1 bg-primary py-4 text-xs font-medium uppercase tracking-[0.12em] text-white transition-all duration-200 hover:bg-primary-soft active:scale-[0.98] sm:min-w-[160px]"
                 >
                   Message {client.first_name}
                 </button>
                 <button
                   type="button"
                   onClick={handleWhatsApp}
-                  className="flex items-center justify-center border border-primary/25 px-6 py-4 text-primary transition-colors duration-200 hover:bg-primary-soft/30"
+                  className="flex items-center justify-center border border-primary/25 px-6 py-4 text-primary transition-all duration-200 hover:bg-primary-soft/30 active:scale-[0.98]"
                   title="WhatsApp"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -237,7 +237,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
           <Link
             href={`/clients/${client.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-center border px-6 py-4 text-xs font-medium uppercase tracking-[0.12em] text-text-muted transition-colors duration-200 hover:border-text hover:text-text"
+            className="flex items-center justify-center border px-6 py-4 text-xs font-medium uppercase tracking-[0.12em] text-text-muted transition-all duration-200 hover:border-text hover:text-text active:scale-[0.98]"
             style={{ borderColor: 'rgba(28, 27, 25, 0.14)' }}
           >
             Full profile

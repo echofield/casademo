@@ -48,7 +48,7 @@ export function ClientGridCard({
   return (
     <Link
       href={`/clients/${client.id}`}
-      className="group block bg-white border p-6 transition-all duration-200 hover:shadow-sm"
+      className="group block bg-white border p-6 transition-all duration-200 hover:shadow-sm active:scale-[0.98]"
       style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
     >
       {/* Header: Name + Tier */}

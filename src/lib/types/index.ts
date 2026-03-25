@@ -68,6 +68,39 @@ export const LOCALE_RECONTACT_MULTIPLIER: Record<ClientLocale, number> = {
   foreign: 2,
 }
 
+// Signal-aware recontact multiplier
+// Locked (very_hot) = more frequent, Off (lost) = less frequent
+export const SIGNAL_RECONTACT_MULTIPLIER: Record<string, number> = {
+  very_hot: 0.5,  // Locked: 2x frequency
+  hot: 1.0,       // Strong: normal
+  warm: 1.0,      // Open: normal
+  cold: 1.5,      // Low: slower
+  lost: 3.0,      // Off: much slower
+}
+
+// Calculate recontact days from tier + signal + locale
+export function getRecontactDays(
+  tier: ClientTier,
+  signal?: string | null,
+  locale?: ClientLocale | null
+): number {
+  let baseDays = TIER_RECONTACT_DAYS[tier]
+  let multiplier = 1.0
+
+  // Apply locale multiplier
+  if (locale && LOCALE_RECONTACT_MULTIPLIER[locale]) {
+    multiplier *= LOCALE_RECONTACT_MULTIPLIER[locale]
+  }
+
+  // Apply signal multiplier
+  if (signal && SIGNAL_RECONTACT_MULTIPLIER[signal]) {
+    multiplier *= SIGNAL_RECONTACT_MULTIPLIER[signal]
+  }
+
+  // Minimum 3 days
+  return Math.max(3, Math.round(baseDays * multiplier))
+}
+
 // Table types
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
