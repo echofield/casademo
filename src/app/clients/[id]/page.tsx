@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator, InterestTag } from '@/components'
-import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact } from '@/lib/types'
-import { FIRST_IMPACT_CONFIG, LOCALE_LABELS } from '@/lib/types'
+import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource } from '@/lib/types'
+import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel } from '@/lib/types'
 import { ClientLifeNotes } from './ClientLifeNotes'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
@@ -88,7 +88,7 @@ export default async function Client360Page({ params }: Props) {
     // Fetch purchases
     supabase
       .from('purchases')
-      .select('id, purchase_date, amount, description')
+      .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
       .eq('client_id', id)
       .order('purchase_date', { ascending: false })
       .limit(15),
@@ -181,12 +181,13 @@ export default async function Client360Page({ params }: Props) {
       date: p.purchase_date,
       amount: p.amount,
       description: p.description,
-      product_name: null,
-      product_category: null,
-      size: null,
-      size_type: null,
-      is_gift: false,
-      gift_recipient: null,
+      product_name: (p as any).product_name || null,
+      product_category: (p as any).product_category || null,
+      size: (p as any).size || null,
+      size_type: (p as any).size_type || null,
+      is_gift: (p as any).is_gift || false,
+      gift_recipient: (p as any).gift_recipient || null,
+      source: ((p as any).source || null) as PurchaseSource | null,
     })),
     sizing: (sizing || []).map(s => ({
       id: s.id,
@@ -685,11 +686,18 @@ export default async function Client360Page({ params }: Props) {
                     ) : (
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <div>
-                          <p className="body font-medium text-text">
-                            {ev.data.product_name || 'Purchase'}
-                            {ev.data.size && <span className="ml-2 text-text-muted font-normal text-sm">({ev.data.size})</span>}
-                            {ev.data.is_gift && <span className="ml-2 text-xs text-rose-500">Gift</span>}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="body font-medium text-text">
+                              {ev.data.product_name || 'Purchase'}
+                              {ev.data.size && <span className="ml-2 text-text-muted font-normal text-sm">({ev.data.size})</span>}
+                            </p>
+                            {ev.data.source && (
+                              <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${PURCHASE_SOURCE_COLORS[ev.data.source as PurchaseSource]?.bg || 'bg-gray-50'} ${PURCHASE_SOURCE_COLORS[ev.data.source as PurchaseSource]?.text || 'text-gray-500'}`}>
+                                {getPurchaseSourceLabel(ev.data.source)}
+                              </span>
+                            )}
+                            {ev.data.is_gift && <span className="text-xs text-rose-500">Gift</span>}
+                          </div>
                           <p className="body-small text-text-muted">{formatDateShort(ev.data.date)}</p>
                           {ev.data.gift_recipient && (
                             <p className="body-small mt-0.5 text-rose-400 italic">For {ev.data.gift_recipient}</p>

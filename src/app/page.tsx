@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AppShell, RecontactQueueSection, TierBadge, TodayMeetings } from '@/components'
+import { AppShell, RecontactQueueSection, TierBadge, TodayMeetings, SellerImpactWidget } from '@/components'
 import { RecontactQueueItem, ClientTier, TIER_ORDER } from '@/lib/types'
 import { Users, Phone, TrendingUp } from 'lucide-react'
 
@@ -91,7 +91,7 @@ export default async function HomePage() {
 
         {/* Seller Portfolio Stats */}
         {isSeller && sellerStats && (
-          <div className="mb-10 grid gap-4 md:grid-cols-2">
+          <div className="mb-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Portfolio Overview */}
             <div
               className="border bg-surface p-5"
@@ -143,6 +143,9 @@ export default async function HomePage() {
                 )}
               </div>
             </div>
+
+            {/* CRM Impact Widget */}
+            <SellerImpactWidget sellerId={user.id} />
           </div>
         )}
 

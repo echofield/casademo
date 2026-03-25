@@ -31,7 +31,7 @@ export function ClientRow({
   const isHighValue = ['grand_prix', 'diplomatico'].includes(client.tier)
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -40,7 +40,7 @@ export function ClientRow({
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-'
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
     })
@@ -64,7 +64,8 @@ export function ClientRow({
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (client.phone) {
-      const cleanPhone = client.phone.replace(/\s/g, '')
+      // Strip all non-digits for wa.me URL (WhatsApp requires: +33612345678 → 33612345678)
+      const cleanPhone = client.phone.replace(/\D/g, '')
       window.open(`https://wa.me/${cleanPhone}`, '_blank')
     }
   }

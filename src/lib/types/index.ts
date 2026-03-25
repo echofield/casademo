@@ -183,6 +183,7 @@ export interface PurchaseHistoryItem {
   size_type: string | null
   is_gift: boolean
   gift_recipient: string | null
+  source: PurchaseSource | null
 }
 
 export interface KnownSizeItem {
@@ -205,6 +206,36 @@ export const PRODUCT_CATEGORIES = [
 ] as const
 
 export type ProductCategory = typeof PRODUCT_CATEGORIES[number]['value']
+
+// Purchase source attribution - how the sale happened
+export const PURCHASE_SOURCES = [
+  { value: 'casa_one', label: 'Casa One recontact', description: 'Client came back after CRM outreach' },
+  { value: 'walk_in', label: 'Walk-in', description: 'Client came in on their own' },
+  { value: 'event', label: 'Event', description: 'Sale during an event or trunk show' },
+  { value: 'instagram', label: 'Instagram', description: 'Client reached out via Instagram' },
+  { value: 'recommendation', label: 'Recommendation', description: 'Referred by another client' },
+  { value: 'existing_client', label: 'Returning client', description: 'Regular who came back independently' },
+  { value: 'other', label: 'Other', description: '' },
+] as const
+
+export type PurchaseSource = typeof PURCHASE_SOURCES[number]['value']
+
+// Source badge colors for display
+export const PURCHASE_SOURCE_COLORS: Record<PurchaseSource, { bg: string; text: string }> = {
+  casa_one: { bg: 'bg-[#003D2B]/10', text: 'text-[#003D2B]' },
+  walk_in: { bg: 'bg-gray-100', text: 'text-gray-600' },
+  event: { bg: 'bg-purple-50', text: 'text-purple-700' },
+  instagram: { bg: 'bg-pink-50', text: 'text-pink-700' },
+  recommendation: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  existing_client: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  other: { bg: 'bg-gray-50', text: 'text-gray-500' },
+}
+
+// Get source label for display
+export function getPurchaseSourceLabel(source: PurchaseSource | string | null): string {
+  const found = PURCHASE_SOURCES.find(s => s.value === source)
+  return found?.label || 'Unknown'
+}
 
 // API types
 export interface ClientListParams {

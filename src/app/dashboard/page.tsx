@@ -10,6 +10,7 @@ import {
   SellerTierBreakdown,
   SignalDistribution,
   SignalMatrix,
+  ConversionMetrics,
 } from '@/components/dashboard'
 import { ClientSignal } from '@/lib/types'
 import { Users, Phone, Calendar, TrendingUp } from 'lucide-react'
@@ -296,6 +297,9 @@ export default async function DashboardPage() {
             />
           </>
         )}
+
+        {/* Casa One Impact — conversion metrics */}
+        <ConversionMetrics className="mb-10" />
 
         {/* Two column layout */}
         <div className="grid lg:grid-cols-3 gap-8 mb-10">

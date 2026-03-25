@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
+import { PURCHASE_SOURCES, PurchaseSource } from '@/lib/types'
 
 interface Props {
   clientId: string
@@ -22,7 +23,7 @@ export function ClientActions({ clientId }: Props) {
 
   const [purchaseAmount, setPurchaseAmount] = useState('')
   const [purchaseDescription, setPurchaseDescription] = useState('')
-  const [purchaseSource, setPurchaseSource] = useState('casa_one')
+  const [purchaseSource, setPurchaseSource] = useState<PurchaseSource | ''>('')
   const [purchaseProductName, setPurchaseProductName] = useState('')
   const [purchaseCategory, setPurchaseCategory] = useState('')
   const [purchaseSize, setPurchaseSize] = useState('')
@@ -68,6 +69,10 @@ export function ClientActions({ clientId }: Props) {
       setPurchaseError('Enter a valid amount (€).')
       return
     }
+    if (!purchaseSource) {
+      setPurchaseError('Select how this sale happened.')
+      return
+    }
 
     setLoading(true)
 
@@ -104,7 +109,7 @@ export function ClientActions({ clientId }: Props) {
       setShowPurchaseModal(false)
       setPurchaseAmount('')
       setPurchaseDescription('')
-      setPurchaseSource('casa_one')
+      setPurchaseSource('')
       setPurchaseProductName('')
       setPurchaseCategory('')
       setPurchaseSize('')
@@ -287,21 +292,34 @@ export function ClientActions({ clientId }: Props) {
                 </div>
 
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">Source</label>
-                  <select
-                    value={purchaseSource}
-                    onChange={(e) => setPurchaseSource(e.target.value)}
-                    className="input-field"
-                    required
-                  >
-                    <option value="casa_one">Casa One</option>
-                    <option value="walk_in">Walk-in</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="recommendation">Recommendation</option>
-                    <option value="existing_client">Existing client</option>
-                    <option value="event">Event</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <label className="label mb-2 block text-text-muted">How did this sale happen?</label>
+                  <div className="flex flex-wrap gap-2">
+                    {PURCHASE_SOURCES.map((source) => {
+                      const isSelected = purchaseSource === source.value
+                      return (
+                        <button
+                          key={source.value}
+                          type="button"
+                          onClick={() => setPurchaseSource(source.value)}
+                          className={`px-3 py-2 text-xs font-medium transition-all duration-200 border ${
+                            isSelected
+                              ? source.value === 'casa_one'
+                                ? 'bg-[#003D2B] text-white border-[#003D2B]'
+                                : 'bg-primary text-white border-primary'
+                              : 'bg-transparent text-text-muted border-[rgba(28,27,25,0.12)] hover:border-text hover:text-text'
+                          }`}
+                          title={source.description}
+                        >
+                          {source.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {purchaseSource && (
+                    <p className="mt-2 text-xs text-text-muted">
+                      {PURCHASE_SOURCES.find(s => s.value === purchaseSource)?.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mb-4">

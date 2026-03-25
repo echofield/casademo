@@ -28,14 +28,14 @@ export function ClientCard({
 }: ClientCardProps) {
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
     })
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,

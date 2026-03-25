@@ -219,7 +219,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
                   onClick={handleCall}
                   className="flex-1 bg-primary py-4 text-xs font-medium uppercase tracking-[0.12em] text-white transition-colors duration-200 hover:bg-primary-soft sm:min-w-[160px]"
                 >
-                  Call {client.first_name}
+                  Message {client.first_name}
                 </button>
                 <button
                   type="button"
