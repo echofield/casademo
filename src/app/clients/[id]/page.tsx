@@ -154,7 +154,9 @@ export default async function Client360Page({ params }: Props) {
         : Promise.resolve({ data: null }),
     ])
 
-    sellerOptions = sellersResult.data as { id: string; full_name: string }[] | undefined
+    sellerOptions = Array.isArray(sellersResult.data)
+      ? (sellersResult.data as { id: string; full_name: string }[])
+      : undefined
 
     // Fetch interest counts (depends on sellerClientIds)
     const clientIdList = (sellerClientIds || []).map(c => c.id)

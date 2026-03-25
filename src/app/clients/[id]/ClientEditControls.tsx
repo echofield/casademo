@@ -124,7 +124,9 @@ export function ClientEditControls({
     return null
   }
 
-  const otherSellers = sellerOptions.filter((s) => s.id !== sellerId)
+  const otherSellers = (Array.isArray(sellerOptions) ? sellerOptions : []).filter(
+    (s) => s.id !== sellerId
+  )
 
   return (
     <>
