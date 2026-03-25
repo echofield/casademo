@@ -317,3 +317,6 @@ export * from './meetings'
 
 // Signal types - re-export from signal.ts
 export * from './signal'
+
+// Recontact cadence - re-export from recontact.ts
+export * from './recontact'

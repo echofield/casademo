@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator, InterestTag } from '@/components'
 import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource } from '@/lib/types'
-import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel, getRecontactDays, SIGNAL_LABELS } from '@/lib/types'
+import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel, SIGNAL_LABELS, getCadenceLabel, getChannelHint } from '@/lib/types'
 import { ClientLifeNotes } from './ClientLifeNotes'
 import { getNextMoveContext } from '@/lib/nextMove'
 import Link from 'next/link'
@@ -428,11 +428,25 @@ export default async function Client360Page({ params }: Props) {
               </div>
               <div>
                 <p className="label mb-1 text-text-muted">Next follow-up</p>
-                <p className="body-small text-text">{formatDate(clientData.next_recontact_date)}</p>
+                {clientData.seller_signal === 'lost' ? (
+                  <p className="body-small text-text-muted">No recontact scheduled</p>
+                ) : (
+                  <p className="body-small text-text">{formatDate(clientData.next_recontact_date)}</p>
+                )}
+                {/* Cadence chain */}
                 <p className="text-[10px] text-text-muted mt-1">
-                  Every {getRecontactDays(clientData.tier, clientData.seller_signal, clientData.locale)} days
-                  {clientData.seller_signal && ` · ${SIGNAL_LABELS[clientData.seller_signal]}`}
+                  {getCadenceLabel(clientData.seller_signal, clientData.locale === 'foreign')}
                 </p>
+                {/* Channel hint */}
+                <p className="text-[10px] text-text-muted">
+                  {getChannelHint(clientData.tier)}
+                </p>
+                {/* Warning if signal not assessed */}
+                {!clientData.seller_signal && (
+                  <p className="text-[10px] text-amber-600 mt-1">
+                    Assess this client&apos;s signal for better cadence
+                  </p>
+                )}
               </div>
             </div>
 
