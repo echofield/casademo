@@ -48,7 +48,22 @@ export default async function DashboardPage() {
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
 
-  // PARALLELIZED QUERIES - all independent queries run simultaneously
+  const monthStart = new Date()
+  monthStart.setDate(1)
+  monthStart.setHours(0, 0, 0, 0)
+
+  const now = new Date()
+  const weekEnd = new Date()
+  weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay()))
+  weekEnd.setHours(23, 59, 59, 999)
+
+  // 6 months ago for progression chart
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+  sixMonthsAgo.setDate(1)
+  sixMonthsAgo.setHours(0, 0, 0, 0)
+
+  // PARALLELIZED QUERIES
   const [
     { data: tierCounts },
     { data: overdueData, count: totalOverdue },
@@ -57,14 +72,18 @@ export default async function DashboardPage() {
     { data: allSellers },
     { data: clientsWithSeller },
     { data: clientSignals },
+    { data: monthlyContacts },
+    { count: upcomingMeetingsCount },
   ] = await Promise.all([
     supabase.from('clients').select('tier'),
     supabase.from('recontact_queue').select('seller_id, seller_name, days_overdue', { count: 'exact' }).gt('days_overdue', 0),
     supabase.from('contacts').select('id', { count: 'exact', head: true }).gte('contact_date', weekAgo.toISOString()),
-    supabase.from('contacts').select('seller_id').gte('contact_date', weekAgo.toISOString()),
+    supabase.from('contacts').select('seller_id').gte('contact_date', monthStart.toISOString()),
     supabase.from('profiles').select('id, full_name').eq('role', 'seller').eq('active', true),
     supabase.from('clients').select('seller_id, tier, total_spend'),
     supabase.from('clients').select('seller_id, seller_signal'),
+    supabase.from('contacts').select('contact_date, client_id').gte('contact_date', sixMonthsAgo.toISOString()).order('contact_date', { ascending: true }),
+    supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('start_time', now.toISOString()).lte('start_time', weekEnd.toISOString()).eq('status', 'scheduled'),
   ])
 
   // Process tier counts
@@ -169,15 +188,36 @@ export default async function DashboardPage() {
   const contactsWeek = contactsThisWeek || 0
   const overdueTotal = totalOverdue || 0
 
-  // Progression data - upward trend
-  const progressionData = [
-    { month: 'Jan', value: 42, target: 45 },
-    { month: 'Feb', value: 51, target: 50 },
-    { month: 'Mar', value: 58, target: 55 },
-    { month: 'Apr', value: 64, target: 60 },
-    { month: 'May', value: 71, target: 65 },
-    { month: 'Jun', value: 78, target: 70 },
-  ]
+  // Build real monthly progression from contacts data
+  const progressionData: { month: string; value: number; target: number }[] = []
+  {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const contactGoalPct = 70
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date()
+      d.setMonth(d.getMonth() - i)
+      const mStart = new Date(d.getFullYear(), d.getMonth(), 1)
+      const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
+
+      const uniqueClientsContacted = new Set(
+        (monthlyContacts || [])
+          .filter(c => {
+            const cd = new Date(c.contact_date)
+            return cd >= mStart && cd <= mEnd
+          })
+          .map(c => c.client_id)
+      ).size
+
+      const pct = totalClients > 0 ? Math.round((uniqueClientsContacted / totalClients) * 100) : 0
+
+      progressionData.push({
+        month: monthNames[mStart.getMonth()],
+        value: pct,
+        target: contactGoalPct,
+      })
+    }
+  }
 
   // Greeting based on time
   const hour = new Date().getHours()
@@ -266,7 +306,7 @@ export default async function DashboardPage() {
                   label="Contacts (7d)"
                   value={contactsWeek}
                   icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
-                  subtext={`~${(contactsWeek / 7).toFixed(1)}/day`}
+                  subtext={contactsWeek > 0 ? `~${(contactsWeek / 7).toFixed(1)}/day` : 'No activity yet'}
                 />
                 <StatPill
                   label="Overdue"
@@ -275,7 +315,7 @@ export default async function DashboardPage() {
                 />
                 <StatPill
                   label="Next appt"
-                  value={2}
+                  value={upcomingMeetingsCount || 0}
                   icon={<Calendar className="w-4 h-4" strokeWidth={1.5} />}
                   subtext="this week"
                 />
@@ -339,12 +379,12 @@ export default async function DashboardPage() {
               }}
             >
               <CornerBrackets size="md" opacity={0.3} />
-              <span className="label text-text-muted mb-4 block">INDIVIDUAL ACTIVITY</span>
+              <span className="label text-text-muted mb-4 block">ACTIVITY THIS MONTH</span>
               <div className="space-y-4">
                 {(allSellers || []).slice(0, 5).map((seller) => {
                   const contacts = activityMap[seller.id] || 0
                   const overdue = sellerOverdue[seller.id]?.count || 0
-                  const maxContacts = 15
+                  const maxContacts = Math.max(15, ...Object.values(activityMap))
 
                   return (
                     <div
