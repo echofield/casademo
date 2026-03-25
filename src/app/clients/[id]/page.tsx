@@ -40,6 +40,27 @@ function buildTimeline(clientData: Client360): TimelineEvent[] {
 }
 
 const cardBorder = { borderColor: 'rgba(28, 27, 25, 0.08)' } as const
+const VALID_CLIENT_SIGNALS: ClientSignal[] = ['very_hot', 'hot', 'warm', 'cold', 'lost']
+const VALID_CLIENT_LOCALES: ClientLocale[] = ['local', 'foreign']
+const VALID_FIRST_IMPACTS: FirstImpact[] = ['flash_entry', 'strong_entry', 'progressive', 'unknown']
+
+function toClientSignal(value: unknown): ClientSignal | null {
+  return typeof value === 'string' && VALID_CLIENT_SIGNALS.includes(value as ClientSignal)
+    ? (value as ClientSignal)
+    : null
+}
+
+function toClientLocale(value: unknown): ClientLocale {
+  return typeof value === 'string' && VALID_CLIENT_LOCALES.includes(value as ClientLocale)
+    ? (value as ClientLocale)
+    : 'local'
+}
+
+function toFirstImpact(value: unknown): FirstImpact {
+  return typeof value === 'string' && VALID_FIRST_IMPACTS.includes(value as FirstImpact)
+    ? (value as FirstImpact)
+    : 'unknown'
+}
 
 export default async function Client360Page({ params }: Props) {
   const user = await getCurrentUser()
@@ -48,183 +69,195 @@ export default async function Client360Page({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch client with seller name (must be first - needed for seller_id and existence check)
-  const { data: client, error: clientError } = await supabase
-    .from('clients')
-    .select(`
-      *,
-      seller:profiles!clients_seller_id_fkey(full_name)
-    `)
-    .eq('id', id)
-    .single()
+  let sellerOptions: { id: string; full_name: string }[] | undefined
+  let interestCountMap = new Map<string, number>()
+  let clientData: Client360
 
-  if (clientError || !client) {
-    notFound()
-  }
-
-  // PARALLELIZED QUERIES - all these run simultaneously
-  const isSupervisor = user.effectiveRole === 'supervisor'
-  const [
-    { data: interests },
-    { data: contacts },
-    { data: purchases },
-    { data: knownSizes },
-    { data: sizing },
-    { data: visits },
-    { data: sellerClientIds },
-    sellersResult,
-  ] = await Promise.all([
-    // Fetch interests (with domain)
-    supabase
-      .from('client_interests')
-      .select('id, category, value, detail')
-      .eq('client_id', id)
-      .order('created_at', { ascending: false }),
-    // Fetch contacts with seller name - limit 15
-    supabase
-      .from('contacts')
-      .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
-      .eq('client_id', id)
-      .order('contact_date', { ascending: false })
-      .limit(15),
-    // Fetch purchases - limit 20
-    supabase
-      .from('purchases')
-      .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
-      .eq('client_id', id)
-      .order('purchase_date', { ascending: false })
-      .limit(20),
-    // Fetch derived sizes from purchase history
-    supabase
-      .from('client_known_sizes' as any)
-      .select('client_id, category, size, size_type, last_product, last_purchase_date')
-      .eq('client_id', id),
-    // Fetch sizing
-    supabase
-      .from('client_sizing')
-      .select('id, category, size, fit_preference, notes')
-      .eq('client_id', id)
-      .order('category'),
-    // Fetch visits - limit 10
-    supabase
-      .from('visits')
-      .select('id, visit_date, duration_minutes, tried_products, notes, converted')
-      .eq('client_id', id)
-      .order('visit_date', { ascending: false })
-      .limit(10),
-    // Fetch seller's client IDs for interest counts
-    supabase
+  try {
+    // Fetch client with seller name (must be first - needed for seller_id and existence check)
+    const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('id')
-      .eq('seller_id', client.seller_id),
-    // Fetch sellers for reassignment (supervisors only)
-    isSupervisor
-      ? supabase
-          .from('profiles')
-          .select('id, full_name')
-          .eq('role', 'seller')
-          .eq('active', true)
-          .order('full_name')
-      : Promise.resolve({ data: null }),
-  ])
+      .select(`
+        *,
+        seller:profiles!clients_seller_id_fkey(full_name)
+      `)
+      .eq('id', id)
+      .single()
 
-  const sellerOptions = sellersResult.data as { id: string; full_name: string }[] | undefined
+    if (clientError || !client) {
+      notFound()
+    }
 
-  // Fetch interest counts (depends on sellerClientIds)
-  const clientIdList = (sellerClientIds || []).map(c => c.id)
-  const { data: interestCounts } = clientIdList.length > 0
-    ? await supabase
+    // PARALLELIZED QUERIES - all these run simultaneously
+    const isSupervisor = user.effectiveRole === 'supervisor'
+    const [
+      { data: interests },
+      { data: contacts },
+      { data: purchases },
+      { data: knownSizes },
+      { data: sizing },
+      { data: visits },
+      { data: sellerClientIds },
+      sellersResult,
+    ] = await Promise.all([
+      // Fetch interests (with domain)
+      supabase
         .from('client_interests')
-        .select('value')
-        .in('client_id', clientIdList)
-    : { data: [] }
+        .select('id, category, value, detail')
+        .eq('client_id', id)
+        .order('created_at', { ascending: false }),
+      // Fetch contacts with seller name - limit 15
+      supabase
+        .from('contacts')
+        .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
+        .eq('client_id', id)
+        .order('contact_date', { ascending: false })
+        .limit(15),
+      // Fetch purchases - limit 20
+      supabase
+        .from('purchases')
+        .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
+        .eq('client_id', id)
+        .order('purchase_date', { ascending: false })
+        .limit(20),
+      // Fetch derived sizes from purchase history
+      supabase
+        .from('client_known_sizes' as any)
+        .select('client_id, category, size, size_type, last_product, last_purchase_date')
+        .eq('client_id', id),
+      // Fetch sizing
+      supabase
+        .from('client_sizing')
+        .select('id, category, size, fit_preference, notes')
+        .eq('client_id', id)
+        .order('category'),
+      // Fetch visits - limit 10
+      supabase
+        .from('visits')
+        .select('id, visit_date, duration_minutes, tried_products, notes, converted')
+        .eq('client_id', id)
+        .order('visit_date', { ascending: false })
+        .limit(10),
+      // Fetch seller's client IDs for interest counts
+      supabase
+        .from('clients')
+        .select('id')
+        .eq('seller_id', client.seller_id),
+      // Fetch sellers for reassignment (supervisors only)
+      isSupervisor
+        ? supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('role', 'seller')
+            .eq('active', true)
+            .order('full_name')
+        : Promise.resolve({ data: null }),
+    ])
 
-  // Build interest count map
-  const interestCountMap = new Map<string, number>()
-  ;(interestCounts || []).forEach((i: { value: string }) => {
-    interestCountMap.set(i.value, (interestCountMap.get(i.value) || 0) + 1)
-  })
+    sellerOptions = sellersResult.data as { id: string; full_name: string }[] | undefined
 
-  // Build Client360 object
-  const clientData: Client360 = {
-    id: client.id,
-    first_name: client.first_name,
-    last_name: client.last_name,
-    email: client.email,
-    phone: client.phone,
-    seller_id: client.seller_id,
-    tier: client.tier as ClientTier,
-    total_spend: client.total_spend || 0,
-    first_contact_date: client.first_contact_date,
-    last_contact_date: client.last_contact_date,
-    next_recontact_date: client.next_recontact_date,
-    notes: client.notes,
-    origin: client.origin || null,
-    is_personal_shopper: client.is_personal_shopper || false,
-    heat_score: client.heat_score || 50,
-    seller_signal: (client as any).seller_signal || null,
-    signal_note: (client as any).signal_note || null,
-    signal_updated_at: (client as any).signal_updated_at || null,
-    life_notes: (client as any).life_notes || null,
-    locale: ((client as any).locale || 'local') as ClientLocale,
-    first_impact: ((client as any).first_impact || 'unknown') as FirstImpact,
-    created_at: client.created_at,
-    updated_at: client.updated_at,
-    seller_name: (() => {
-      const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
-      return Array.isArray(s) ? s[0]?.full_name : s?.full_name
-    })() || 'Unassigned',
-    interests: (interests || []).map(i => ({
-      ...i,
-      domain: 'fashion' as 'fashion' | 'life',
-    })),
-    contact_history: (contacts || []).map(c => {
-      const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
-      const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
-      return {
-        id: c.id,
-        date: c.contact_date,
-        channel: c.channel as ContactChannel,
-        comment: c.comment,
-        seller: sellerName || 'Unknown',
-      }
-    }),
-    purchase_history: (purchases || []).map(p => ({
-      id: p.id,
-      date: p.purchase_date,
-      amount: p.amount,
-      description: p.description,
-      product_name: (p as any).product_name || null,
-      product_category: (p as any).product_category || null,
-      size: (p as any).size || null,
-      size_type: (p as any).size_type || null,
-      is_gift: (p as any).is_gift || false,
-      gift_recipient: (p as any).gift_recipient || null,
-      source: ((p as any).source || null) as PurchaseSource | null,
-    })),
-    sizing: (sizing || []).map(s => ({
-      id: s.id,
-      category: s.category,
-      size: s.size,
-      fit_preference: s.fit_preference,
-      notes: s.notes,
-    })),
-    known_sizes: ((knownSizes || []) as any[]).map((ks: any) => ({
-      client_id: ks.client_id,
-      category: ks.category,
-      size: ks.size,
-      size_type: ks.size_type,
-      last_product: ks.last_product,
-      last_purchase_date: ks.last_purchase_date,
-    })) as KnownSizeItem[],
-    visit_history: (visits || []).map(v => ({
-      id: v.id,
-      date: v.visit_date,
-      duration_minutes: v.duration_minutes,
-      tried_products: v.tried_products,
-      notes: v.notes,
-      converted: v.converted,
-    })),
+    // Fetch interest counts (depends on sellerClientIds)
+    const clientIdList = (sellerClientIds || []).map(c => c.id)
+    const { data: interestCounts } = clientIdList.length > 0
+      ? await supabase
+          .from('client_interests')
+          .select('value')
+          .in('client_id', clientIdList)
+      : { data: [] }
+
+    // Build interest count map
+    ;(interestCounts || []).forEach((i: { value: string }) => {
+      interestCountMap.set(i.value, (interestCountMap.get(i.value) || 0) + 1)
+    })
+
+    // Build Client360 object
+    clientData = {
+      id: client.id,
+      first_name: client.first_name,
+      last_name: client.last_name,
+      email: client.email,
+      phone: client.phone,
+      seller_id: client.seller_id,
+      tier: client.tier as ClientTier,
+      total_spend: client.total_spend || 0,
+      first_contact_date: client.first_contact_date,
+      last_contact_date: client.last_contact_date,
+      next_recontact_date: client.next_recontact_date,
+      notes: client.notes,
+      origin: client.origin || null,
+      is_personal_shopper: client.is_personal_shopper || false,
+      heat_score: client.heat_score || 50,
+      seller_signal: toClientSignal((client as any).seller_signal),
+      signal_note: typeof (client as any).signal_note === 'string' ? (client as any).signal_note : null,
+      signal_updated_at: (client as any).signal_updated_at || null,
+      life_notes: (client as any).life_notes || null,
+      locale: toClientLocale((client as any).locale),
+      first_impact: toFirstImpact((client as any).first_impact),
+      created_at: client.created_at,
+      updated_at: client.updated_at,
+      seller_name: (() => {
+        const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
+        return Array.isArray(s) ? s[0]?.full_name : s?.full_name
+      })() || 'Unassigned',
+      interests: (interests || []).map(i => ({
+        ...i,
+        domain: 'fashion' as 'fashion' | 'life',
+      })),
+      contact_history: (contacts || []).map(c => {
+        const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
+        const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
+        return {
+          id: c.id,
+          date: c.contact_date,
+          channel: c.channel as ContactChannel,
+          comment: c.comment,
+          seller: sellerName || 'Unknown',
+        }
+      }),
+      purchase_history: (purchases || []).map(p => ({
+        id: p.id,
+        date: p.purchase_date,
+        amount: p.amount,
+        description: p.description,
+        product_name: (p as any).product_name || null,
+        product_category: (p as any).product_category || null,
+        size: (p as any).size || null,
+        size_type: (p as any).size_type || null,
+        is_gift: (p as any).is_gift || false,
+        gift_recipient: (p as any).gift_recipient || null,
+        source: ((p as any).source || null) as PurchaseSource | null,
+      })),
+      sizing: (sizing || []).map(s => ({
+        id: s.id,
+        category: s.category,
+        size: s.size,
+        fit_preference: s.fit_preference,
+        notes: s.notes,
+      })),
+      known_sizes: ((knownSizes || []) as any[]).map((ks: any) => ({
+        client_id: ks.client_id,
+        category: ks.category,
+        size: ks.size,
+        size_type: ks.size_type,
+        last_product: ks.last_product,
+        last_purchase_date: ks.last_purchase_date,
+      })) as KnownSizeItem[],
+      visit_history: (visits || []).map(v => ({
+        id: v.id,
+        date: v.visit_date,
+        duration_minutes: v.duration_minutes,
+        tried_products: v.tried_products,
+        notes: v.notes,
+        converted: v.converted,
+      })),
+    }
+  } catch (error: any) {
+    // Preserve Next.js navigation errors while handling fetch/runtime failures gracefully.
+    if (error?.digest === 'NEXT_NOT_FOUND' || error?.digest === 'NEXT_REDIRECT') {
+      throw error
+    }
+    console.error('Client detail error:', error)
+    return <div>Error loading client</div>
   }
 
   const canEdit = user.effectiveRole === 'supervisor' || clientData.seller_id === user.id

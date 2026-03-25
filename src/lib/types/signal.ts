@@ -94,7 +94,7 @@ export const NULL_SIGNAL_PRIORITY = 3
 
 // Helper to get signal config with null handling
 export function getSignalConfig(signal: ClientSignal | null): SignalConfig & { isNull: boolean } {
-  if (signal === null) {
+  if (signal === null || !SIGNAL_CONFIG[signal]) {
     return { ...NULL_SIGNAL_CONFIG, isNull: true }
   }
   return { ...SIGNAL_CONFIG[signal], isNull: false }
@@ -102,7 +102,7 @@ export function getSignalConfig(signal: ClientSignal | null): SignalConfig & { i
 
 // Helper to get signal priority with null handling
 export function getSignalPriority(signal: ClientSignal | null): number {
-  if (signal === null) {
+  if (signal === null || !(signal in SIGNAL_PRIORITY)) {
     return NULL_SIGNAL_PRIORITY
   }
   return SIGNAL_PRIORITY[signal]
