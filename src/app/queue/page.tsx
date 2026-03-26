@@ -94,6 +94,7 @@ export default async function QueuePage() {
           totalCount={items.length}
           userRole={user.profile.role}
           currentUserId={user.id}
+          remainingWorkloadCount={isSeller ? items.length : undefined}
         />
       </div>
     </AppShell>

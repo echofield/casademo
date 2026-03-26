@@ -146,6 +146,13 @@ export interface MeetingsListParams {
   status?: MeetingStatus
 }
 
+export interface MeetingBuckets {
+  today: MeetingWithDetails[]
+  tomorrow: MeetingWithDetails[]
+  laterThisWeek: MeetingWithDetails[]
+  missed: MeetingWithDetails[]
+}
+
 // Duration presets in minutes
 export const DURATION_PRESETS = [
   { value: 15, label: '15 min' },
@@ -179,6 +186,12 @@ export function formatTimeRange(startTime: string, endTime: string): string {
   return `${formatTime(start)} – ${formatTime(end)}`
 }
 
+export function formatMeetingOwnerLine(
+  meeting: Pick<MeetingWithDetails, 'seller_name' | 'format'>
+): string {
+  return [meeting.seller_name, MEETING_FORMAT_CONFIG[meeting.format].label].join(' · ')
+}
+
 // Helper to check if meeting is today
 export function isMeetingToday(startTime: string): boolean {
   const meetingDate = new Date(startTime)
@@ -189,6 +202,74 @@ export function isMeetingToday(startTime: string): boolean {
 // Helper to check if meeting is in the future
 export function isMeetingFuture(startTime: string): boolean {
   return new Date(startTime) > new Date()
+}
+
+function startOfDay(date: Date): Date {
+  const value = new Date(date)
+  value.setHours(0, 0, 0, 0)
+  return value
+}
+
+function endOfDay(date: Date): Date {
+  const value = new Date(date)
+  value.setHours(23, 59, 59, 999)
+  return value
+}
+
+function addDays(date: Date, days: number): Date {
+  const value = new Date(date)
+  value.setDate(value.getDate() + days)
+  return value
+}
+
+function sortMeetingsByStartTime(meetings: MeetingWithDetails[], direction: 'asc' | 'desc' = 'asc'): MeetingWithDetails[] {
+  return [...meetings].sort((a, b) => {
+    const diff = new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    return direction === 'asc' ? diff : -diff
+  })
+}
+
+export function groupMeetingsForSurface(
+  meetings: MeetingWithDetails[],
+  referenceDate: Date = new Date()
+): MeetingBuckets {
+  const todayStart = startOfDay(referenceDate)
+  const todayEnd = endOfDay(referenceDate)
+  const tomorrowStart = startOfDay(addDays(referenceDate, 1))
+  const tomorrowEnd = endOfDay(addDays(referenceDate, 1))
+  const weekEnd = getWeekBounds(referenceDate).end
+
+  const activeMeetings = meetings.filter((meeting) => meeting.status !== 'completed' && meeting.status !== 'cancelled')
+
+  const missed = activeMeetings.filter((meeting) => {
+    const meetingStart = new Date(meeting.start_time)
+    return meeting.status === 'no_show' || (meeting.status === 'scheduled' && meetingStart < referenceDate)
+  })
+
+  const today = activeMeetings.filter((meeting) => {
+    if (meeting.status !== 'scheduled') return false
+    const meetingStart = new Date(meeting.start_time)
+    return meetingStart >= referenceDate && meetingStart <= todayEnd
+  })
+
+  const tomorrow = activeMeetings.filter((meeting) => {
+    if (meeting.status !== 'scheduled') return false
+    const meetingStart = new Date(meeting.start_time)
+    return meetingStart >= tomorrowStart && meetingStart <= tomorrowEnd
+  })
+
+  const laterThisWeek = activeMeetings.filter((meeting) => {
+    if (meeting.status !== 'scheduled') return false
+    const meetingStart = new Date(meeting.start_time)
+    return meetingStart > tomorrowEnd && meetingStart <= weekEnd
+  })
+
+  return {
+    today: sortMeetingsByStartTime(today),
+    tomorrow: sortMeetingsByStartTime(tomorrow),
+    laterThisWeek: sortMeetingsByStartTime(laterThisWeek),
+    missed: sortMeetingsByStartTime(missed, 'desc'),
+  }
 }
 
 // ============================================================================

@@ -30,7 +30,7 @@ interface Props {
   }
   userRole?: 'seller' | 'supervisor'
   currentUserId?: string
-  onMarkedDone?: (clientId: string) => void
+  onMarkedDone?: (clientId: string, remainingCount?: number) => void
 }
 
 export function FocusedClientCard({ client, userRole = 'seller', currentUserId, onMarkedDone }: Props) {
@@ -137,15 +137,15 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
       const payload = await res.json().catch(() => ({}))
       if (payload?.already_done) {
         setDoneLocked(true)
-        onMarkedDone?.(client.id)
+        onMarkedDone?.(client.id, payload?.seller_remaining_count)
         toast.success(`${client.first_name} already marked done today`)
         router.refresh()
         return
       }
 
-      // Immediate optimistic removal from queue stack
+      // Reconcile immediately with the server-derived remaining count.
       setDoneLocked(true)
-      onMarkedDone?.(client.id)
+      onMarkedDone?.(client.id, payload?.seller_remaining_count)
       toast.success(`${client.first_name} removed from queue`)
       router.refresh()
     } catch (err) {

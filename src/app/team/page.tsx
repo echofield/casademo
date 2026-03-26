@@ -21,7 +21,7 @@ export default async function TeamPage() {
     { data: allSellers },
     { data: clientsData },
     { data: recentContacts },
-    { data: overdueData },
+    { data: queueData },
   ] = await Promise.all([
     // Active sellers
     supabase
@@ -39,18 +39,19 @@ export default async function TeamPage() {
       .from('contacts')
       .select('seller_id')
       .gte('contact_date', weekAgo.toISOString()),
-    // Overdue clients
+    // Current recontact workload
     supabase
       .from('recontact_queue')
       .select('seller_id, days_overdue')
-      .gt('days_overdue', 0),
   ])
 
   // Build seller stats
   const sellerStats = (allSellers || []).map(seller => {
     const clients = (clientsData || []).filter(c => c.seller_id === seller.id)
     const contacts = (recentContacts || []).filter(c => c.seller_id === seller.id).length
-    const overdueClients = (overdueData || []).filter(c => c.seller_id === seller.id)
+    const workloadClients = (queueData || []).filter(c => c.seller_id === seller.id)
+    const overdueClients = workloadClients.filter(c => (c.days_overdue || 0) > 0)
+    const remainingCount = workloadClients.length
     const overdueCount = overdueClients.length
     const totalSpend = clients.reduce((sum, c) => sum + (c.total_spend || 0), 0)
 
@@ -73,6 +74,7 @@ export default async function TeamPage() {
       id: seller.id,
       name: seller.full_name,
       clientCount: clients.length,
+      remainingCount,
       contactsWeek: contacts,
       overdueCount,
       totalSpend,

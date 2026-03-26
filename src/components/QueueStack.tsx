@@ -33,6 +33,7 @@ interface Props {
   userRole?: 'seller' | 'supervisor'
   currentUserId?: string
   filter?: QueueFilter
+  remainingWorkloadCount?: number
 }
 
 function getClientStatus(daysOverdue: number | null): QueueFilter {
@@ -42,14 +43,26 @@ function getClientStatus(daysOverdue: number | null): QueueFilter {
   return 'upcoming'
 }
 
-export function QueueStack({ clients, overdueCount, totalCount, userRole = 'seller', currentUserId, filter = 'all' }: Props) {
+export function QueueStack({
+  clients,
+  overdueCount,
+  totalCount,
+  userRole = 'seller',
+  currentUserId,
+  filter = 'all',
+  remainingWorkloadCount,
+}: Props) {
   const [queueClients, setQueueClients] = useState(clients)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [liveRemainingCount, setLiveRemainingCount] = useState(
+    remainingWorkloadCount ?? clients.length
+  )
 
   useEffect(() => {
     setQueueClients(clients)
     setCurrentIndex(0)
-  }, [clients])
+    setLiveRemainingCount(remainingWorkloadCount ?? clients.length)
+  }, [clients, remainingWorkloadCount])
 
   const goNext = useCallback(() => {
     if (currentIndex < queueClients.length - 1) {
@@ -89,8 +102,18 @@ export function QueueStack({ clients, overdueCount, totalCount, userRole = 'sell
   const nextClients = queueClients.slice(currentIndex + 1, currentIndex + 4)
   const progressPct = ((currentIndex + 1) / queueClients.length) * 100
   const visibleOverdueCount = queueClients.filter(i => (i.days_overdue ?? 0) > 0).length
+  const isSellerWorkloadView = typeof remainingWorkloadCount === 'number'
+  const headlineCount = isSellerWorkloadView ? liveRemainingCount : queueClients.length
+  const headlineLabel =
+    headlineCount === 1
+      ? isSellerWorkloadView
+        ? 'client left this cycle'
+        : 'client in the queue'
+      : isSellerWorkloadView
+        ? 'clients left this cycle'
+        : 'clients in the queue'
 
-  const handleMarkedDone = (clientId: string) => {
+  const handleMarkedDone = (clientId: string, remainingCount?: number) => {
     setQueueClients((prev) => {
       const idx = prev.findIndex((c) => c.id === clientId)
       if (idx === -1) return prev
@@ -101,6 +124,11 @@ export function QueueStack({ clients, overdueCount, totalCount, userRole = 'sell
         if (current >= next.length) return next.length - 1
         return current
       })
+      setLiveRemainingCount((current) =>
+        typeof remainingCount === 'number'
+          ? remainingCount
+          : Math.max((isSellerWorkloadView ? current : prev.length) - 1, 0)
+      )
       return next
     })
   }
@@ -110,13 +138,16 @@ export function QueueStack({ clients, overdueCount, totalCount, userRole = 'sell
       <p className="label mb-3 text-text-muted">Focus queue</p>
       <div className="mb-6">
         <h1 className="mb-2 font-serif text-3xl tracking-tight text-text md:text-4xl">
-          {visibleOverdueCount > 0 ? (
-            <><span className="text-danger">{visibleOverdueCount}</span> need attention now</>
-          ) : (
-            <>{queueClients.length} in the queue</>
-          )}
+          <span className={isSellerWorkloadView && headlineCount > 0 ? 'text-primary' : 'text-text'}>
+            {headlineCount}
+          </span>{' '}
+          {headlineLabel}
         </h1>
         <p className="body-small text-text-muted">
+          {visibleOverdueCount > 0
+            ? `${visibleOverdueCount} overdue`
+            : 'Everything else is scheduled ahead'}
+          {' · '}
           Client {currentIndex + 1} of {queueClients.length}
           {remaining > 0 && ` . ${remaining} after this`}
         </p>

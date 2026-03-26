@@ -34,8 +34,8 @@ export default async function SellerDetailPage({ params }: PageProps) {
     redirect('/team')
   }
 
-  // Fetch seller's queue clients and recent contact activity
-  const [{ data: queue }, { data: weekContacts }] = await Promise.all([
+  // Fetch seller's live workload, total portfolio, and recent contact activity
+  const [{ data: queue }, { data: weekContacts }, { count: portfolioCount }] = await Promise.all([
     supabase
       .from('recontact_queue')
       .select('*')
@@ -48,6 +48,10 @@ export default async function SellerDetailPage({ params }: PageProps) {
       .gte('contact_date', weekAgo.toISOString())
       .order('contact_date', { ascending: false })
       .limit(50),
+    supabase
+      .from('clients')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', sellerId),
   ])
 
   const items = queue || []
@@ -134,11 +138,15 @@ export default async function SellerDetailPage({ params }: PageProps) {
           <h1 className="font-serif text-3xl text-text mb-2">{seller.full_name}</h1>
           <div className="flex flex-wrap gap-6 text-sm">
             <div>
-              <span className="text-text-muted">Clients</span>
+              <span className="text-text-muted">Remaining</span>
               <span className="ml-2 text-text font-medium">{items.length}</span>
             </div>
             <div>
               <span className="text-text-muted">Portfolio</span>
+              <span className="ml-2 text-text font-medium">{portfolioCount || 0}</span>
+            </div>
+            <div>
+              <span className="text-text-muted">Value</span>
               <span className="ml-2 text-text font-medium">{formatCurrency(totalSpend)}</span>
             </div>
             {overdueCount > 0 && (
@@ -162,6 +170,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
             totalCount={items.length}
             userRole={user.profile.role}
             currentUserId={user.id}
+            remainingWorkloadCount={items.length}
           />
         )}
 

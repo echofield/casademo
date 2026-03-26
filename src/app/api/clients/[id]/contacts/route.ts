@@ -47,6 +47,15 @@ export async function POST(
       parsed.data.channel === 'other' &&
       (parsed.data.comment || '').trim().toLowerCase() === 'follow-up completed'
 
+    const getSellerRemainingCount = async () => {
+      const { count } = await supabase
+        .from('recontact_queue')
+        .select('id', { count: 'exact', head: true })
+        .eq('seller_id', client.seller_id)
+
+      return count || 0
+    }
+
     // Idempotency for "Mark as done": one completion log per seller/client/day.
     if (isMarkDone) {
       const now = new Date()
@@ -74,8 +83,15 @@ export async function POST(
           .eq('id', client_id)
           .single()
 
+        const seller_remaining_count = await getSellerRemainingCount()
+
         return NextResponse.json(
-          { already_done: true, client: updatedClient },
+          {
+            already_done: true,
+            client: updatedClient,
+            seller_id: client.seller_id,
+            seller_remaining_count,
+          },
           { status: 200 }
         )
       }
@@ -127,7 +143,17 @@ export async function POST(
       .eq('id', client_id)
       .single()
 
-    return NextResponse.json({ contact: data, client: updatedClient }, { status: 201 })
+    const seller_remaining_count = await getSellerRemainingCount()
+
+    return NextResponse.json(
+      {
+        contact: data,
+        client: updatedClient,
+        seller_id: client.seller_id,
+        seller_remaining_count,
+      },
+      { status: 201 }
+    )
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status })

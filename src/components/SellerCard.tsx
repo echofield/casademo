@@ -6,6 +6,7 @@ interface Props {
     id: string
     name: string
     clientCount: number
+    remainingCount: number
     contactsWeek: number
     overdueCount: number
     totalSpend: number
@@ -47,11 +48,11 @@ export function SellerCard({ seller, tierOrder }: Props) {
 
       {/* Client count */}
       <p className="text-sm text-text-muted mb-6">
-        {seller.clientCount} clients
+        {seller.remainingCount} left this cycle · {seller.clientCount} in portfolio
       </p>
 
       {/* Stats row */}
-      <div className="flex gap-8 mb-6">
+      <div className="grid grid-cols-2 gap-6 mb-6 sm:grid-cols-4">
         <div>
           <p className="text-[11px] tracking-wider text-text-muted uppercase mb-1">Revenue</p>
           <p
@@ -60,6 +61,10 @@ export function SellerCard({ seller, tierOrder }: Props) {
           >
             {formatCurrency(seller.totalSpend)}
           </p>
+        </div>
+        <div>
+          <p className="text-[11px] tracking-wider text-text-muted uppercase mb-1">Remaining</p>
+          <p className="font-serif text-lg text-text">{seller.remainingCount}</p>
         </div>
         <div>
           <p className="text-[11px] tracking-wider text-text-muted uppercase mb-1">Contacts</p>

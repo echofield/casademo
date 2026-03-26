@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { Calendar, Plus, Store, MapPin, Phone, Video, MessageCircle } from 'lucide-react'
 import {
   MeetingWithDetails,
-  MEETING_FORMAT_CONFIG,
   MEETING_STATUS_CONFIG,
+  formatMeetingOwnerLine,
   formatTimeRange,
 } from '@/lib/types/meetings'
 
@@ -95,33 +95,35 @@ export function TodayMeetings() {
       ) : (
         <div className="space-y-3">
           {meetings.map(meeting => {
-            const formatConfig = MEETING_FORMAT_CONFIG[meeting.format]
             const statusConfig = MEETING_STATUS_CONFIG[meeting.status]
             const timeRange = formatTimeRange(meeting.start_time, meeting.end_time)
+            const primaryLine = `${timeRange} — ${meeting.client_name || meeting.title}`
+            const secondaryLine = formatMeetingOwnerLine(meeting)
 
             return (
               <div
                 key={meeting.id}
-                className="flex items-center gap-3 py-3 border-b last:border-b-0"
+                className="flex items-start gap-3 py-3 border-b last:border-b-0"
                 style={cardBorder}
               >
                 <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
-                <span className="text-sm font-medium text-text w-24">{timeRange}</span>
-                <span className={`px-2 py-0.5 text-xs rounded-full flex items-center gap-1 ${formatConfig.bgColor} ${formatConfig.textColor}`}>
-                  {(() => { const Icon = FORMAT_ICONS[formatConfig.iconType]; return <Icon size={12} strokeWidth={1.5} />; })()}
-                  {formatConfig.label}
-                </span>
                 <div className="flex-1 min-w-0">
                   {meeting.client_name ? (
                     <Link
                       href={`/clients/${meeting.client_id}`}
-                      className="text-sm text-text hover:text-primary truncate block"
+                      className="text-sm font-medium text-text hover:text-primary truncate block"
                     >
-                      {meeting.client_name}
+                      {primaryLine}
                     </Link>
                   ) : (
-                    <span className="text-sm text-text-muted">{meeting.title}</span>
+                    <span className="text-sm font-medium text-text truncate block">{primaryLine}</span>
                   )}
+                  <div className="mt-1 flex items-center gap-2 text-xs text-text-muted">
+                    <span className="truncate">{secondaryLine}</span>
+                    <span className="shrink-0 inline-flex items-center gap-1">
+                      {(() => { const Icon = FORMAT_ICONS[meeting.format === 'external' ? 'pin' : meeting.format === 'boutique' ? 'store' : meeting.format === 'call' ? 'phone' : meeting.format === 'video' ? 'video' : 'message']; return <Icon size={11} strokeWidth={1.5} />; })()}
+                    </span>
+                  </div>
                 </div>
               </div>
             )

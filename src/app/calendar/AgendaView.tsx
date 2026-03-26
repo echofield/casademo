@@ -1,6 +1,6 @@
 'use client'
 
-import { MeetingWithDetails, isMeetingToday } from '@/lib/types/meetings'
+import { MeetingWithDetails, groupMeetingsForSurface } from '@/lib/types/meetings'
 import { MeetingCard } from './MeetingCard'
 
 interface AgendaViewProps {
@@ -8,87 +8,89 @@ interface AgendaViewProps {
   onAction?: (action: 'complete' | 'no_show' | 'cancel' | 'edit', meeting: MeetingWithDetails) => void
 }
 
-interface GroupedMeetings {
-  label: string
-  date: string
-  meetings: MeetingWithDetails[]
-  isToday: boolean
-}
-
 export function AgendaView({ meetings, onAction }: AgendaViewProps) {
-  // Group meetings by date
-  const groupedMeetings = meetings.reduce<Map<string, MeetingWithDetails[]>>((acc, meeting) => {
-    const date = new Date(meeting.start_time).toDateString()
-    if (!acc.has(date)) {
-      acc.set(date, [])
-    }
-    acc.get(date)!.push(meeting)
-    return acc
-  }, new Map())
+  const buckets = groupMeetingsForSurface(meetings)
+  const sections = [
+    {
+      id: 'today',
+      title: 'Today',
+      meetings: buckets.today,
+      tone: 'default' as const,
+      subtitle: 'What is next',
+    },
+    {
+      id: 'tomorrow',
+      title: 'Tomorrow',
+      meetings: buckets.tomorrow,
+      tone: 'default' as const,
+      subtitle: 'What is coming next',
+    },
+    {
+      id: 'later',
+      title: 'Later this week',
+      meetings: buckets.laterThisWeek,
+      tone: 'default' as const,
+      subtitle: 'Upcoming',
+    },
+    {
+      id: 'missed',
+      title: 'Missed / To reschedule',
+      meetings: buckets.missed,
+      tone: 'urgent' as const,
+      subtitle: 'Needs attention',
+    },
+  ].filter((section) => section.meetings.length > 0)
 
-  // Convert to array with labels
-  const groups: GroupedMeetings[] = Array.from(groupedMeetings.entries()).map(([dateStr, meetings]) => {
-    const date = new Date(dateStr)
-    const today = new Date()
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    let label: string
-    if (date.toDateString() === today.toDateString()) {
-      label = 'Today'
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      label = 'Tomorrow'
-    } else {
-      label = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-      })
-    }
-
-    return {
-      label,
-      date: dateStr,
-      meetings,
-      isToday: date.toDateString() === today.toDateString(),
-    }
-  })
-
-  if (meetings.length === 0) {
+  if (sections.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="font-serif text-2xl text-text mb-2">No meetings</p>
-        <p className="text-text-muted">No meetings this week.</p>
+      <div
+        className="border bg-surface px-6 py-12"
+        style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+      >
+        <p className="font-serif text-2xl text-text">No meetings.</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-8">
-      {groups.map((group) => (
-        <div key={group.date}>
-          <h2
-            className={`text-sm font-medium uppercase tracking-wide mb-4 ${
-              group.isToday ? 'text-primary' : 'text-text-muted'
-            }`}
+      {sections.map((section) => {
+        const isUrgent = section.tone === 'urgent'
+        return (
+          <section
+            key={section.id}
+            className={isUrgent ? 'border px-5 py-5 md:px-6' : ''}
+            style={isUrgent ? {
+              borderColor: 'rgba(195, 71, 71, 0.18)',
+              backgroundColor: 'rgba(195, 71, 71, 0.03)',
+            } : undefined}
           >
-            {group.label}
-            <span className="ml-2 text-text-muted font-normal">
-              ({group.meetings.length})
-            </span>
-          </h2>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <p className={`text-[11px] uppercase tracking-[0.18em] ${isUrgent ? 'text-danger' : 'text-text-muted'}`}>
+                  {section.subtitle}
+                </p>
+                <h2 className="mt-2 font-serif text-2xl text-text">
+                  {section.title}
+                </h2>
+              </div>
+              <span className={`text-xs uppercase tracking-[0.16em] ${isUrgent ? 'text-danger' : 'text-text-muted'}`}>
+                {section.meetings.length}
+              </span>
+            </div>
 
-          <div className="space-y-3">
-            {group.meetings.map((meeting) => (
+            <div className="space-y-3">
+              {section.meetings.map((meeting) => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}
                 onAction={onAction}
               />
-            ))}
-          </div>
-        </div>
-      ))}
+              ))}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }

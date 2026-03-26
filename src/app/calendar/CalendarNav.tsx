@@ -7,8 +7,8 @@ interface CalendarNavProps {
   onPrevWeek: () => void
   onNextWeek: () => void
   onToday: () => void
-  view: 'agenda' | 'week' | 'team'
-  onViewChange: (view: 'agenda' | 'week' | 'team') => void
+  view: 'list' | 'week' | 'team'
+  onViewChange: (view: 'list' | 'week' | 'team') => void
   showTeamView?: boolean
 }
 
@@ -36,47 +36,54 @@ export function CalendarNav({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-      {/* Week navigation */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onPrevWeek}
-          className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
-          aria-label="Previous week"
-        >
-          <ChevronLeft className="w-5 h-5 text-text" />
-        </button>
+      {view === 'list' ? (
+        <div>
+          <span className="text-xs uppercase tracking-[0.18em] text-text-muted">
+            Meeting view
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onPrevWeek}
+            className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
+            aria-label="Previous week"
+          >
+            <ChevronLeft className="w-5 h-5 text-text" />
+          </button>
 
-        <button
-          onClick={onToday}
-          className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted border border-[#003D2B]/20 hover:bg-[#003D2B]/5 transition-colors"
-        >
-          Today
-        </button>
+          <button
+            onClick={onToday}
+            className="px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted border border-[#003D2B]/20 hover:bg-[#003D2B]/5 transition-colors"
+          >
+            Today
+          </button>
 
-        <button
-          onClick={onNextWeek}
-          className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
-          aria-label="Next week"
-        >
-          <ChevronRight className="w-5 h-5 text-text" />
-        </button>
+          <button
+            onClick={onNextWeek}
+            className="p-2 hover:bg-[#003D2B]/5 rounded transition-colors"
+            aria-label="Next week"
+          >
+            <ChevronRight className="w-5 h-5 text-text" />
+          </button>
 
-        <span className="ml-2 font-serif text-lg text-text">
-          {formatRange()}
-        </span>
-      </div>
+          <span className="ml-2 font-serif text-lg text-text">
+            {formatRange()}
+          </span>
+        </div>
+      )}
 
       {/* View toggle */}
       <div className="flex border border-[#003D2B]/20 divide-x divide-[#003D2B]/20">
         <button
-          onClick={() => onViewChange('agenda')}
+          onClick={() => onViewChange('list')}
           className={`px-4 py-2 text-xs font-medium uppercase tracking-wide transition-colors ${
-            view === 'agenda'
+            view === 'list'
               ? 'bg-[#003D2B] text-white'
               : 'text-text-muted hover:bg-[#003D2B]/5'
           }`}
         >
-          Agenda
+          List
         </button>
         <button
           onClick={() => onViewChange('week')}
