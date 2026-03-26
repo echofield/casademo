@@ -63,7 +63,9 @@ export function SellerCard({ seller, tierOrder }: Props) {
         </div>
         <div>
           <p className="text-[11px] tracking-wider text-text-muted uppercase mb-1">Contacts</p>
-          <p className="text-sm text-text">{seller.contactsWeek} this week</p>
+          <Link href={`/team/${seller.id}#contacts-week`} className="text-sm text-text hover:text-primary transition-colors">
+            {seller.contactsWeek} this week
+          </Link>
         </div>
         <div>
           <p className="text-[11px] tracking-wider text-text-muted uppercase mb-1">Up to date</p>

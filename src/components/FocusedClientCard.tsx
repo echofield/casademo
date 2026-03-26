@@ -30,10 +30,10 @@ interface Props {
   }
   userRole?: 'seller' | 'supervisor'
   currentUserId?: string
-  onNext?: () => void
+  onMarkedDone?: (clientId: string) => void
 }
 
-export function FocusedClientCard({ client, userRole = 'seller', currentUserId }: Props) {
+export function FocusedClientCard({ client, userRole = 'seller', currentUserId, onMarkedDone }: Props) {
   const router = useRouter()
   const isOverdue = (client.days_overdue ?? 0) > 0
   const isPremium = ['grand_prix', 'diplomatico'].includes(client.tier)
@@ -75,6 +75,8 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
 
   const [notifying, setNotifying] = useState(false)
   const [notified, setNotified] = useState(false)
+  const [markingDone, setMarkingDone] = useState(false)
+  const [doneLocked, setDoneLocked] = useState(false)
 
   const handleNotifySeller = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -109,6 +111,48 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
       toast.error('Failed to send reminder')
     } finally {
       setNotifying(false)
+    }
+  }
+
+  const handleMarkDone = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (markingDone) return
+    setMarkingDone(true)
+
+    try {
+      const res = await fetch(`/api/clients/${client.id}/contacts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: 'other',
+          comment: 'Follow-up completed',
+        }),
+      })
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j.error || 'Failed to mark as done')
+      }
+
+      const payload = await res.json().catch(() => ({}))
+      if (payload?.already_done) {
+        setDoneLocked(true)
+        onMarkedDone?.(client.id)
+        toast.success(`${client.first_name} already marked done today`)
+        router.refresh()
+        return
+      }
+
+      // Immediate optimistic removal from queue stack
+      setDoneLocked(true)
+      onMarkedDone?.(client.id)
+      toast.success(`${client.first_name} removed from queue`)
+      router.refresh()
+    } catch (err) {
+      console.error('Failed to mark done:', err)
+      toast.error('Could not mark as done')
+    } finally {
+      setMarkingDone(false)
     }
   }
 
@@ -242,6 +286,17 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId }
           >
             Full profile
           </Link>
+          {(isOwnClient || !isSupervisor) && (
+            <button
+              type="button"
+              onClick={handleMarkDone}
+              disabled={markingDone || doneLocked}
+              className="flex items-center justify-center border px-6 py-4 text-xs font-medium uppercase tracking-[0.12em] text-primary transition-all duration-200 hover:border-primary hover:bg-primary/5 active:scale-[0.98] disabled:opacity-50"
+              style={{ borderColor: 'rgba(27, 67, 50, 0.28)' }}
+            >
+              {doneLocked ? 'Done' : markingDone ? 'Marking...' : 'Mark as done'}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -13,8 +13,10 @@ interface MarkDoneButtonProps {
 export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [doneLocked, setDoneLocked] = useState(false)
 
   const handleMarkDone = async () => {
+    if (doneLocked) return
     setLoading(true)
     try {
       const res = await fetch(`/api/clients/${clientId}/contacts`, {
@@ -30,7 +32,9 @@ export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
         throw new Error('Failed to mark as done')
       }
 
-      toast.success(`Follow-up done for ${clientName}`)
+      const payload = await res.json().catch(() => ({}))
+      setDoneLocked(true)
+      toast.success(payload?.already_done ? `${clientName} already marked done today` : `Follow-up done for ${clientName}`)
       router.refresh()
     } catch (err) {
       toast.error('Could not mark as done')
@@ -42,11 +46,11 @@ export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
   return (
     <button
       onClick={handleMarkDone}
-      disabled={loading}
+      disabled={loading || doneLocked}
       className="mt-4 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
     >
       <Check className="h-4 w-4" />
-      {loading ? 'Marking...' : 'Mark as done'}
+      {doneLocked ? 'Done' : loading ? 'Marking...' : 'Mark as done'}
     </button>
   )
 }

@@ -412,7 +412,12 @@ export default async function DashboardPage() {
                               size="sm"
                               color="#1B4332"
                             />
-                            <span className="text-xs text-text-muted">{contacts} contacts</span>
+                            <Link
+                              href={`/team/${seller.id}#contacts-week`}
+                              className="text-xs text-text-muted hover:text-primary transition-colors"
+                            >
+                              {contacts} contacts
+                            </Link>
                           </div>
                         </div>
                       </div>

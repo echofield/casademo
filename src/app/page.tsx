@@ -56,6 +56,12 @@ export default async function HomePage() {
 
   // Process seller stats if available
   let sellerStats = null
+  let recentContacts: Array<{
+    id: string
+    contact_date: string
+    channel: string
+    client: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null
+  }> = []
   if (isSeller && sellerResults.length === 2) {
     const clientsResult = sellerResults[0] as { data: { id: string; total_spend: number; tier: string }[] | null }
     const contactsResult = sellerResults[1] as { count: number | null }
@@ -78,6 +84,16 @@ export default async function HomePage() {
       contactsThisWeek,
       tierCounts,
     }
+  }
+
+  if (isSeller) {
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, contact_date, channel, client:clients(id, first_name, last_name)')
+      .eq('seller_id', user.id)
+      .order('contact_date', { ascending: false })
+      .limit(5)
+    recentContacts = (data || []) as any
   }
 
   return (
@@ -160,6 +176,32 @@ export default async function HomePage() {
 
         {/* Today's Meetings */}
         <TodayMeetings />
+
+        {isSeller && (
+          <div
+            className="mb-10 border bg-surface p-6 md:p-8"
+            style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+          >
+            <p className="label mb-4 text-text-muted">Recent activity</p>
+            {recentContacts.length === 0 ? (
+              <p className="text-sm text-text-muted">No recent contacts logged.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentContacts.map((contact) => {
+                  const client = Array.isArray(contact.client) ? contact.client[0] : contact.client
+                  const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ')
+                  const contactDate = new Date(contact.contact_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  const channel = contact.channel.replace('_', ' ')
+                  return (
+                    <Link key={contact.id} href={client?.id ? `/clients/${client.id}` : '/clients'} className="block text-sm text-text-muted hover:text-text transition-colors">
+                      {clientName || 'Client'} · {contactDate} · {channel}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <div
           className="mb-12 border bg-surface p-6 md:p-8"

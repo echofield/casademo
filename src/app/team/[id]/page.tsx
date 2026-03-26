@@ -20,6 +20,8 @@ export default async function SellerDetailPage({ params }: PageProps) {
 
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
 
   // Fetch the seller profile
   const { data: seller } = await supabase
@@ -32,12 +34,21 @@ export default async function SellerDetailPage({ params }: PageProps) {
     redirect('/team')
   }
 
-  // Fetch seller's clients from recontact queue view (sorted by urgency)
-  const { data: queue } = await supabase
-    .from('recontact_queue')
-    .select('*')
-    .eq('seller_id', sellerId)
-    .limit(100)
+  // Fetch seller's queue clients and recent contact activity
+  const [{ data: queue }, { data: weekContacts }] = await Promise.all([
+    supabase
+      .from('recontact_queue')
+      .select('*')
+      .eq('seller_id', sellerId)
+      .limit(100),
+    supabase
+      .from('contacts')
+      .select('id, contact_date, channel, client:clients(first_name, last_name)')
+      .eq('seller_id', sellerId)
+      .gte('contact_date', weekAgo.toISOString())
+      .order('contact_date', { ascending: false })
+      .limit(50),
+  ])
 
   const items = queue || []
 
@@ -104,6 +115,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
   }
 
   const cardBorder = { borderColor: 'rgba(28, 27, 25, 0.08)' }
+  const channelLabel = (value: string) => value.replace('_', ' ')
 
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
@@ -152,6 +164,33 @@ export default async function SellerDetailPage({ params }: PageProps) {
             currentUserId={user.id}
           />
         )}
+
+        <div id="contacts-week" className="mt-8 border bg-surface p-6" style={cardBorder}>
+          <h2 className="font-serif text-xl text-text mb-2">Contacts this week</h2>
+          {!(weekContacts && weekContacts.length > 0) ? (
+            <p className="text-sm text-text-muted">No contacts logged in the last 7 days.</p>
+          ) : (
+            <div className="space-y-2">
+              {weekContacts.map((contact) => {
+                const client = (Array.isArray(contact.client) ? contact.client[0] : contact.client) as { id?: string; first_name?: string; last_name?: string } | null
+                const fullName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || 'Client'
+                return (
+                  <div key={contact.id} className="text-sm text-text-muted">
+                    <Link href={client?.id ? `/clients/${client.id}` : '/clients'} className="hover:text-text transition-colors">
+                      {fullName}
+                    </Link>
+                    {' · '}
+                    {new Date(contact.contact_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {' · '}
+                    {channelLabel(contact.channel)}
+                    {' · '}
+                    {seller.full_name}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </AppShell>
   )
