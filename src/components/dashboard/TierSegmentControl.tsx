@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { TierBadge, CornerBrackets } from '@/components'
-import { TIER_ORDER, TIER_THRESHOLDS, TIER_LABELS, type ClientTier } from '@/lib/types'
-import { HealthBar } from './HealthBar'
+import { TIER_ORDER, TIER_LABELS, type ClientTier } from '@/lib/types'
+import { HealthBar } from './ComplexionDots'
 import { TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
@@ -65,7 +65,6 @@ export function TierSegmentControl({ clientsByTier, sellers }: Props) {
           {TIER_ORDER.map((tier) => {
             const count = clientsByTier[tier]
             const isActive = activeTier === tier
-            const isHovered = hoveredTier === tier
             const isDimmed = activeTier !== null && !isActive
 
             return (
