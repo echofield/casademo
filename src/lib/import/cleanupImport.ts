@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ClientTier } from '@/lib/types'
-import { TIER_RECONTACT_DAYS } from '@/lib/types'
 
 export const CASABLANCA_IMPORT_TAG = '[import:casablanca-cleanup]'
 export const NO_CONTACT_TAG = '[no-contact]'
@@ -139,7 +138,6 @@ export interface PreparedImportRow {
   tierHint: ClientTier | null
   first_contact_date: string | null
   last_contact_date: string | null
-  next_recontact_date: string | null
   interests: Array<{ category: string; value: string }>
   notes: string | null
   purchaseDescription: string | null
@@ -224,8 +222,6 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
   const tierHint = parseTier(findColumn(row, 'tier'))
   const firstD = parseDate(findColumn(row, 'first_contact_date'))
   const lastD = parseDate(findColumn(row, 'last_contact_date'))
-  const intervalDays = tierHint ? TIER_RECONTACT_DAYS[tierHint] : 45
-  const nextR = addDaysIso(lastD, intervalDays)
 
   const userNotes = findColumn(row, 'notes')
   const notes = userNotes ? userNotes.trim() : null
@@ -248,7 +244,6 @@ export function prepareRowFromCsv(row: CsvRow, rowNum: number): PrepareRowResult
       tierHint,
       first_contact_date: firstD,
       last_contact_date: lastD,
-      next_recontact_date: nextR,
       interests: parseInterests(findColumn(row, 'interests')),
       notes,
       purchaseDescription,
@@ -302,8 +297,8 @@ export async function importPreparedRow(
       seller_id: sellerId,
       first_contact_date: prepared.first_contact_date,
       last_contact_date: prepared.last_contact_date,
-      next_recontact_date: prepared.next_recontact_date,
       notes: prepared.notes,
+      // next_recontact_date is calculated by Postgres trigger using get_recontact_days()
     })
     .select()
     .single()

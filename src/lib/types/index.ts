@@ -16,7 +16,8 @@ export const TIER_THRESHOLDS: Record<ClientTier, number> = {
   grand_prix: 25000,
 }
 
-export const TIER_RECONTACT_DAYS: Record<ClientTier, number> = {
+// Display only — actual calculation is in Postgres get_recontact_days()
+export const TIER_RECONTACT_DAYS_DISPLAY: Record<ClientTier, number> = {
   rainbow: 60,
   optimisto: 45,
   kaizen: 30,
@@ -68,37 +69,13 @@ export const LOCALE_RECONTACT_MULTIPLIER: Record<ClientLocale, number> = {
   foreign: 2,
 }
 
-// Signal-aware recontact multiplier
-// Locked (very_hot) = more frequent, Off (lost) = less frequent
-export const SIGNAL_RECONTACT_MULTIPLIER: Record<string, number> = {
+// Signal-aware recontact multiplier (display reference only — actual calculation in Postgres)
+export const SIGNAL_RECONTACT_MULTIPLIER_DISPLAY: Record<string, number> = {
   very_hot: 0.5,  // Locked: 2x frequency
   hot: 1.0,       // Strong: normal
   warm: 1.0,      // Open: normal
   cold: 1.5,      // Low: slower
   lost: 3.0,      // Off: much slower
-}
-
-// Calculate recontact days from tier + signal + locale
-export function getRecontactDays(
-  tier: ClientTier,
-  signal?: string | null,
-  locale?: ClientLocale | null
-): number {
-  let baseDays = TIER_RECONTACT_DAYS[tier]
-  let multiplier = 1.0
-
-  // Apply locale multiplier
-  if (locale && LOCALE_RECONTACT_MULTIPLIER[locale]) {
-    multiplier *= LOCALE_RECONTACT_MULTIPLIER[locale]
-  }
-
-  // Apply signal multiplier
-  if (signal && SIGNAL_RECONTACT_MULTIPLIER[signal]) {
-    multiplier *= SIGNAL_RECONTACT_MULTIPLIER[signal]
-  }
-
-  // Minimum 3 days
-  return Math.max(3, Math.round(baseDays * multiplier))
 }
 
 // Table types

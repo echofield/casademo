@@ -27,7 +27,7 @@ export default async function HomePage() {
   // Apply seller filter if needed
   const filteredQueueQuery = isSeller ? queueQuery.eq('seller_id', user.id) : queueQuery
 
-  // Seller stats queries (only run if seller)
+  // Seller stats queries (only run if seller) - all run in parallel
   const sellerStatsPromises = isSeller ? [
     supabase
       .from('clients')
@@ -38,6 +38,12 @@ export default async function HomePage() {
       .select('id', { count: 'exact', head: true })
       .eq('seller_id', user.id)
       .gte('contact_date', weekAgo.toISOString()),
+    supabase
+      .from('contacts')
+      .select('id, contact_date, channel, client:clients(id, first_name, last_name)')
+      .eq('seller_id', user.id)
+      .order('contact_date', { ascending: false })
+      .limit(5),
   ] : []
 
   // Run all queries in parallel
@@ -62,11 +68,13 @@ export default async function HomePage() {
     channel: string
     client: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null
   }> = []
-  if (isSeller && sellerResults.length === 2) {
+  if (isSeller && sellerResults.length === 3) {
     const clientsResult = sellerResults[0] as { data: { id: string; total_spend: number; tier: string }[] | null }
     const contactsResult = sellerResults[1] as { count: number | null }
+    const recentContactsResult = sellerResults[2] as { data: typeof recentContacts | null }
     const myClients = clientsResult.data || []
     const contactsThisWeek = contactsResult.count || 0
+    recentContacts = (recentContactsResult.data || []) as any
 
     // Calculate tier breakdown
     const tierCounts: Record<ClientTier, number> = {
@@ -85,16 +93,6 @@ export default async function HomePage() {
       contactsThisWeek,
       tierCounts,
     }
-  }
-
-  if (isSeller) {
-    const { data } = await supabase
-      .from('contacts')
-      .select('id, contact_date, channel, client:clients(id, first_name, last_name)')
-      .eq('seller_id', user.id)
-      .order('contact_date', { ascending: false })
-      .limit(5)
-    recentContacts = (data || []) as any
   }
 
   return (
