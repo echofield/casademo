@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { AppShell, SellerCard } from '@/components'
 import { ClientTier, TIER_ORDER } from '@/lib/types'
 
@@ -22,6 +23,7 @@ export default async function TeamPage() {
     { data: clientsData },
     { data: recentContacts },
     { data: overdueData },
+    { data: contactsFeed },
   ] = await Promise.all([
     // Active sellers
     supabase
@@ -44,6 +46,13 @@ export default async function TeamPage() {
       .from('recontact_queue')
       .select('seller_id, days_overdue')
       .gt('days_overdue', 0),
+    // Detailed contacts this week for supervisor visibility
+    supabase
+      .from('contacts')
+      .select('id, seller_id, contact_date, channel, client:clients(id, first_name, last_name), seller:profiles(full_name)')
+      .gte('contact_date', weekAgo.toISOString())
+      .order('contact_date', { ascending: false })
+      .limit(200),
   ])
 
   // Build seller stats
@@ -107,6 +116,43 @@ export default async function TeamPage() {
             ))}
           </div>
         )}
+
+        <div
+          id="contacts-week-all"
+          className="mt-8 border bg-white p-6"
+          style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+        >
+          <h2 className="font-serif text-2xl text-text mb-2">Contacts this week</h2>
+          <p className="text-text-muted text-sm mb-4">Who contacted whom, with channel and date.</p>
+          {!(contactsFeed && contactsFeed.length > 0) ? (
+            <p className="text-sm text-text-muted">No contacts logged this week.</p>
+          ) : (
+            <div className="space-y-2">
+              {contactsFeed.map((row: any) => {
+                const client = Array.isArray(row.client) ? row.client[0] : row.client
+                const seller = Array.isArray(row.seller) ? row.seller[0] : row.seller
+                const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || 'Client'
+                const dateLabel = new Date(row.contact_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                const channelLabel = String(row.channel || '').replace('_', ' ')
+                return (
+                  <div key={row.id} className="text-sm text-text-muted">
+                    <Link href={client?.id ? `/clients/${client.id}` : '/clients'} className="hover:text-text transition-colors">
+                      {clientName}
+                    </Link>
+                    {' · '}
+                    {dateLabel}
+                    {' · '}
+                    {channelLabel}
+                    {' · '}
+                    <Link href={row.seller_id ? `/team/${row.seller_id}#contacts-week` : '/team'} className="hover:text-text transition-colors">
+                      {seller?.full_name || 'Seller'}
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </AppShell>
   )

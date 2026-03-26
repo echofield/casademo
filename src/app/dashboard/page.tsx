@@ -306,6 +306,7 @@ export default async function DashboardPage() {
                   value={contactsWeek}
                   icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
                   subtext={contactsWeek > 0 ? `~${(contactsWeek / 7).toFixed(1)}/day` : 'No activity yet'}
+                  href="/team#contacts-week-all"
                 />
                 <StatPill
                   label="Overdue"
@@ -460,12 +461,14 @@ function StatPill({
   value,
   icon,
   subtext,
+  href,
   variant = 'neutral',
 }: {
   label: string
   value: string | number
   icon?: React.ReactNode
   subtext?: string
+  href?: string
   variant?: 'neutral' | 'good' | 'caution' | 'warning'
 }) {
   const colors = {
@@ -475,7 +478,7 @@ function StatPill({
     warning: { text: 'var(--danger)', bg: 'rgba(195, 71, 71, 0.06)' },
   }
 
-  return (
+  const content = (
     <div
       className="p-4"
       style={{
@@ -498,4 +501,14 @@ function StatPill({
       )}
     </div>
   )
+
+  if (href) {
+    return (
+      <Link href={href} className="block transition-opacity hover:opacity-90">
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
