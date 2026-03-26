@@ -85,6 +85,7 @@ export default async function ClientsPage({ searchParams }: Props) {
   const clients = clientsResult.data
   const count = clientsResult.count
   const sellers = (sellersResult.data || []) as { id: string; full_name: string }[]
+  const sellerNameById = new Map(sellers.map((s) => [s.id, s.full_name]))
 
   const totalPages = Math.ceil((count || 0) / limit)
 
@@ -157,7 +158,7 @@ export default async function ClientsPage({ searchParams }: Props) {
                 spendLabel={formatCurrency(client.total_spend)}
                 lastContactLabel={formatDate(client.last_contact_date)}
                 nextRecontactLabel={formatDate(client.next_recontact_date)}
-                sellerName={(client as any).seller?.full_name || null}
+                sellerName={(client as any).seller?.full_name || sellerNameById.get((client as any).seller_id) || null}
               />
             ))}
           </div>

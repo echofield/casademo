@@ -46,6 +46,8 @@ export function ClientGridCard({
 }: ClientGridCardProps) {
   const isHighValue = HIGH_VALUE.includes(client.tier)
   const tierColor = TIER_COLORS[client.tier]
+  const assignedSellerLabel = sellerName?.trim() || 'None assigned'
+  const isAssigned = Boolean(sellerName?.trim())
 
   return (
     <Link
@@ -55,9 +57,22 @@ export function ClientGridCard({
     >
       {/* Header: Name + Tier */}
       <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="font-serif text-2xl text-text leading-tight">
-          {client.first_name} {client.last_name}
-        </h2>
+        <div>
+          <h2 className="font-serif text-2xl text-text leading-tight">
+            {client.first_name} {client.last_name}
+          </h2>
+          <span
+            className="inline-flex mt-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.08em]"
+            style={{
+              color: isAssigned ? 'var(--green)' : 'var(--ink-soft)',
+              backgroundColor: isAssigned ? 'rgba(27, 67, 50, 0.08)' : 'rgba(28, 27, 25, 0.04)',
+              border: isAssigned ? '0.5px solid rgba(27, 67, 50, 0.25)' : '0.5px solid rgba(28, 27, 25, 0.12)',
+              borderRadius: '9999px',
+            }}
+          >
+            {assignedSellerLabel}
+          </span>
+        </div>
         <span
           className="text-xs tracking-wider font-medium shrink-0 mt-1"
           style={{ color: tierColor }}
@@ -66,19 +81,14 @@ export function ClientGridCard({
         </span>
       </div>
 
-      {/* Phone + Seller */}
+      {/* Phone */}
       <div className="mb-6">
         {client.phone && (
           <p className="text-sm text-text-muted">
             {client.phone}
           </p>
         )}
-        {sellerName && (
-          <p className="text-[11px] tracking-wide text-text-muted/70 mt-1">
-            {sellerName}
-          </p>
-        )}
-        {!client.phone && !sellerName && <div />}
+        {!client.phone && <div />}
       </div>
 
       {/* Stats row */}

@@ -76,6 +76,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { seller_id: bodySellerId, ...clientFields } = parsed.data
+    const normalizedClientFields = { ...clientFields } as Record<string, unknown>
+    if (typeof normalizedClientFields.notes === 'string' && normalizedClientFields.notes.trim() === '') {
+      normalizedClientFields.notes = null
+    }
     let seller_id = user.id
 
     if (bodySellerId) {
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('clients')
       .insert({
-        ...clientFields,
+        ...normalizedClientFields,
         seller_id,
       } as any)
       .select()

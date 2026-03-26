@@ -92,6 +92,10 @@ export async function PATCH(
       Object.entries(parsed.data).filter(([, v]) => v !== undefined)
     ) as Record<string, unknown>
 
+    if (typeof updates.notes === 'string' && updates.notes.trim() === '') {
+      updates.notes = null
+    }
+
     // If signal is being updated, add timestamp and user
     if ('seller_signal' in updates) {
       updates.signal_updated_at = new Date().toISOString()
