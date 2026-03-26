@@ -80,6 +80,7 @@ export default async function HomePage() {
 
     sellerStats = {
       totalClients: myClients.length,
+      remainingCount: items.length,
       totalSpend,
       contactsThisWeek,
       tierCounts,
@@ -108,7 +109,7 @@ export default async function HomePage() {
         </header>
 
         <div className="mb-10 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <SummaryStat label="Total due" value={items.length} href="/queue" />
+          <SummaryStat label={isSeller ? 'Remaining' : 'Total due'} value={items.length} href="/queue" />
           <SummaryStat label="Overdue" value={overdue.length} tone={overdue.length > 0 ? 'danger' : 'default'} href="/queue?status=overdue" />
           <SummaryStat label="Due today" value={dueToday.length} tone={dueToday.length > 0 ? 'gold' : 'default'} href="/queue?status=today" />
           <SummaryStat label="Upcoming" value={upcoming.length} href="/queue?status=upcoming" />
@@ -132,10 +133,8 @@ export default async function HomePage() {
                   <p className="font-serif text-2xl text-text">{sellerStats.totalClients}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted mb-1">Total CA</p>
-                  <p className="font-serif text-2xl text-primary">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(sellerStats.totalSpend)}
-                  </p>
+                  <p className="text-xs text-text-muted mb-1">Remaining</p>
+                  <p className="font-serif text-2xl text-primary">{sellerStats.remainingCount}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Contacts (7d)</p>
@@ -144,6 +143,12 @@ export default async function HomePage() {
                     <p className="font-serif text-2xl text-text">{sellerStats.contactsThisWeek}</p>
                   </div>
                 </div>
+              </div>
+              <div className="mt-4 border-t pt-4" style={{ borderColor: 'rgba(28, 27, 25, 0.06)' }}>
+                <p className="text-xs text-text-muted mb-1">Total CA</p>
+                <p className="font-serif text-2xl text-primary">
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(sellerStats.totalSpend)}
+                </p>
               </div>
             </div>
 

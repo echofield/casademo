@@ -75,10 +75,10 @@ export function MeetingCard({ meeting, onAction, compact = false }: MeetingCardP
             href={`/clients/${meeting.client_id}`}
             className="font-serif text-xl text-text hover:text-primary transition-colors"
           >
-            {meeting.client_name}
+            {primaryLine}
           </Link>
         ) : (
-          <span className="font-serif text-xl text-text-muted">{meeting.title}</span>
+          <span className="font-serif text-xl text-text">{primaryLine}</span>
         )}
       </div>
 

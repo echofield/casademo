@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { MeetingWithDetails, MEETING_STATUS_CONFIG, formatTimeRange } from '@/lib/types/meetings'
+import { MeetingWithDetails, MEETING_STATUS_CONFIG, formatMeetingOwnerLine, formatTimeRange } from '@/lib/types/meetings'
 import { FormatBadge } from './FormatBadge'
 
 interface WeekViewProps {
@@ -167,6 +167,8 @@ export function WeekView({
                   dayMeetings.map((meeting) => {
                     const statusConfig = MEETING_STATUS_CONFIG[meeting.status]
                     const timeLabel = formatTimeRange(meeting.start_time, meeting.end_time)
+                    const primaryLine = `${timeLabel} — ${meeting.client_name || meeting.title}`
+                    const secondaryLine = formatMeetingOwnerLine(meeting)
                     const borderColor =
                       meeting.status === 'no_show'
                         ? 'rgba(195, 71, 71, 0.45)'
@@ -189,14 +191,11 @@ export function WeekView({
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-[12px] uppercase tracking-[0.14em] text-text-muted">{timeLabel}</p>
-                            <p className="mt-2 truncate font-serif text-[24px] leading-tight text-text">
-                              {meeting.client_name || meeting.title}
+                            <p className="truncate font-serif text-[24px] leading-tight text-text">
+                              {primaryLine}
                             </p>
                             <p className="mt-2 text-sm text-text-muted">
-                              {meeting.seller_name}
-                              {' · '}
-                              {meeting.format === 'boutique' ? 'In store' : meeting.format === 'whatsapp' ? 'WhatsApp' : meeting.format}
+                              {secondaryLine}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">

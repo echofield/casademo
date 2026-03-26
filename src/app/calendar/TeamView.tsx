@@ -7,6 +7,7 @@ import {
   MeetingWithDetails,
   MEETING_FORMAT_CONFIG,
   MEETING_STATUS_CONFIG,
+  formatMeetingOwnerLine,
   formatTimeRange,
 } from '@/lib/types/meetings'
 
@@ -102,6 +103,8 @@ export function TeamView({ meetings, onMeetingClick }: TeamViewProps) {
                 const statusConfig = MEETING_STATUS_CONFIG[meeting.status]
                 const Icon = FORMAT_ICONS[formatConfig.iconType]
                 const timeRange = formatTimeRange(meeting.start_time, meeting.end_time)
+                const primaryLine = `${timeRange} — ${meeting.client_name || meeting.title}`
+                const secondaryLine = formatMeetingOwnerLine(meeting)
                 const meetingDate = new Date(meeting.start_time).toLocaleDateString('en-US', {
                   weekday: 'short',
                   day: 'numeric',
@@ -117,18 +120,16 @@ export function TeamView({ meetings, onMeetingClick }: TeamViewProps) {
                   >
                     <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
                     <span className="text-xs text-text-muted w-20">{meetingDate}</span>
-                    <span className="text-sm font-medium text-text w-28">{timeRange}</span>
                     <span className={`px-2 py-0.5 text-xs rounded-full flex items-center gap-1 ${formatConfig.bgColor} ${formatConfig.textColor}`}>
                       <Icon size={10} strokeWidth={1.5} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      {meeting.client_name ? (
-                        <span className="text-sm text-text truncate block">
-                          {meeting.client_name}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-text-muted">{meeting.title}</span>
-                      )}
+                      <span className="text-sm font-medium text-text truncate block">
+                        {primaryLine}
+                      </span>
+                      <span className="mt-1 text-xs text-text-muted truncate block">
+                        {secondaryLine}
+                      </span>
                     </div>
                     {meeting.status === 'completed' && meeting.outcome_purchased && (
                       <span className="text-xs text-green-600 px-2 py-0.5 bg-green-50 rounded">
