@@ -6,6 +6,24 @@ import { ArrowLeft } from 'lucide-react'
 
 type LoginStep = 'credentials' | 'mfa' | 'forgot' | 'forgot-sent'
 
+/**
+ * Prefetch critical routes and warm up serverless functions.
+ * Fires in background before redirect - gives a head start on cold starts.
+ */
+function prefetchCriticalRoutes() {
+  // Prefetch the home page HTML (warms Next.js and serverless)
+  const prefetchLink = document.createElement('link')
+  prefetchLink.rel = 'prefetch'
+  prefetchLink.href = '/'
+  prefetchLink.as = 'document'
+  document.head.appendChild(prefetchLink)
+
+  // Warm up critical API endpoints (fire and forget)
+  // These requests prime the serverless functions
+  fetch('/api/recontact-queue', { method: 'GET', credentials: 'include' }).catch(() => {})
+  fetch('/api/contacts/recent', { method: 'GET', credentials: 'include' }).catch(() => {})
+}
+
 export default function LoginPage() {
   const [step, setStep] = useState<LoginStep>('credentials')
   const [email, setEmail] = useState('')
@@ -44,6 +62,12 @@ export default function LoginPage() {
         setLoading(false)
       } else {
         // No MFA enrolled - redirect to setup
+        // Prefetch setup page
+        const prefetchLink = document.createElement('link')
+        prefetchLink.rel = 'prefetch'
+        prefetchLink.href = '/setup-mfa'
+        prefetchLink.as = 'document'
+        document.head.appendChild(prefetchLink)
         window.location.replace('/setup-mfa')
       }
     } catch (err) {
@@ -86,6 +110,13 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
+
+      // Prefetch critical routes while user sees "Verifying..." state
+      // This warms up serverless functions before redirect
+      prefetchCriticalRoutes()
+
+      // Small delay to let prefetch requests start, then redirect
+      await new Promise(resolve => setTimeout(resolve, 50))
 
       // Success - redirect to home
       window.location.replace('/')
