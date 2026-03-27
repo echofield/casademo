@@ -84,30 +84,58 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
       }
 
       const clientId = json.id
+      const warnings: string[] = []
 
       // If initial purchase amount provided, add it
       const initialPurchase = parseFloat(String(fd.get('initial_purchase') ?? '0'))
       if (initialPurchase > 0 && clientId) {
-        await fetch(`/api/clients/${clientId}/purchases`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: initialPurchase,
-            description: 'Initial purchase',
-          }),
-        })
+        try {
+          const purchaseRes = await fetch(`/api/clients/${clientId}/purchases`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: initialPurchase,
+              description: 'Initial purchase',
+            }),
+          })
+          if (!purchaseRes.ok) {
+            warnings.push('Initial purchase could not be saved')
+          }
+        } catch {
+          warnings.push('Initial purchase could not be saved')
+        }
       }
 
       // Save selected interests
       if (selectedInterests.length > 0 && clientId) {
-        await fetch(`/api/clients/${clientId}/interests`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ interests: selectedInterests }),
-        })
+        try {
+          const interestsRes = await fetch(`/api/clients/${clientId}/interests`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ interests: selectedInterests }),
+          })
+          if (!interestsRes.ok) {
+            warnings.push('Interests could not be saved')
+          }
+        } catch {
+          warnings.push('Interests could not be saved')
+        }
       }
 
-      // Refresh and close
+      // Client created - close modal and refresh
+      // Show warning if secondary operations failed
+      if (warnings.length > 0) {
+        console.warn('[AddClientModal] Partial success:', warnings.join(', '))
+        // Brief delay to let user see the warning, then close
+        setError(`Client created, but: ${warnings.join(', ')}. You can add these later.`)
+        setTimeout(() => {
+          router.refresh()
+          onClose()
+        }, 2500)
+        return
+      }
+
+      // Full success
       router.refresh()
       onClose()
     } catch (err) {

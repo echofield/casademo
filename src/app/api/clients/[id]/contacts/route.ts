@@ -132,7 +132,16 @@ export async function POST(
         client_id,
       }))
 
-      await supabase.from('notifications').insert(notificationRows)
+      const { error: notifError } = await supabase.from('notifications').insert(notificationRows)
+      if (notifError) {
+        // Log but don't fail - contact was already saved successfully
+        console.warn('[Contacts] Supervisor notification insert failed:', {
+          client_id,
+          seller_id: user.id,
+          supervisor_count: supervisorRows.length,
+          error: notifError.message,
+        })
+      }
     }
 
     // Trigger auto-updates last_contact_date and next_recontact_date

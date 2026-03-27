@@ -62,18 +62,8 @@ export default async function DashboardPage() {
   sixMonthsAgo.setDate(1)
   sixMonthsAgo.setHours(0, 0, 0, 0)
 
-  // PARALLELIZED QUERIES
-  const [
-    { data: tierCounts },
-    { data: overdueData, count: totalOverdue },
-    { count: contactsThisWeek },
-    { data: sellerActivity },
-    { data: allSellers },
-    { data: clientsWithSeller },
-    { data: clientSignals },
-    { data: monthlyContacts },
-    { count: upcomingMeetingsCount },
-  ] = await Promise.all([
+  // PARALLELIZED QUERIES with graceful degradation
+  const queryResults = await Promise.allSettled([
     supabase.from('clients').select('tier'),
     supabase.from('recontact_queue').select('seller_id, seller_name, days_overdue', { count: 'exact' }).gt('days_overdue', 0),
     supabase.from('contacts').select('id', { count: 'exact', head: true }).gte('contact_date', weekAgo.toISOString()),
@@ -84,6 +74,48 @@ export default async function DashboardPage() {
     supabase.from('contacts').select('contact_date, client_id').gte('contact_date', sixMonthsAgo.toISOString()).order('contact_date', { ascending: true }),
     supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('start_time', now.toISOString()).lte('start_time', weekEnd.toISOString()).eq('status', 'scheduled'),
   ])
+
+  // Extract results with fallbacks; track failures for operator visibility
+  const failedQueries: string[] = []
+  const queryNames = ['tierCounts', 'overdueData', 'contactsThisWeek', 'sellerActivity', 'allSellers', 'clientsWithSeller', 'clientSignals', 'monthlyContacts', 'upcomingMeetings']
+
+  // Helper to safely extract settled results
+  function getSettled<T>(result: PromiseSettledResult<T>, name: string, fallback: T): T {
+    if (result.status === 'rejected') {
+      failedQueries.push(name)
+      console.error(`[Dashboard] Query failed: ${name}`, result.reason)
+      return fallback
+    }
+    return result.value
+  }
+
+  // Type-safe extraction with proper fallbacks
+  const tierCountsResult = getSettled(queryResults[0] as PromiseSettledResult<{ data: { tier: string | null }[] | null }>, queryNames[0], { data: null })
+  const overdueResult = getSettled(queryResults[1] as PromiseSettledResult<{ data: { seller_id: string; seller_name: string | null; days_overdue: number }[] | null; count: number | null }>, queryNames[1], { data: null, count: null })
+  const contactsWeekResult = getSettled(queryResults[2] as PromiseSettledResult<{ count: number | null }>, queryNames[2], { count: null })
+  const sellerActivityResult = getSettled(queryResults[3] as PromiseSettledResult<{ data: { seller_id: string }[] | null }>, queryNames[3], { data: null })
+  const allSellersResult = getSettled(queryResults[4] as PromiseSettledResult<{ data: { id: string; full_name: string }[] | null }>, queryNames[4], { data: null })
+  const clientsWithSellerResult = getSettled(queryResults[5] as PromiseSettledResult<{ data: { seller_id: string; tier: string | null; total_spend: number | null }[] | null }>, queryNames[5], { data: null })
+  const clientSignalsResult = getSettled(queryResults[6] as PromiseSettledResult<{ data: { seller_id: string; seller_signal: string | null }[] | null }>, queryNames[6], { data: null })
+  const monthlyContactsResult = getSettled(queryResults[7] as PromiseSettledResult<{ data: { contact_date: string; client_id: string }[] | null }>, queryNames[7], { data: null })
+  const upcomingMeetingsResult = getSettled(queryResults[8] as PromiseSettledResult<{ count: number | null }>, queryNames[8], { count: null })
+
+  const tierCounts = tierCountsResult.data
+  const overdueData = overdueResult.data
+  const totalOverdue = overdueResult.count
+  const contactsThisWeek = contactsWeekResult.count
+  const sellerActivity = sellerActivityResult.data
+  const allSellers = allSellersResult.data
+  const clientsWithSeller = clientsWithSellerResult.data
+  const clientSignals = clientSignalsResult.data
+  const monthlyContacts = monthlyContactsResult.data
+  const upcomingMeetingsCount = upcomingMeetingsResult.count
+
+  // Log degraded state for operators
+  const isDegraded = failedQueries.length > 0
+  if (isDegraded) {
+    console.warn(`[Dashboard] Running in degraded mode. Failed queries: ${failedQueries.join(', ')}`)
+  }
 
   // Process tier counts
   const clientsByTier: Record<ClientTier, number> = {
@@ -226,6 +258,13 @@ export default async function DashboardPage() {
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-7xl">
+        {/* Degraded mode indicator - subtle, for operator awareness */}
+        {isDegraded && (
+          <div className="mb-4 px-3 py-2 text-xs text-text-muted bg-amber-50/50 border border-amber-200/30 rounded">
+            Some dashboard data may be incomplete. Refresh to retry.
+          </div>
+        )}
+
         {/* Greeting header */}
         <div className="mb-8">
           <h1 className="font-serif text-3xl md:text-4xl text-text tracking-tight">

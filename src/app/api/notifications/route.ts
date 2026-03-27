@@ -87,6 +87,7 @@ export async function PATCH(request: Request) {
 
     // Mark specific notifications or all as read
     const { notification_ids, mark_all } = body
+    let updateError: string | null = null
 
     if (mark_all) {
       const { error } = await supabase
@@ -95,9 +96,13 @@ export async function PATCH(request: Request) {
         .eq('user_id', user.id)
         .eq('read', false)
 
-      // Ignore table not found errors
       if (error) {
-        console.warn('Notifications update failed:', error.message)
+        // Table not found is expected during setup; other errors are real failures
+        const isSetupIssue = error.code === '42P01' || error.message.includes('does not exist')
+        if (!isSetupIssue) {
+          console.warn('[Notifications] PATCH mark_all failed:', error.message)
+          updateError = error.message
+        }
       }
     } else if (notification_ids && Array.isArray(notification_ids)) {
       const { error } = await supabase
@@ -107,18 +112,27 @@ export async function PATCH(request: Request) {
         .in('id', notification_ids)
 
       if (error) {
-        console.warn('Notifications update failed:', error.message)
+        const isSetupIssue = error.code === '42P01' || error.message.includes('does not exist')
+        if (!isSetupIssue) {
+          console.warn('[Notifications] PATCH by ids failed:', error.message)
+          updateError = error.message
+        }
       }
     }
 
+    // Return honest status (200 for now, frontend should eventually handle success: false)
+    // TODO: Once frontend handles errors gracefully, return 500 on real failures
+    if (updateError) {
+      return NextResponse.json({ success: false, error: updateError })
+    }
     return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof AuthError) {
       return authFailureResponse(error)
     }
 
-    // For any other error, return success to avoid breaking the UI
-    console.error('Notifications PATCH error:', error)
-    return NextResponse.json({ success: true })
+    // Real unexpected error - log and return failure
+    console.error('[Notifications] PATCH unexpected error:', error)
+    return NextResponse.json({ success: false, error: 'Unexpected error' })
   }
 }

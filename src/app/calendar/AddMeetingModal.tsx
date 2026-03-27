@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Search, Store, MapPin, Phone, Video, MessageCircle, Trash2 } from 'lucide-react'
 import {
   MeetingFormat,
@@ -77,6 +77,7 @@ export function AddMeetingModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     async function fetchClients() {
@@ -189,6 +190,11 @@ export function AddMeetingModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Prevent double-submit (ref is sync, unlike state)
+    if (submittingRef.current) return
+    submittingRef.current = true
+
     setLoading(true)
     setError(null)
 
@@ -229,6 +235,7 @@ export function AddMeetingModal({
       setError(err instanceof Error ? err.message : (isEditMode ? 'Error updating meeting' : 'Error creating meeting'))
     } finally {
       setLoading(false)
+      submittingRef.current = false
     }
   }
 

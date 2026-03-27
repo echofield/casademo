@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { ChipSelector } from '@/components/ChipSelector'
 import { InterestTag } from '@/components/InterestTag'
 import { LIFESTYLE_CATEGORIES } from '@/lib/types'
@@ -97,7 +98,11 @@ export function LifestyleInterestsPanel({ clientId, interests, canEdit }: Props)
       )
       if (res.ok) {
         router.refresh()
+      } else {
+        toast.error('Could not remove interest')
       }
+    } catch {
+      toast.error('Could not remove interest')
     } finally {
       setDeleting(null)
       setConfirmDelete(null)
@@ -134,7 +139,11 @@ export function LifestyleInterestsPanel({ clientId, interests, canEdit }: Props)
       if (res.ok) {
         router.refresh()
         exitEdit()
+      } else {
+        toast.error('Could not save interests')
       }
+    } catch {
+      toast.error('Could not save interests')
     } finally {
       setSaving(false)
     }

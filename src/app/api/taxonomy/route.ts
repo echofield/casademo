@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(data || [])
+    // Cache taxonomy for 5 minutes - rarely changes
+    return NextResponse.json(data || [], {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=60',
+      },
+    })
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status })

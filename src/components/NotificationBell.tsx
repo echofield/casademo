@@ -153,13 +153,21 @@ export function NotificationBell() {
   const markAllAsRead = async () => {
     setLoading(true)
     try {
-      await fetch('/api/notifications', {
+      const res = await fetch('/api/notifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mark_all: true }),
       })
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-      setUnreadCount(0)
+      const data = await res.json()
+      if (data.success === false) {
+        // PATCH failed but we got a response; log and show error
+        console.warn('[NotificationBell] Mark all read failed:', data.error)
+        setFetchError(true)
+      } else {
+        // Optimistically update UI
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+        setUnreadCount(0)
+      }
     } catch {
       setFetchError(true)
     }

@@ -18,13 +18,15 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
+    const errors: string[] = []
 
     // Generate overdue notifications
     const { data: overdueResult, error: overdueError } = await supabase
       .rpc('generate_overdue_notifications')
 
     if (overdueError) {
-      console.error('Overdue notifications error:', overdueError)
+      console.error('[Notifications/Generate] Overdue notifications error:', overdueError)
+      errors.push(`overdue: ${overdueError.message}`)
     }
 
     // Generate seller inactivity alerts
@@ -32,13 +34,17 @@ export async function POST(request: Request) {
       .rpc('generate_seller_inactivity_alerts')
 
     if (inactivityError) {
-      console.error('Inactivity alerts error:', inactivityError)
+      console.error('[Notifications/Generate] Inactivity alerts error:', inactivityError)
+      errors.push(`inactivity: ${inactivityError.message}`)
     }
 
+    // Return honest status
+    const hasErrors = errors.length > 0
     return NextResponse.json({
-      success: true,
+      success: !hasErrors,
       overdue_notifications: overdueResult || 0,
       inactivity_alerts: inactivityResult || 0,
+      ...(hasErrors && { errors }),
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to generate notifications'

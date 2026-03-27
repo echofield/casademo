@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { ChipSelector } from '@/components/ChipSelector'
 import { InterestTag } from '@/components/InterestTag'
 import type { InterestItem } from '@/lib/types'
@@ -80,7 +81,13 @@ export function ProductPreferencesPanel({ clientId, interests, canEdit }: Props)
       const res = await fetch(`/api/clients/${clientId}/interests/${interestId}`, {
         method: 'DELETE',
       })
-      if (res.ok) router.refresh()
+      if (res.ok) {
+        router.refresh()
+      } else {
+        toast.error('Could not remove preference')
+      }
+    } catch {
+      toast.error('Could not remove preference')
     } finally {
       setDeleting(null)
       setConfirmDelete(null)
@@ -105,16 +112,22 @@ export function ProductPreferencesPanel({ clientId, interests, canEdit }: Props)
       }
 
       if (newInterests.length > 0) {
-        await fetch(`/api/clients/${clientId}/interests`, {
+        const res = await fetch(`/api/clients/${clientId}/interests`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ interests: newInterests }),
         })
+        if (!res.ok) {
+          toast.error('Could not save preferences')
+          return
+        }
       }
 
       router.refresh()
       setEditing(false)
       setSelections({})
+    } catch {
+      toast.error('Could not save preferences')
     } finally {
       setSaving(false)
     }

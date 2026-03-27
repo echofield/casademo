@@ -155,6 +155,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Idempotency check: prevent duplicate meeting at same start time for same seller
+    const { data: existingMeeting } = await supabase
+      .from('meetings')
+      .select('id')
+      .eq('seller_id', sellerId)
+      .eq('start_time', body.start_time)
+      .eq('status', 'scheduled')
+      .maybeSingle()
+
+    if (existingMeeting) {
+      return NextResponse.json(
+        { error: 'A meeting already exists at this time', duplicate: true },
+        { status: 409 }
+      )
+    }
+
     // Insert meeting
     const { data: meeting, error: insertError } = await supabase
       .from('meetings')

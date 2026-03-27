@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
@@ -40,9 +40,19 @@ export function ClientActions({ clientId }: Props) {
   const [purchaseIsGift, setPurchaseIsGift] = useState(false)
   const [purchaseGiftRecipient, setPurchaseGiftRecipient] = useState('')
 
+  const [contactInfo, setContactInfo] = useState<string | null>(null)
+
+  // Refs to prevent double-submit (sync check, no state delay)
+  const submittingContactRef = useRef(false)
+  const submittingPurchaseRef = useRef(false)
+
   const handleLogContact = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submittingContactRef.current) return
+    submittingContactRef.current = true
+
     setContactError(null)
+    setContactInfo(null)
     setLoading(true)
 
     try {
@@ -60,6 +70,21 @@ export function ClientActions({ clientId }: Props) {
         throw new Error(j.error || 'Failed to save')
       }
 
+      const data = await res.json()
+
+      // Handle idempotency: API returns already_done if contact was already logged today
+      if (data.already_done) {
+        setContactInfo('Already logged today')
+        // Still close and refresh to show current state
+        setTimeout(() => {
+          setShowContactModal(false)
+          setContactComment('')
+          setContactInfo(null)
+          router.refresh()
+        }, 1500)
+        return
+      }
+
       setShowContactModal(false)
       setContactComment('')
       router.refresh()
@@ -67,19 +92,25 @@ export function ClientActions({ clientId }: Props) {
       setContactError(err instanceof Error ? err.message : 'Error')
     } finally {
       setLoading(false)
+      submittingContactRef.current = false
     }
   }
 
   const handleLogPurchase = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submittingPurchaseRef.current) return
+    submittingPurchaseRef.current = true
+
     setPurchaseError(null)
     const amount = parseFloat(purchaseAmount.replace(',', '.'))
     if (Number.isNaN(amount) || amount <= 0) {
       setPurchaseError('Enter a valid amount (€).')
+      submittingPurchaseRef.current = false
       return
     }
     if (!purchaseSource) {
       setPurchaseError('Select how this sale happened.')
+      submittingPurchaseRef.current = false
       return
     }
 
@@ -130,6 +161,7 @@ export function ClientActions({ clientId }: Props) {
       setPurchaseError(err instanceof Error ? err.message : 'Error')
     } finally {
       setLoading(false)
+      submittingPurchaseRef.current = false
     }
   }
 
@@ -205,9 +237,10 @@ export function ClientActions({ clientId }: Props) {
                 </div>
 
                 {contactError && <p className="body-small mb-4 text-danger">{contactError}</p>}
+                {contactInfo && <p className="body-small mb-4 text-amber-700">{contactInfo}</p>}
 
                 <div className="flex flex-wrap gap-3">
-                  <Button type="submit" loading={loading}>
+                  <Button type="submit" loading={loading} disabled={!!contactInfo}>
                     Save
                   </Button>
                   <Button type="button" variant="ghost" onClick={() => setShowContactModal(false)}>

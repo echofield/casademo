@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { SIZE_SYSTEM, getItemTypeLabel } from '@/lib/config/sizeSystem'
 import type { SizingItem, KnownSizeItem } from '@/lib/types'
 
@@ -52,7 +53,11 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
       if (res.ok) {
         router.refresh()
         resetForm()
+      } else {
+        toast.error('Could not save size')
       }
+    } catch {
+      toast.error('Could not save size')
     } finally {
       setSaving(false)
     }
@@ -65,7 +70,13 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
         `/api/clients/${clientId}/sizing?category=${encodeURIComponent(category)}`,
         { method: 'DELETE' },
       )
-      if (res.ok) router.refresh()
+      if (res.ok) {
+        router.refresh()
+      } else {
+        toast.error('Could not remove size')
+      }
+    } catch {
+      toast.error('Could not remove size')
     } finally {
       setDeleting(null)
       setConfirmDelete(null)

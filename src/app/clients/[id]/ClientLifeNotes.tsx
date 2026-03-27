@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface Props {
   clientId: string
@@ -27,7 +28,7 @@ export function ClientLifeNotes({ clientId, initialNotes, canEdit }: Props) {
       setEditing(false)
       router.refresh()
     } catch {
-      // silently fail
+      toast.error('Could not save notes')
     } finally {
       setSaving(false)
     }
