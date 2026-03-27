@@ -22,37 +22,75 @@ export function NotificationBell() {
   const [fetchError, setFetchError] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollFailureCountRef = useRef(0)
+  const pollingStoppedRef = useRef(false)
 
-  const fetchNotifications = useCallback(async () => {
+  const stopPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+    pollingStoppedRef.current = true
+  }, [])
+
+  const fetchNotifications = useCallback(async (source: 'initial' | 'poll' | 'manual' = 'manual') => {
+    if (source === 'poll' && pollingStoppedRef.current) {
+      return
+    }
+
     try {
       const res = await fetch('/api/notifications')
-      if (!res.ok) {
+
+      if (res.status === 401) {
+        stopPolling()
         setFetchError(true)
         setNotifications([])
         setUnreadCount(0)
-        setInitialLoad(false)
         return
       }
+
+      if (!res.ok) {
+        throw new Error(`Notification poll failed with status ${res.status}`)
+      }
+
       const data = (await res.json()) as NotificationsPayload
 
       setNotifications(data.notifications || [])
       setUnreadCount(data.unread_count || 0)
       setSetupRequired(!!data.setup_required)
       setFetchError(false)
+      pollFailureCountRef.current = 0
     } catch {
+      pollFailureCountRef.current += 1
       setFetchError(true)
       setNotifications([])
       setUnreadCount(0)
+      if (pollFailureCountRef.current >= 3) {
+        stopPolling()
+      }
     } finally {
       setInitialLoad(false)
     }
-  }, [])
+  }, [stopPolling])
 
   // Initial fetch + polling fallback (30s)
   useEffect(() => {
-    fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
+    pollingStoppedRef.current = false
+    pollFailureCountRef.current = 0
+
+    void fetchNotifications('initial')
+    pollIntervalRef.current = setInterval(() => {
+      void fetchNotifications('poll')
+    }, 30000)
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+      pollingStoppedRef.current = true
+    }
   }, [fetchNotifications])
 
   // Supabase real-time subscription for instant notifications
@@ -98,7 +136,7 @@ export function NotificationBell() {
   // Refetch when dropdown opens to ensure fresh data
   useEffect(() => {
     if (isOpen) {
-      fetchNotifications()
+      void fetchNotifications('manual')
     }
   }, [isOpen, fetchNotifications])
 
@@ -239,7 +277,7 @@ export function NotificationBell() {
                   type="button"
                   onClick={() => {
                     setFetchError(false)
-                    fetchNotifications()
+                    void fetchNotifications('manual')
                   }}
                   className="mt-2 text-xs font-medium uppercase tracking-wider text-primary"
                 >

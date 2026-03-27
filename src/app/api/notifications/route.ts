@@ -1,7 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { AuthError, requireAuth } from '@/lib/auth'
 import type { NotificationRow } from '@/lib/types'
+
+const NO_RETRY_HEADERS = {
+  'Cache-Control': 'no-store',
+  'Retry-After': '0',
+  'X-No-Retry': 'true',
+}
+
+function authFailureResponse(error: AuthError) {
+  return NextResponse.json(
+    { error: error.message },
+    {
+      status: error.status,
+      headers: error.status === 401 ? NO_RETRY_HEADERS : undefined,
+    }
+  )
+}
 
 // GET /api/notifications - Get user's notifications
 export async function GET(request: Request) {
@@ -49,13 +65,10 @@ export async function GET(request: Request) {
       unread_count: count ?? 0,
     })
   } catch (error) {
-    // Auth errors get proper status codes
-    if (error instanceof Error && 'status' in error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: (error as { status: number }).status }
-      )
+    if (error instanceof AuthError) {
+      return authFailureResponse(error)
     }
+
     // For any other error, return empty state to avoid breaking the UI
     console.error('Notifications error:', error)
     return NextResponse.json({
@@ -100,13 +113,10 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    // Auth errors get proper status codes
-    if (error instanceof Error && 'status' in error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: (error as { status: number }).status }
-      )
+    if (error instanceof AuthError) {
+      return authFailureResponse(error)
     }
+
     // For any other error, return success to avoid breaking the UI
     console.error('Notifications PATCH error:', error)
     return NextResponse.json({ success: true })
