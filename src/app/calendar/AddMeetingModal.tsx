@@ -13,6 +13,22 @@ import {
 } from '@/lib/types/meetings'
 import { TierBadge } from '@/components'
 
+// Context memory keys
+const STORAGE_KEY_FORMAT = 'casa-one:last-meeting-format'
+const STORAGE_KEY_DURATION = 'casa-one:last-meeting-duration'
+
+function getStoredFormat(): MeetingFormat {
+  if (typeof window === 'undefined') return 'boutique'
+  const stored = localStorage.getItem(STORAGE_KEY_FORMAT)
+  return (stored as MeetingFormat) || 'boutique'
+}
+
+function getStoredDuration(): number {
+  if (typeof window === 'undefined') return 30
+  const stored = localStorage.getItem(STORAGE_KEY_DURATION)
+  return stored ? parseInt(stored, 10) : 30
+}
+
 const FORMAT_ICONS = {
   store: Store,
   pin: MapPin,
@@ -139,7 +155,9 @@ export function AddMeetingModal({
           setSelectedClient(null)
         }
       } else {
-        setFormat('boutique')
+        // Context memory: use stored format and duration
+        setFormat(getStoredFormat())
+        setDuration(getStoredDuration())
         setClientId(preselectedClientId || null)
         setSelectedClient(null)
         setClientSearch('')
@@ -201,8 +219,13 @@ export function AddMeetingModal({
     if (format === 'external' && !location.trim()) {
       setError('Address is required for external meetings')
       setLoading(false)
+      submittingRef.current = false
       return
     }
+
+    // Remember format and duration for next time (before async operations)
+    localStorage.setItem(STORAGE_KEY_FORMAT, format)
+    localStorage.setItem(STORAGE_KEY_DURATION, String(duration))
 
     const startDate = new Date(date + 'T' + startTime + ':00')
     const endDate = new Date(startDate.getTime() + duration * 60 * 1000)

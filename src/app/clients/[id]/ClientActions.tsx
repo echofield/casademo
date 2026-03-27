@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
@@ -15,6 +15,21 @@ const CONTACT_CHANNELS = [
   { value: 'other', label: 'Other' },
 ] as const
 
+// Context memory keys
+const STORAGE_KEY_CHANNEL = 'casa-one:last-contact-channel'
+const STORAGE_KEY_PURCHASE_SOURCE = 'casa-one:last-purchase-source'
+
+function getStoredChannel(): string {
+  if (typeof window === 'undefined') return 'whatsapp'
+  return localStorage.getItem(STORAGE_KEY_CHANNEL) || 'whatsapp'
+}
+
+function getStoredPurchaseSource(): PurchaseSource | '' {
+  if (typeof window === 'undefined') return ''
+  const stored = localStorage.getItem(STORAGE_KEY_PURCHASE_SOURCE)
+  return (stored as PurchaseSource) || ''
+}
+
 interface Props {
   clientId: string
 }
@@ -27,6 +42,7 @@ export function ClientActions({ clientId }: Props) {
   const [contactError, setContactError] = useState<string | null>(null)
   const [purchaseError, setPurchaseError] = useState<string | null>(null)
 
+  // Context memory: remember last-used values
   const [contactChannel, setContactChannel] = useState('whatsapp')
   const [contactComment, setContactComment] = useState('')
 
@@ -42,9 +58,19 @@ export function ClientActions({ clientId }: Props) {
 
   const [contactInfo, setContactInfo] = useState<string | null>(null)
 
+  // Subtle confirmation states
+  const [contactSuccess, setContactSuccess] = useState(false)
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false)
+
   // Refs to prevent double-submit (sync check, no state delay)
   const submittingContactRef = useRef(false)
   const submittingPurchaseRef = useRef(false)
+
+  // Load remembered values on mount
+  useEffect(() => {
+    setContactChannel(getStoredChannel())
+    setPurchaseSource(getStoredPurchaseSource())
+  }, [])
 
   const handleLogContact = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,6 +79,15 @@ export function ClientActions({ clientId }: Props) {
 
     setContactError(null)
     setContactInfo(null)
+
+    // Remember the channel for next time
+    localStorage.setItem(STORAGE_KEY_CHANNEL, contactChannel)
+
+    // Optimistic close: modal closes immediately, feels instant
+    const channelToSend = contactChannel
+    const commentToSend = contactComment || null
+    setShowContactModal(false)
+    setContactComment('')
     setLoading(true)
 
     try {
@@ -60,8 +95,8 @@ export function ClientActions({ clientId }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          channel: contactChannel,
-          comment: contactComment || null,
+          channel: channelToSend,
+          comment: commentToSend,
         }),
       })
 
@@ -74,22 +109,20 @@ export function ClientActions({ clientId }: Props) {
 
       // Handle idempotency: API returns already_done if contact was already logged today
       if (data.already_done) {
-        setContactInfo('Already logged today')
-        // Still close and refresh to show current state
-        setTimeout(() => {
-          setShowContactModal(false)
-          setContactComment('')
-          setContactInfo(null)
-          router.refresh()
-        }, 1500)
-        return
+        // Brief subtle indication - already logged is fine, not an error
+        setContactSuccess(true)
+        setTimeout(() => setContactSuccess(false), 1500)
+      } else {
+        // Show subtle success confirmation on button
+        setContactSuccess(true)
+        setTimeout(() => setContactSuccess(false), 1500)
       }
 
-      setShowContactModal(false)
-      setContactComment('')
       router.refresh()
     } catch (err) {
-      setContactError(err instanceof Error ? err.message : 'Error')
+      // Error after optimistic close - show brief error state
+      setContactError(err instanceof Error ? err.message : 'Error saving contact')
+      setTimeout(() => setContactError(null), 3000)
     } finally {
       setLoading(false)
       submittingContactRef.current = false
@@ -114,31 +147,48 @@ export function ClientActions({ clientId }: Props) {
       return
     }
 
+    // Remember the source for next time
+    localStorage.setItem(STORAGE_KEY_PURCHASE_SOURCE, purchaseSource)
+
+    // Capture values before optimistic close
+    const sizeVal = purchaseSize.trim() || null
+    let sizeType: string | null = null
+    if (sizeVal) {
+      if (['S', 'M', 'L', 'XL', 'XXL'].includes(sizeVal.toUpperCase())) sizeType = 'letter'
+      else if (/^\d+$/.test(sizeVal)) sizeType = parseInt(sizeVal) >= 38 && parseInt(sizeVal) <= 47 ? 'shoe' : 'number'
+    }
+
+    const payload = {
+      amount,
+      description: purchaseDescription.trim() || null,
+      source: purchaseSource,
+      product_name: purchaseProductName.trim() || null,
+      product_category: purchaseCategory || null,
+      size: sizeVal,
+      size_type: sizeType,
+      purchase_date: purchaseDate || undefined,
+      is_gift: purchaseIsGift,
+      gift_recipient: purchaseIsGift ? purchaseGiftRecipient.trim() || null : null,
+    }
+
+    // Optimistic close: modal closes immediately
+    setShowPurchaseModal(false)
+    setPurchaseAmount('')
+    setPurchaseDescription('')
+    // Keep source remembered (don't reset to '')
+    setPurchaseProductName('')
+    setPurchaseCategory('')
+    setPurchaseSize('')
+    setPurchaseDate(new Date().toISOString().split('T')[0])
+    setPurchaseIsGift(false)
+    setPurchaseGiftRecipient('')
     setLoading(true)
 
     try {
-      const sizeVal = purchaseSize.trim() || null
-      let sizeType: string | null = null
-      if (sizeVal) {
-        if (['S', 'M', 'L', 'XL', 'XXL'].includes(sizeVal.toUpperCase())) sizeType = 'letter'
-        else if (/^\d+$/.test(sizeVal)) sizeType = parseInt(sizeVal) >= 38 && parseInt(sizeVal) <= 47 ? 'shoe' : 'number'
-      }
-
       const res = await fetch(`/api/clients/${clientId}/purchases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          description: purchaseDescription.trim() || null,
-          source: purchaseSource,
-          product_name: purchaseProductName.trim() || null,
-          product_category: purchaseCategory || null,
-          size: sizeVal,
-          size_type: sizeType,
-          purchase_date: purchaseDate || undefined,
-          is_gift: purchaseIsGift,
-          gift_recipient: purchaseIsGift ? purchaseGiftRecipient.trim() || null : null,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -146,19 +196,14 @@ export function ClientActions({ clientId }: Props) {
         throw new Error(j.error || 'Failed to save')
       }
 
-      setShowPurchaseModal(false)
-      setPurchaseAmount('')
-      setPurchaseDescription('')
-      setPurchaseSource('')
-      setPurchaseProductName('')
-      setPurchaseCategory('')
-      setPurchaseSize('')
-      setPurchaseDate(new Date().toISOString().split('T')[0])
-      setPurchaseIsGift(false)
-      setPurchaseGiftRecipient('')
+      // Show subtle success confirmation on button
+      setPurchaseSuccess(true)
+      setTimeout(() => setPurchaseSuccess(false), 1500)
       router.refresh()
     } catch (err) {
-      setPurchaseError(err instanceof Error ? err.message : 'Error')
+      // Error after optimistic close - show brief error state
+      setPurchaseError(err instanceof Error ? err.message : 'Error saving purchase')
+      setTimeout(() => setPurchaseError(null), 3000)
     } finally {
       setLoading(false)
       submittingPurchaseRef.current = false
@@ -168,19 +213,54 @@ export function ClientActions({ clientId }: Props) {
   return (
     <>
       <div id="vendor-actions" className="flex flex-wrap gap-2 md:gap-3">
-        <Button type="button" onClick={() => { setContactError(null); setShowContactModal(true) }}>
-          Log a contact
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            setPurchaseError(null)
-            setShowPurchaseModal(true)
-          }}
-        >
-          Add a purchase
-        </Button>
+        <div className="relative">
+          <Button
+            type="button"
+            onClick={() => { setContactError(null); setShowContactModal(true) }}
+            disabled={loading}
+            className={contactSuccess ? 'ring-2 ring-emerald-400/50' : ''}
+          >
+            {contactSuccess ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Logged
+              </span>
+            ) : (
+              'Log a contact'
+            )}
+          </Button>
+          {contactError && (
+            <p className="absolute top-full left-0 mt-1 text-xs text-danger whitespace-nowrap">{contactError}</p>
+          )}
+        </div>
+        <div className="relative">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setPurchaseError(null)
+              setShowPurchaseModal(true)
+            }}
+            disabled={loading}
+            className={purchaseSuccess ? 'ring-2 ring-emerald-400/50' : ''}
+          >
+            {purchaseSuccess ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Added
+              </span>
+            ) : (
+              'Add a purchase'
+            )}
+          </Button>
+          {purchaseError && (
+            <p className="absolute top-full left-0 mt-1 text-xs text-danger whitespace-nowrap">{purchaseError}</p>
+          )}
+        </div>
       </div>
 
       {showContactModal && (
