@@ -12,9 +12,24 @@ type NotificationsPayload = {
   fetch_error?: boolean
 }
 
+// Module-level singleton to prevent duplicate polling when multiple bells mount (desktop + mobile nav)
+let activePollingInstanceId: string | null = null
+let sharedNotifications: NotificationRow[] = []
+let sharedUnreadCount = 0
+const subscribers = new Set<() => void>()
+
+function notifySubscribers() {
+  subscribers.forEach((cb) => cb())
+}
+
 export function NotificationBell() {
-  const [notifications, setNotifications] = useState<NotificationRow[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  // Unique ID for this instance
+  const instanceIdRef = useRef(`bell-${Math.random().toString(36).slice(2)}`)
+  const isPollingOwnerRef = useRef(false)
+
+  // Local state synced from shared state
+  const [notifications, setNotifications] = useState<NotificationRow[]>(sharedNotifications)
+  const [unreadCount, setUnreadCount] = useState(sharedUnreadCount)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [initialLoad, setInitialLoad] = useState(true)
@@ -45,8 +60,11 @@ export function NotificationBell() {
       if (res.status === 401) {
         stopPolling()
         setFetchError(true)
+        sharedNotifications = []
+        sharedUnreadCount = 0
         setNotifications([])
         setUnreadCount(0)
+        notifySubscribers()
         return
       }
 
@@ -56,16 +74,24 @@ export function NotificationBell() {
 
       const data = (await res.json()) as NotificationsPayload
 
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.unread_count || 0)
+      // Update shared state
+      sharedNotifications = data.notifications || []
+      sharedUnreadCount = data.unread_count || 0
+      notifySubscribers()
+
+      setNotifications(sharedNotifications)
+      setUnreadCount(sharedUnreadCount)
       setSetupRequired(!!data.setup_required)
       setFetchError(false)
       pollFailureCountRef.current = 0
     } catch {
       pollFailureCountRef.current += 1
       setFetchError(true)
+      sharedNotifications = []
+      sharedUnreadCount = 0
       setNotifications([])
       setUnreadCount(0)
+      notifySubscribers()
       if (pollFailureCountRef.current >= 3) {
         stopPolling()
       }
@@ -74,8 +100,39 @@ export function NotificationBell() {
     }
   }, [stopPolling])
 
-  // Initial fetch + polling fallback (30s)
+  // Subscribe to shared state updates from other instances
   useEffect(() => {
+    const syncFromShared = () => {
+      setNotifications(sharedNotifications)
+      setUnreadCount(sharedUnreadCount)
+    }
+    subscribers.add(syncFromShared)
+    return () => {
+      subscribers.delete(syncFromShared)
+    }
+  }, [])
+
+  // Initial fetch + polling fallback (30s) - only one instance polls
+  useEffect(() => {
+    const instanceId = instanceIdRef.current
+
+    // Check if we should become the polling owner
+    if (activePollingInstanceId === null) {
+      activePollingInstanceId = instanceId
+      isPollingOwnerRef.current = true
+    }
+
+    // Only the polling owner fetches and polls
+    if (!isPollingOwnerRef.current) {
+      // Sync from shared state for non-owners
+      setNotifications(sharedNotifications)
+      setUnreadCount(sharedUnreadCount)
+      if (sharedNotifications.length > 0) {
+        setInitialLoad(false)
+      }
+      return
+    }
+
     pollingStoppedRef.current = false
     pollFailureCountRef.current = 0
 
@@ -90,11 +147,20 @@ export function NotificationBell() {
         pollIntervalRef.current = null
       }
       pollingStoppedRef.current = true
+
+      // Release ownership so another instance can take over
+      if (activePollingInstanceId === instanceId) {
+        activePollingInstanceId = null
+        isPollingOwnerRef.current = false
+      }
     }
   }, [fetchNotifications])
 
-  // Supabase real-time subscription for instant notifications
+  // Supabase real-time subscription for instant notifications (only polling owner subscribes)
   useEffect(() => {
+    // Only the polling owner sets up real-time subscription to avoid duplicates
+    if (!isPollingOwnerRef.current) return
+
     const supabase = createClient()
 
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -112,11 +178,14 @@ export function NotificationBell() {
           },
           (payload) => {
             const newNotif = payload.new as NotificationRow
-            setNotifications((prev) => {
-              if (prev.some((n) => n.id === newNotif.id)) return prev
-              return [newNotif, ...prev].slice(0, 50)
-            })
-            setUnreadCount((prev) => prev + 1)
+            // Update shared state
+            if (!sharedNotifications.some((n) => n.id === newNotif.id)) {
+              sharedNotifications = [newNotif, ...sharedNotifications].slice(0, 50)
+              sharedUnreadCount += 1
+              notifySubscribers()
+            }
+            setNotifications(sharedNotifications)
+            setUnreadCount(sharedUnreadCount)
           }
         )
         .subscribe()
@@ -164,8 +233,11 @@ export function NotificationBell() {
         console.warn('[NotificationBell] Mark all read failed:', data.error)
         setFetchError(true)
       } else {
-        // Optimistically update UI
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+        // Update shared state and notify all instances
+        sharedNotifications = sharedNotifications.map((n) => ({ ...n, read: true }))
+        sharedUnreadCount = 0
+        notifySubscribers()
+        setNotifications(sharedNotifications)
         setUnreadCount(0)
       }
     } catch {

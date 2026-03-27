@@ -6,14 +6,14 @@
  */
 
 import Link from 'next/link'
-import { Users, Bell } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 interface QuickActionsProps {
   className?: string
 }
 
 const actions = [
-  { icon: Bell, label: 'Notifications', href: '/notifications', color: '#A38767' },
+  // Notifications are accessed via the bell icon in the nav bar
   { icon: Users, label: 'View team', href: '/team', color: '#1B4332' },
 ]
 
