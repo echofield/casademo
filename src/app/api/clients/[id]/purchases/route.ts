@@ -23,7 +23,7 @@ const createPurchaseSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
   description: z.string().optional().nullable(),
   purchase_date: z.string().optional(),
-  source: z.enum(PURCHASE_SOURCES),
+  source: z.enum(PURCHASE_SOURCES).optional().default('other'),
   product_name: z.string().optional().nullable().transform((v) => v?.trim() || null),
   product_category: z.enum(PRODUCT_CATEGORY_VALUES).optional().nullable(),
   size: z.string().optional().nullable().transform((v) => v?.trim() || null),
@@ -71,7 +71,7 @@ export async function POST(
         amount: parsed.data.amount,
         description: parsed.data.description,
         purchase_date: parsed.data.purchase_date || new Date().toISOString().split('T')[0],
-        source: parsed.data.source,
+        source: parsed.data.source || 'other',
         product_name: parsed.data.product_name ?? null,
         product_category: parsed.data.product_category ?? null,
         size: parsed.data.size ?? null,
@@ -95,3 +95,4 @@ export async function POST(
     throw err
   }
 }
+

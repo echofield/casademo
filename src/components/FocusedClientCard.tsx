@@ -139,7 +139,6 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
         setDoneLocked(true)
         onMarkedDone?.(client.id, payload?.seller_remaining_count)
         toast.success(`${client.first_name} already marked done today`)
-        router.refresh()
         return
       }
 
@@ -147,7 +146,6 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
       setDoneLocked(true)
       onMarkedDone?.(client.id, payload?.seller_remaining_count)
       toast.success(`${client.first_name} removed from queue`)
-      router.refresh()
     } catch (err) {
       console.error('Failed to mark done:', err)
       toast.error('Could not mark as done')

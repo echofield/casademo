@@ -18,7 +18,7 @@ interface Props {
 // Casablanca-relevant interest categories
 const INTEREST_OPTIONS = [
   { category: 'Products', values: ['Silk shirts', 'T-shirts', 'Knitwear', 'Shorts', 'Tracksuits', 'Sneakers', 'Accessories'] },
-  { category: 'Collections', values: ['Tennis Club', 'Maison De Rêve', 'Gradient Wave', 'Monogram'] },
+  { category: 'Collections', values: ['Tennis Club', 'Maison De Reve', 'Gradient Wave', 'Monogram'] },
   { category: 'Styles', values: ['Printed', 'Crochet', 'Knitted', 'Tailored'] },
   { category: 'Colors', values: ['Green', 'Gold', 'Navy', 'White', 'Multicolor'] },
 ]
@@ -96,6 +96,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
             body: JSON.stringify({
               amount: initialPurchase,
               description: 'Initial purchase',
+              source: 'other',
             }),
           })
           if (!purchaseRes.ok) {
@@ -191,7 +192,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
                 onChange={(e) => setSellerId(e.target.value)}
                 required
               >
-                <option value="">Select seller…</option>
+                <option value="">Select seller...</option>
                 {sellers.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.full_name}
@@ -325,3 +326,4 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
     </ModalPortal>
   )
 }
+

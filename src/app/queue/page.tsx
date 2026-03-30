@@ -20,12 +20,20 @@ export default async function QueuePage() {
     .select('*')
     .limit(50)
 
+  let countQuery = supabase
+    .from('recontact_queue')
+    .select('id', { count: 'exact', head: true })
+
   if (isSeller) {
     query = query.eq('seller_id', user.id)
+    countQuery = countQuery.eq('seller_id', user.id)
   }
 
   // The view now orders by signal priority, then days_overdue, then tier
-  const { data: queue } = await query
+  const [{ data: queue }, { count: exactRemainingCount }] = await Promise.all([
+    query,
+    countQuery,
+  ])
 
   const items = (queue || []) as (RecontactQueueItem & {
     seller_signal?: ClientSignal | null
@@ -94,9 +102,10 @@ export default async function QueuePage() {
           totalCount={items.length}
           userRole={user.profile.role}
           currentUserId={user.id}
-          remainingWorkloadCount={isSeller ? items.length : undefined}
+          remainingWorkloadCount={isSeller ? (exactRemainingCount ?? items.length) : undefined}
         />
       </div>
     </AppShell>
   )
 }
+

@@ -35,12 +35,16 @@ export default async function SellerDetailPage({ params }: PageProps) {
   }
 
   // Fetch seller's live workload, total portfolio, and recent contact activity
-  const [{ data: queue }, { data: weekContacts }, { count: portfolioCount }] = await Promise.all([
+  const [{ data: queue }, { count: exactRemainingCount }, { data: weekContacts }, { count: portfolioCount }] = await Promise.all([
     supabase
       .from('recontact_queue')
       .select('*')
       .eq('seller_id', sellerId)
       .limit(100),
+    supabase
+      .from('recontact_queue')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', sellerId),
     supabase
       .from('contacts')
       .select('id, contact_date, channel, client:clients(first_name, last_name)')
@@ -139,7 +143,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
           <div className="flex flex-wrap gap-6 text-sm">
             <div>
               <span className="text-text-muted">Remaining</span>
-              <span className="ml-2 text-text font-medium">{items.length}</span>
+              <span className="ml-2 text-text font-medium">{exactRemainingCount ?? items.length}</span>
             </div>
             <div>
               <span className="text-text-muted">Portfolio</span>
@@ -170,7 +174,7 @@ export default async function SellerDetailPage({ params }: PageProps) {
             totalCount={items.length}
             userRole={user.profile.role}
             currentUserId={user.id}
-            remainingWorkloadCount={items.length}
+            remainingWorkloadCount={exactRemainingCount ?? items.length}
           />
         )}
 
@@ -204,3 +208,4 @@ export default async function SellerDetailPage({ params }: PageProps) {
     </AppShell>
   )
 }
+

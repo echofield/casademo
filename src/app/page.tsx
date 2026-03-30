@@ -34,6 +34,10 @@ export default async function HomePage() {
       .select('id, total_spend, tier')
       .eq('seller_id', user.id),
     supabase
+      .from('recontact_queue')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', user.id),
+    supabase
       .from('contacts')
       .select('id', { count: 'exact', head: true })
       .eq('seller_id', user.id)
@@ -68,11 +72,13 @@ export default async function HomePage() {
     channel: string
     client: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null
   }> = []
-  if (isSeller && sellerResults.length === 3) {
+  if (isSeller && sellerResults.length === 4) {
     const clientsResult = sellerResults[0] as { data: { id: string; total_spend: number; tier: string }[] | null }
-    const contactsResult = sellerResults[1] as { count: number | null }
-    const recentContactsResult = sellerResults[2] as { data: typeof recentContacts | null }
+    const remainingResult = sellerResults[1] as { count: number | null }
+    const contactsResult = sellerResults[2] as { count: number | null }
+    const recentContactsResult = sellerResults[3] as { data: typeof recentContacts | null }
     const myClients = clientsResult.data || []
+    const remainingCount = remainingResult.count || 0
     const contactsThisWeek = contactsResult.count || 0
     recentContacts = (recentContactsResult.data || []) as any
 
@@ -88,7 +94,7 @@ export default async function HomePage() {
 
     sellerStats = {
       totalClients: myClients.length,
-      remainingCount: items.length,
+      remainingCount,
       totalSpend,
       contactsThisWeek,
       tierCounts,
@@ -102,12 +108,12 @@ export default async function HomePage() {
           <p className="label mb-3 text-text-muted">Overview</p>
           <h1 className="heading-1 text-text">Good day{user.profile.full_name ? `, ${user.profile.full_name.split(' ')[0]}` : ''}</h1>
           <p className="body mt-2 max-w-xl text-text-muted">
-            Here&apos;s how your portfolio looks today — and the fastest place to act.
+            Here&apos;s how your portfolio looks today - and the fastest place to act.
           </p>
         </header>
 
         <div className="mb-10 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <SummaryStat label={isSeller ? 'Remaining' : 'Total due'} value={items.length} href="/queue" />
+          <SummaryStat label={isSeller ? 'Remaining' : 'Total due'} value={isSeller && sellerStats ? sellerStats.remainingCount : items.length} href="/queue" />
           <SummaryStat label="Overdue" value={overdue.length} tone={overdue.length > 0 ? 'danger' : 'default'} href="/queue?status=overdue" />
           <SummaryStat label="Due today" value={dueToday.length} tone={dueToday.length > 0 ? 'gold' : 'default'} href="/queue?status=today" />
           <SummaryStat label="Upcoming" value={upcoming.length} href="/queue?status=upcoming" />
@@ -197,7 +203,7 @@ export default async function HomePage() {
                   const channel = contact.channel.replace('_', ' ')
                   return (
                     <Link key={contact.id} href={client?.id ? `/clients/${client.id}` : '/clients'} className="block text-sm text-text-muted hover:text-text transition-colors">
-                      {clientName || 'Client'} · {contactDate} · {channel}
+                      {clientName || 'Client'} - {contactDate} - {channel}
                     </Link>
                   )
                 })}
@@ -282,3 +288,4 @@ function SummaryStat({
   )
   return href ? <Link href={href}>{content}</Link> : content
 }
+

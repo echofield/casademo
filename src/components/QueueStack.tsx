@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FocusedClientCard } from './FocusedClientCard'
 import { transitions } from '@/lib/motion'
@@ -57,22 +57,32 @@ export function QueueStack({
   const [liveRemainingCount, setLiveRemainingCount] = useState(
     remainingWorkloadCount ?? clients.length
   )
+  const activeClientIdRef = useRef<string | null>(clients[0]?.id ?? null)
 
   useEffect(() => {
+    activeClientIdRef.current = queueClients[currentIndex]?.id ?? null
+  }, [queueClients, currentIndex])
+
+  useEffect(() => {
+    const activeClientId = activeClientIdRef.current
+    const nextIndex = activeClientId
+      ? clients.findIndex((client) => client.id === activeClientId)
+      : -1
+
     setQueueClients(clients)
-    setCurrentIndex(0)
+    setCurrentIndex(nextIndex >= 0 ? nextIndex : 0)
     setLiveRemainingCount(remainingWorkloadCount ?? clients.length)
   }, [clients, remainingWorkloadCount])
 
   const goNext = useCallback(() => {
     if (currentIndex < queueClients.length - 1) {
-      setCurrentIndex(prev => prev + 1)
+      setCurrentIndex((prev) => prev + 1)
     }
   }, [currentIndex, queueClients.length])
 
   const goPrev = useCallback(() => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1)
+      setCurrentIndex((prev) => prev - 1)
     }
   }, [currentIndex])
 
@@ -91,7 +101,7 @@ export function QueueStack({
   if (queueClients.length === 0) {
     return (
       <div className="py-20 text-center">
-        <p className="font-serif text-2xl text-text mb-2">All caught up</p>
+        <p className="mb-2 font-serif text-2xl text-text">All caught up</p>
         <p className="text-text-muted">No clients need attention right now</p>
       </div>
     )
@@ -101,7 +111,7 @@ export function QueueStack({
   const remaining = queueClients.length - currentIndex - 1
   const nextClients = queueClients.slice(currentIndex + 1, currentIndex + 4)
   const progressPct = ((currentIndex + 1) / queueClients.length) * 100
-  const visibleOverdueCount = queueClients.filter(i => (i.days_overdue ?? 0) > 0).length
+  const visibleOverdueCount = queueClients.filter((i) => (i.days_overdue ?? 0) > 0).length
   const isSellerWorkloadView = typeof remainingWorkloadCount === 'number'
   const headlineCount = isSellerWorkloadView ? liveRemainingCount : queueClients.length
   const headlineLabel =
@@ -118,16 +128,16 @@ export function QueueStack({
       const idx = prev.findIndex((c) => c.id === clientId)
       if (idx === -1) return prev
       const next = prev.filter((c) => c.id !== clientId)
-      setCurrentIndex((current) => {
+      setCurrentIndex((currentValue) => {
         if (next.length === 0) return 0
-        if (idx < current) return current - 1
-        if (current >= next.length) return next.length - 1
-        return current
+        if (idx < currentValue) return currentValue - 1
+        if (currentValue >= next.length) return next.length - 1
+        return currentValue
       })
-      setLiveRemainingCount((current) =>
+      setLiveRemainingCount((currentValue) =>
         typeof remainingCount === 'number'
           ? remainingCount
-          : Math.max((isSellerWorkloadView ? current : prev.length) - 1, 0)
+          : Math.max((isSellerWorkloadView ? currentValue : prev.length) - 1, 0)
       )
       return next
     })
@@ -149,20 +159,34 @@ export function QueueStack({
             : 'Everything else is scheduled ahead'}
           {' · '}
           Client {currentIndex + 1} of {queueClients.length}
-          {remaining > 0 && ` . ${remaining} after this`}
+          {remaining > 0 && ` · ${remaining} after this`}
         </p>
-        <div className="mt-4 h-1 w-full overflow-hidden bg-bg-soft" style={{ borderRadius: 1 }} role="progressbar" aria-valuenow={currentIndex + 1} aria-valuemin={1} aria-valuemax={queueClients.length}>
-          <div className="h-full bg-primary transition-all duration-300 ease-out" style={{ width: `${progressPct}%` }} />
+        <div
+          className="mt-4 h-1 w-full overflow-hidden bg-bg-soft"
+          style={{ borderRadius: 1 }}
+          role="progressbar"
+          aria-valuenow={currentIndex + 1}
+          aria-valuemin={1}
+          aria-valuemax={queueClients.length}
+        >
+          <div
+            className="h-full bg-primary transition-all duration-300 ease-out"
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
       </div>
 
       {filter !== 'all' && (
         <div className="mb-4 flex gap-2">
           {(['all', 'overdue', 'today', 'upcoming'] as QueueFilter[]).map((f) => {
-            const count = f === 'all' ? queueClients.length : queueClients.filter(c => getClientStatus(c.days_overdue) === f).length
+            const count = f === 'all' ? queueClients.length : queueClients.filter((c) => getClientStatus(c.days_overdue) === f).length
             const isActive = f === filter
             return (
-              <a key={f} href={f === 'all' ? '/queue' : `/queue?status=${f}`} className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-colors ${isActive ? 'bg-primary text-white' : 'bg-bg-soft text-text-muted hover:text-text'}`}>
+              <a
+                key={f}
+                href={f === 'all' ? '/queue' : `/queue?status=${f}`}
+                className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-colors ${isActive ? 'bg-primary text-white' : 'bg-bg-soft text-text-muted hover:text-text'}`}
+              >
                 {f === 'all' ? 'All' : f === 'overdue' ? 'Overdue' : f === 'today' ? 'Today' : 'Upcoming'}
                 <span className="ml-1 opacity-60">{count}</span>
               </a>
@@ -174,20 +198,49 @@ export function QueueStack({
       <p className="label mb-3 text-text-muted">Now</p>
 
       <AnimatePresence mode="wait">
-        <motion.div key={current.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={transitions.enter}>
-          <FocusedClientCard client={current} userRole={userRole} currentUserId={currentUserId} onMarkedDone={handleMarkedDone} />
+        <motion.div
+          key={current.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={transitions.enter}
+        >
+          <FocusedClientCard
+            client={current}
+            userRole={userRole}
+            currentUserId={currentUserId}
+            onMarkedDone={handleMarkedDone}
+          />
         </motion.div>
       </AnimatePresence>
 
       <div className="mt-6 flex items-center justify-between">
-        <button type="button" onClick={goPrev} disabled={currentIndex === 0} className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30">Previous</button>
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={currentIndex === 0}
+          className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30"
+        >
+          Previous
+        </button>
         <div className="flex gap-1">
           {queueClients.slice(0, 10).map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`w-2 h-2 rounded-full transition-colors ${idx === currentIndex ? 'bg-primary' : 'bg-text/10'}`} />
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-2 w-2 rounded-full transition-colors ${idx === currentIndex ? 'bg-primary' : 'bg-text/10'}`}
+            />
           ))}
-          {queueClients.length > 10 && <span className="text-xs text-text-muted ml-1">+{queueClients.length - 10}</span>}
+          {queueClients.length > 10 && <span className="ml-1 text-xs text-text-muted">+{queueClients.length - 10}</span>}
         </div>
-        <button type="button" onClick={goNext} disabled={currentIndex >= queueClients.length - 1} className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30">Next</button>
+        <button
+          type="button"
+          onClick={goNext}
+          disabled={currentIndex >= queueClients.length - 1}
+          className="label px-2 py-2 text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-30"
+        >
+          Next
+        </button>
       </div>
 
       {nextClients.length > 0 && (
@@ -197,8 +250,15 @@ export function QueueStack({
             {nextClients.map((client) => {
               const isOverdue = (client.days_overdue ?? 0) > 0
               return (
-                <button type="button" key={client.id} onClick={() => setCurrentIndex(queueClients.indexOf(client))} className="w-full py-3 text-left transition-colors duration-200 hover:bg-bg-soft">
-                  <span className="body text-text">{client.first_name} {client.last_name}</span>
+                <button
+                  type="button"
+                  key={client.id}
+                  onClick={() => setCurrentIndex(queueClients.indexOf(client))}
+                  className="w-full py-3 text-left transition-colors duration-200 hover:bg-bg-soft"
+                >
+                  <span className="body text-text">
+                    {client.first_name} {client.last_name}
+                  </span>
                   {isOverdue && <span className="body-small ml-2 text-danger">+{client.days_overdue}d</span>}
                 </button>
               )
@@ -207,7 +267,7 @@ export function QueueStack({
         </div>
       )}
 
-      <p className="mt-8 text-center text-xs text-text-muted">Arrow keys . j / k</p>
+      <p className="mt-8 text-center text-xs text-text-muted">Arrow keys · j / k</p>
     </div>
   )
 }

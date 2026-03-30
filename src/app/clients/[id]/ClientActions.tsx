@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
@@ -30,12 +30,36 @@ function getStoredPurchaseSource(): PurchaseSource | '' {
   return (stored as PurchaseSource) || ''
 }
 
+function getErrorMessage(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== 'object') return fallback
+
+  const error =
+    'error' in payload && typeof payload.error === 'string'
+      ? payload.error
+      : fallback
+
+  const details =
+    'details' in payload && payload.details && typeof payload.details === 'object'
+      ? (payload.details as { fieldErrors?: Record<string, string[] | undefined>; formErrors?: string[] })
+      : null
+
+  const fieldError = details?.fieldErrors
+    ? Object.values(details.fieldErrors).flat().find((message): message is string => typeof message === 'string' && message.length > 0)
+    : null
+
+  if (fieldError) return fieldError
+
+  const formError = details?.formErrors?.find((message): message is string => typeof message === 'string' && message.length > 0)
+  return formError || error
+}
+
 interface Props {
   clientId: string
 }
 
 export function ClientActions({ clientId }: Props) {
   const router = useRouter()
+  const [isRefreshing, startRefreshTransition] = useTransition()
   const [showContactModal, setShowContactModal] = useState(false)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -65,12 +89,43 @@ export function ClientActions({ clientId }: Props) {
   // Refs to prevent double-submit (sync check, no state delay)
   const submittingContactRef = useRef(false)
   const submittingPurchaseRef = useRef(false)
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load remembered values on mount
   useEffect(() => {
     setContactChannel(getStoredChannel())
     setPurchaseSource(getStoredPurchaseSource())
+
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
   }, [])
+
+  const scheduleRefresh = (delayMs = 200) => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current)
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      startRefreshTransition(() => {
+        router.refresh()
+      })
+      refreshTimeoutRef.current = null
+    }, delayMs)
+  }
+
+  const resetPurchaseForm = () => {
+    setPurchaseAmount('')
+    setPurchaseDescription('')
+    setPurchaseProductName('')
+    setPurchaseCategory('')
+    setPurchaseSize('')
+    setPurchaseDate(new Date().toISOString().split('T')[0])
+    setPurchaseIsGift(false)
+    setPurchaseGiftRecipient('')
+  }
 
   const handleLogContact = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,7 +173,7 @@ export function ClientActions({ clientId }: Props) {
         setTimeout(() => setContactSuccess(false), 1500)
       }
 
-      router.refresh()
+      scheduleRefresh()
     } catch (err) {
       // Error after optimistic close - show brief error state
       setContactError(err instanceof Error ? err.message : 'Error saving contact')
@@ -137,20 +192,15 @@ export function ClientActions({ clientId }: Props) {
     setPurchaseError(null)
     const amount = parseFloat(purchaseAmount.replace(',', '.'))
     if (Number.isNaN(amount) || amount <= 0) {
-      setPurchaseError('Enter a valid amount (€).')
-      submittingPurchaseRef.current = false
-      return
-    }
-    if (!purchaseSource) {
-      setPurchaseError('Select how this sale happened.')
+      setPurchaseError('Enter a valid amount')
       submittingPurchaseRef.current = false
       return
     }
 
-    // Remember the source for next time
-    localStorage.setItem(STORAGE_KEY_PURCHASE_SOURCE, purchaseSource)
+    if (purchaseSource) {
+      localStorage.setItem(STORAGE_KEY_PURCHASE_SOURCE, purchaseSource)
+    }
 
-    // Capture values before optimistic close
     const sizeVal = purchaseSize.trim() || null
     let sizeType: string | null = null
     if (sizeVal) {
@@ -161,7 +211,7 @@ export function ClientActions({ clientId }: Props) {
     const payload = {
       amount,
       description: purchaseDescription.trim() || null,
-      source: purchaseSource,
+      source: purchaseSource || undefined,
       product_name: purchaseProductName.trim() || null,
       product_category: purchaseCategory || null,
       size: sizeVal,
@@ -171,17 +221,6 @@ export function ClientActions({ clientId }: Props) {
       gift_recipient: purchaseIsGift ? purchaseGiftRecipient.trim() || null : null,
     }
 
-    // Optimistic close: modal closes immediately
-    setShowPurchaseModal(false)
-    setPurchaseAmount('')
-    setPurchaseDescription('')
-    // Keep source remembered (don't reset to '')
-    setPurchaseProductName('')
-    setPurchaseCategory('')
-    setPurchaseSize('')
-    setPurchaseDate(new Date().toISOString().split('T')[0])
-    setPurchaseIsGift(false)
-    setPurchaseGiftRecipient('')
     setLoading(true)
 
     try {
@@ -192,18 +231,17 @@ export function ClientActions({ clientId }: Props) {
       })
 
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}))
-        throw new Error(j.error || 'Failed to save')
+        const payload = await res.json().catch(() => null)
+        throw new Error(getErrorMessage(payload, 'Failed to save purchase'))
       }
 
-      // Show subtle success confirmation on button
       setPurchaseSuccess(true)
       setTimeout(() => setPurchaseSuccess(false), 1500)
-      router.refresh()
+      resetPurchaseForm()
+      setShowPurchaseModal(false)
+      scheduleRefresh()
     } catch (err) {
-      // Error after optimistic close - show brief error state
       setPurchaseError(err instanceof Error ? err.message : 'Error saving purchase')
-      setTimeout(() => setPurchaseError(null), 3000)
     } finally {
       setLoading(false)
       submittingPurchaseRef.current = false
@@ -217,7 +255,7 @@ export function ClientActions({ clientId }: Props) {
           <Button
             type="button"
             onClick={() => { setContactError(null); setShowContactModal(true) }}
-            disabled={loading}
+            disabled={loading || isRefreshing}
             className={contactSuccess ? 'ring-2 ring-emerald-400/50' : ''}
           >
             {contactSuccess ? (
@@ -243,7 +281,7 @@ export function ClientActions({ clientId }: Props) {
               setPurchaseError(null)
               setShowPurchaseModal(true)
             }}
-            disabled={loading}
+            disabled={loading || isRefreshing}
             className={purchaseSuccess ? 'ring-2 ring-emerald-400/50' : ''}
           >
             {purchaseSuccess ? (
@@ -374,7 +412,7 @@ export function ClientActions({ clientId }: Props) {
                       onChange={(e) => setPurchaseCategory(e.target.value)}
                       className="input-field"
                     >
-                      <option value="">—</option>
+                      <option value="">-</option>
                       <option value="jacket">Jacket / Outerwear</option>
                       <option value="trousers">Trousers / Pants</option>
                       <option value="shirt">Shirt / Top</option>
@@ -398,7 +436,7 @@ export function ClientActions({ clientId }: Props) {
 
                 <div className="mb-4 grid gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="label mb-2 block text-text-muted">Amount (€)</label>
+                    <label className="label mb-2 block text-text-muted">Amount (EUR)</label>
                     <input
                       type="text"
                       inputMode="decimal"
@@ -421,7 +459,7 @@ export function ClientActions({ clientId }: Props) {
                 </div>
 
                 <div className="mb-4">
-                  <label className="label mb-2 block text-text-muted">How did this sale happen?</label>
+                  <label className="label mb-2 block text-text-muted">How did this sale happen? <span className="text-text-muted/70">(optional)</span></label>
                   <div className="flex flex-wrap gap-2">
                     {PURCHASE_SOURCES.map((source) => {
                       const isSelected = purchaseSource === source.value
@@ -429,7 +467,7 @@ export function ClientActions({ clientId }: Props) {
                         <button
                           key={source.value}
                           type="button"
-                          onClick={() => setPurchaseSource(source.value)}
+                          onClick={() => setPurchaseSource(current => current === source.value ? '' : source.value)}
                           className={`px-3 py-2 text-xs font-medium transition-all duration-200 border ${
                             isSelected
                               ? source.value === 'casa_one'
@@ -447,6 +485,11 @@ export function ClientActions({ clientId }: Props) {
                   {purchaseSource && (
                     <p className="mt-2 text-xs text-text-muted">
                       {PURCHASE_SOURCES.find(s => s.value === purchaseSource)?.description}
+                    </p>
+                  )}
+                  {!purchaseSource && (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Leave empty if you only need to confirm the payment amount. It will be saved as other.
                     </p>
                   )}
                 </div>
@@ -503,3 +546,4 @@ export function ClientActions({ clientId }: Props) {
     </>
   )
 }
+
