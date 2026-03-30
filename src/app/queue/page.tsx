@@ -81,6 +81,7 @@ export default async function QueuePage() {
     phone: item.phone,
     total_spend: item.total_spend,
     days_overdue: item.days_overdue,
+    last_contact_date: item.last_contact_date,
     seller_id: item.seller_id,
     seller_name: item.seller_name,
     lastContactLabel: formatDate(item.last_contact_date),
@@ -108,4 +109,3 @@ export default async function QueuePage() {
     </AppShell>
   )
 }
-
