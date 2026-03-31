@@ -16,7 +16,8 @@
     "migrate:accounts": "npx tsx scripts/migrate-to-real-accounts.ts",
     "validate:contacts": "npx tsx scripts/validate-seller-contacts.ts",
     "verify:data": "npx tsx scripts/verify-data-alignment.ts",
-    "dedupe:clients": "npx tsx scripts/deduplicate-clients.ts"
+    "dedupe:clients": "npx tsx scripts/deduplicate-clients.ts",
+    "test:regression": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
