@@ -57,6 +57,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
       last_name: String(fd.get('last_name') ?? '').trim(),
       phone: String(fd.get('phone') ?? '').trim() || null,
       email: String(fd.get('email') ?? '').trim() || null,
+      birthday: String(fd.get('birthday') ?? '').trim() || null,
       notes: String(fd.get('notes') ?? '').trim() || null,
     }
 
@@ -244,6 +245,15 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
           </div>
 
           <div>
+            <label className="small-caps block mb-1">Birthday</label>
+            <input
+              name="birthday"
+              type="date"
+              className="input-field"
+            />
+          </div>
+
+          <div>
             <label className="small-caps block mb-1">Initial Purchase (€)</label>
             <input
               name="initial_purchase"
@@ -326,4 +336,3 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
     </ModalPortal>
   )
 }
-

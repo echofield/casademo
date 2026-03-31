@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireSupervisor } from '@/lib/auth'
 
-// POST /api/notifications/generate - Generate overdue and inactivity notifications
+// POST /api/notifications/generate - Generate operational notifications
 // Can be called by cron or manually by supervisor
 export async function POST(request: Request) {
   try {
@@ -38,12 +38,22 @@ export async function POST(request: Request) {
       errors.push(`inactivity: ${inactivityError.message}`)
     }
 
+    // Generate birthday follow-up reminders
+    const { data: birthdayResult, error: birthdayError } = await supabase
+      .rpc('generate_birthday_follow_up_notifications')
+
+    if (birthdayError) {
+      console.error('[Notifications/Generate] Birthday follow-up error:', birthdayError)
+      errors.push(`birthday_follow_up: ${birthdayError.message}`)
+    }
+
     // Return honest status
     const hasErrors = errors.length > 0
     return NextResponse.json({
       success: !hasErrors,
       overdue_notifications: overdueResult || 0,
       inactivity_alerts: inactivityResult || 0,
+      birthday_follow_ups: birthdayResult || 0,
       ...(hasErrors && { errors }),
     })
   } catch (error) {

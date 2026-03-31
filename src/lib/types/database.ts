@@ -51,6 +51,7 @@ export type Database = {
           first_contact_date: string | null
           last_contact_date: string | null
           next_recontact_date: string | null
+          birthday: string | null
           notes: string | null
           origin: 'french' | 'foreign' | null
           is_personal_shopper: boolean
@@ -71,6 +72,7 @@ export type Database = {
           first_contact_date?: string | null
           last_contact_date?: string | null
           next_recontact_date?: string | null
+          birthday?: string | null
           notes?: string | null
           origin?: 'french' | 'foreign' | null
           is_personal_shopper?: boolean
@@ -91,6 +93,7 @@ export type Database = {
           first_contact_date?: string | null
           last_contact_date?: string | null
           next_recontact_date?: string | null
+          birthday?: string | null
           notes?: string | null
           origin?: 'french' | 'foreign' | null
           is_personal_shopper?: boolean
@@ -399,6 +402,7 @@ export type Database = {
           first_contact_date: string | null
           last_contact_date: string | null
           next_recontact_date: string | null
+          birthday: string | null
           notes: string | null
           origin: 'french' | 'foreign' | null
           is_personal_shopper: boolean
@@ -430,6 +434,7 @@ export type Database = {
         | 'visit_thank_you'
         | 'purchase_thank_you'
         | 'purchase_check_in'
+        | 'birthday_follow_up'
     }
   }
 }

@@ -128,6 +128,7 @@ export interface Client360 {
   first_contact_date: string | null
   last_contact_date: string | null
   next_recontact_date: string | null
+  birthday: string | null
   notes: string | null
   origin: ClientOrigin | null
   is_personal_shopper: boolean

@@ -1,10 +1,22 @@
 import { z } from 'zod'
 
-/** Empty / null / omitted → null; valid email otherwise */
+const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/
+
+/** Empty / null / omitted -> null; valid email otherwise */
 export const optionalEmail = z
   .union([z.literal(''), z.string().email(), z.null()])
   .optional()
   .transform((v) => (v === '' || v === undefined || v === null ? null : v))
+
+const optionalBirthdayCreate = z
+  .union([z.literal(''), z.string().regex(isoDatePattern), z.null()])
+  .optional()
+  .transform((v) => (v === '' || v === undefined || v === null ? null : v))
+
+const optionalBirthdayUpdate = z
+  .union([z.literal(''), z.string().regex(isoDatePattern)])
+  .optional()
+  .transform((v) => (v === undefined ? undefined : v === '' ? null : v))
 
 export const createClientBodySchema = z
   .object({
@@ -12,6 +24,7 @@ export const createClientBodySchema = z
     last_name: z.string().min(1, 'Last name is required'),
     email: optionalEmail,
     phone: z.string().optional().nullable().transform((v) => (v === '' || v === undefined ? null : v)),
+    birthday: optionalBirthdayCreate,
     notes: z.string().optional().nullable().transform((v) => (v === '' || v === undefined ? null : v)),
     seller_id: z.string().uuid().optional(),
   })
@@ -32,6 +45,7 @@ export const updateClientBodySchema = z
       .string()
       .optional()
       .transform((v) => (v === undefined ? undefined : v.trim() === '' ? null : v.trim())),
+    birthday: optionalBirthdayUpdate,
     notes: z
       .string()
       .optional()

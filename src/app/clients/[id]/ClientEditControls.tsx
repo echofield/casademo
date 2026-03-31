@@ -21,6 +21,7 @@ interface Props {
     last_name: string
     email: string | null
     phone: string | null
+    birthday: string | null
     notes: string | null
     locale: string
   }
@@ -50,6 +51,7 @@ export function ClientEditControls({
   const [lastName, setLastName] = useState(initial.last_name)
   const [email, setEmail] = useState(initial.email ?? '')
   const [phone, setPhone] = useState(initial.phone ?? '')
+  const [birthday, setBirthday] = useState(initial.birthday ?? '')
   const [notes, setNotes] = useState(initial.notes ?? '')
   const [locale, setLocale] = useState(initial.locale || 'local')
 
@@ -60,6 +62,7 @@ export function ClientEditControls({
     setLastName(initial.last_name)
     setEmail(initial.email ?? '')
     setPhone(initial.phone ?? '')
+    setBirthday(initial.birthday ?? '')
     setNotes(initial.notes ?? '')
     setLocale(initial.locale || 'local')
     setError(null)
@@ -79,6 +82,7 @@ export function ClientEditControls({
           last_name: lastName.trim(),
           email: email.trim(),
           phone: phone.trim(),
+          birthday: birthday.trim(),
           notes: notes.trim(),
           locale,
         }),
@@ -193,7 +197,7 @@ export function ClientEditControls({
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+33 …"
+                  placeholder="+33 ..."
                 />
               </div>
               <div>
@@ -204,6 +208,15 @@ export function ClientEditControls({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
+                />
+              </div>
+              <div>
+                <label className="small-caps block mb-1">Birthday</label>
+                <input
+                  className="input-field"
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
                 />
               </div>
               <div>
@@ -268,7 +281,7 @@ export function ClientEditControls({
                   onChange={(e) => setNewSellerId(e.target.value)}
                   required
                 >
-                  <option value="">Select…</option>
+                  <option value="">Select...</option>
                   {otherSellers.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.full_name}

@@ -313,6 +313,12 @@ export function NotificationBell() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16h6" />
           </svg>
         )
+      case 'birthday_follow_up':
+        return (
+          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m-4-6h8M8 8h8M7 8v2a2 2 0 002 2h6a2 2 0 002-2V8" />
+          </svg>
+        )
       default:
         return (
           <svg className="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">

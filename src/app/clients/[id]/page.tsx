@@ -169,6 +169,7 @@ export default async function Client360Page({ params }: Props) {
       last_name: client.last_name,
       email: client.email,
       phone: client.phone,
+      birthday: (client as any).birthday || null,
       seller_id: client.seller_id,
       tier: client.tier as ClientTier,
       total_spend: client.total_spend || 0,
@@ -392,6 +393,7 @@ export default async function Client360Page({ params }: Props) {
                       last_name: clientData.last_name,
                       email: clientData.email,
                       phone: clientData.phone,
+                      birthday: clientData.birthday,
                       notes: clientData.notes,
                       locale: clientData.locale,
                     }}
@@ -443,7 +445,7 @@ export default async function Client360Page({ params }: Props) {
             </div>
 
             <div
-              className="mt-6 grid grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-3"
+              className="mt-6 grid grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-2 lg:grid-cols-4"
               style={cardBorder}
             >
               <div>
@@ -475,6 +477,10 @@ export default async function Client360Page({ params }: Props) {
                     Assess this client&apos;s signal for better cadence
                   </p>
                 )}
+              </div>
+              <div>
+                <p className="label mb-1 text-text-muted">Birthday</p>
+                <p className="body-small text-text">{formatDate(clientData.birthday)}</p>
               </div>
             </div>
 
