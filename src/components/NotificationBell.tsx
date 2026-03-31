@@ -178,6 +178,14 @@ export function NotificationBell() {
           },
           (payload) => {
             const newNotif = payload.new as NotificationRow
+            const dueAtMs = newNotif.due_at ? new Date(newNotif.due_at).getTime() : Number.NaN
+            const isFutureDue = Number.isFinite(dueAtMs) && dueAtMs > Date.now()
+
+            // Ignore future reminders until due time.
+            if (isFutureDue) {
+              return
+            }
+
             // Update shared state
             if (!sharedNotifications.some((n) => n.id === newNotif.id)) {
               sharedNotifications = [newNotif, ...sharedNotifications].slice(0, 50)
@@ -285,6 +293,24 @@ export function NotificationBell() {
         return (
           <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        )
+      case 'visit_thank_you':
+        return (
+          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        )
+      case 'purchase_thank_you':
+        return (
+          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m-4-4h8" />
+          </svg>
+        )
+      case 'purchase_check_in':
+        return (
+          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16h6" />
           </svg>
         )
       default:
@@ -395,7 +421,7 @@ export function NotificationBell() {
                           {notification.message && (
                             <p className="body-small mt-0.5 truncate text-text-muted">{notification.message}</p>
                           )}
-                          <p className="mt-1 text-xs text-text-muted">{formatTime(notification.created_at)}</p>
+                          <p className="mt-1 text-xs text-text-muted">{formatTime(notification.due_at || notification.created_at)}</p>
                         </div>
                       </div>
                     </Link>
@@ -407,7 +433,7 @@ export function NotificationBell() {
                         {notification.message && (
                           <p className="body-small mt-0.5 truncate text-text-muted">{notification.message}</p>
                         )}
-                        <p className="mt-1 text-xs text-text-muted">{formatTime(notification.created_at)}</p>
+                        <p className="mt-1 text-xs text-text-muted">{formatTime(notification.due_at || notification.created_at)}</p>
                       </div>
                     </div>
                   )}

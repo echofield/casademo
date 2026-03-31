@@ -19,6 +19,14 @@ function authFailureResponse(error: AuthError) {
   )
 }
 
+function isMissingDueAtColumn(error: { code?: string; message?: string }) {
+  return (
+    error.code === '42703' ||
+    (error.message?.toLowerCase().includes('due_at') === true &&
+      error.message?.toLowerCase().includes('column') === true)
+  )
+}
+
 // GET /api/notifications - Get user's notifications
 export async function GET(request: Request) {
   try {
@@ -26,19 +34,40 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const unreadOnly = searchParams.get('unread') === 'true'
+    const nowIso = new Date().toISOString()
 
-    let query = supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
+    const fetchNotifications = async (useDueAt: boolean) => {
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
 
-    if (unreadOnly) {
-      query = query.eq('read', false)
+      if (useDueAt) {
+        query = query.lte('due_at', nowIso)
+      }
+
+      if (unreadOnly) {
+        query = query.eq('read', false)
+      }
+
+      if (useDueAt) {
+        query = query.order('due_at', { ascending: false }).order('created_at', { ascending: false })
+      } else {
+        query = query.order('created_at', { ascending: false })
+      }
+
+      return await query.limit(50)
     }
 
-    const { data, error } = await query
+    let useDueAt = true
+    let { data, error } = await fetchNotifications(true)
+
+    if (error && isMissingDueAtColumn(error)) {
+      useDueAt = false
+      const fallback = await fetchNotifications(false)
+      data = fallback.data
+      error = fallback.error
+    }
 
     if (error) {
       const missing =
@@ -53,12 +82,31 @@ export async function GET(request: Request) {
       })
     }
 
-    // Get unread count
-    const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('read', false)
+    const fetchUnreadCount = async (withDueAt: boolean) => {
+      let query = supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false)
+
+      if (withDueAt) {
+        query = query.lte('due_at', nowIso)
+      }
+
+      return await query
+    }
+
+    let { count, error: countError } = await fetchUnreadCount(useDueAt)
+
+    if (countError && useDueAt && isMissingDueAtColumn(countError)) {
+      const fallbackCount = await fetchUnreadCount(false)
+      count = fallbackCount.count
+      countError = fallbackCount.error
+    }
+
+    if (countError) {
+      console.warn('Notifications unread count query failed:', countError.message)
+    }
 
     return NextResponse.json({
       notifications: (data || []) as NotificationRow[],

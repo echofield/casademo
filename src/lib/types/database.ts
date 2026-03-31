@@ -336,6 +336,8 @@ export type Database = {
           message: string | null
           client_id: string | null
           read: boolean
+          due_at: string
+          event_key: string | null
           created_at: string
         }
         Insert: {
@@ -346,6 +348,8 @@ export type Database = {
           message?: string | null
           client_id?: string | null
           read?: boolean
+          due_at?: string
+          event_key?: string | null
           created_at?: string
         }
         Update: {
@@ -356,6 +360,8 @@ export type Database = {
           message?: string | null
           client_id?: string | null
           read?: boolean
+          due_at?: string
+          event_key?: string | null
           created_at?: string
         }
       }
@@ -421,6 +427,9 @@ export type Database = {
         | 'seller_inactive'
         | 'new_client_assigned'
         | 'manual'
+        | 'visit_thank_you'
+        | 'purchase_thank_you'
+        | 'purchase_check_in'
     }
   }
 }
