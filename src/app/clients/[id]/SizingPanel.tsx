@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { SIZE_SYSTEM, getItemTypeLabel } from '@/lib/config/sizeSystem'
-import type { SizingItem, KnownSizeItem } from '@/lib/types'
+import { SIZE_SYSTEM, getItemTypeLabel, getSizeValues, getSupportedSizeSystems } from '@/lib/config/sizeSystem'
+import type { SizingItem, KnownSizeItem, SizeSystem } from '@/lib/types'
 
 interface Props {
   clientId: string
@@ -22,23 +22,23 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
   const [adding, setAdding] = useState(false)
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [selectedSystem, setSelectedSystem] = useState<SizeSystem | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
-  const derivedCategories = new Set(knownSizes.map(d => d.category.toLowerCase()))
-  const manualOnly = sizing.filter(s => !derivedCategories.has(s.category.toLowerCase()))
-  const manualCategories = new Set(sizing.map(s => s.category.toLowerCase()))
-
-  // Item types not yet assigned (manual or derived)
-  const availableTypes = ITEM_TYPES.filter(
-    t => !derivedCategories.has(t) && !manualCategories.has(t)
-  )
+  const derivedCategories = new Set(knownSizes.map((d) => d.category.toLowerCase()))
+  const manualOnly = sizing.filter((s) => !derivedCategories.has(s.category.toLowerCase()))
+  const manualCategories = new Set(sizing.map((s) => s.category.toLowerCase()))
 
   const config = selectedType ? SIZE_SYSTEM[selectedType] : null
+  const supportedSystems = selectedType ? getSupportedSizeSystems(selectedType) : []
+  const activeSystem = selectedSystem ?? config?.system ?? null
+  const selectableSizes = selectedType && activeSystem ? getSizeValues(selectedType, activeSystem) : []
 
   const handleSave = async () => {
-    if (!selectedType || !selectedSize || !config) return
+    if (!selectedType || !selectedSize || !config || !activeSystem) return
+
     setSaving(true)
     try {
       const res = await fetch(`/api/clients/${clientId}/sizing`, {
@@ -47,9 +47,10 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
         body: JSON.stringify({
           category: selectedType,
           size: selectedSize,
-          size_system: config.system,
+          size_system: activeSystem,
         }),
       })
+
       if (res.ok) {
         router.refresh()
         resetForm()
@@ -87,13 +88,13 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
     setAdding(false)
     setSelectedType(null)
     setSelectedSize(null)
+    setSelectedSystem(null)
   }
 
   const hasAnySizing = knownSizes.length > 0 || manualOnly.length > 0
 
   return (
     <div>
-      {/* Sizing table */}
       {hasAnySizing ? (
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -102,7 +103,7 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
                 <th className="pb-2 pr-4 font-medium">Item</th>
                 <th className="pb-2 pr-4 font-medium">Size</th>
                 <th className="pb-2 pr-4 font-medium">Source</th>
-                {canEdit && <th className="pb-2 font-medium w-16" />}
+                {canEdit && <th className="w-16 pb-2 font-medium" />}
               </tr>
             </thead>
             <tbody className="body-small">
@@ -110,9 +111,7 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
                 <tr key={`derived-${ks.category}`} className="border-b last:border-0" style={cardBorder}>
                   <td className="py-2.5 pr-4 font-medium text-text">{getItemTypeLabel(ks.category)}</td>
                   <td className="py-2.5 pr-4 font-serif text-lg text-text">{ks.size}</td>
-                  <td className="py-2.5 pr-4 text-text-muted">
-                    {ks.last_product || 'Purchase'}
-                  </td>
+                  <td className="py-2.5 pr-4 text-text-muted">{ks.last_product || 'Purchase'}</td>
                   {canEdit && <td className="py-2.5" />}
                 </tr>
               ))}
@@ -125,7 +124,7 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
                       <span className="ml-1.5 text-xs font-sans text-text-muted">({s.size_system})</span>
                     )}
                   </td>
-                  <td className="py-2.5 pr-4 text-text-muted italic">Manual</td>
+                  <td className="py-2.5 pr-4 italic text-text-muted">Manual</td>
                   {canEdit && (
                     <td className="py-2.5 text-right">
                       {confirmDelete === s.category ? (
@@ -150,7 +149,7 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
                         <button
                           type="button"
                           onClick={() => setConfirmDelete(s.category)}
-                          className="text-text-muted/60 hover:text-red-500 transition-colors"
+                          className="text-text-muted/60 transition-colors hover:text-red-500"
                           aria-label={`Remove ${s.category} size`}
                         >
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -169,20 +168,18 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
         <p className="body-small text-text-muted">No sizing data yet.</p>
       )}
 
-      {/* Add size form */}
       {canEdit && !adding && (
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="label mt-4 text-xs text-primary hover:text-primary-soft transition-colors"
+          className="label mt-4 text-xs text-primary transition-colors hover:text-primary-soft"
         >
           + Add size
         </button>
       )}
 
       {canEdit && adding && (
-        <div className="mt-4 border-t pt-4 space-y-4" style={cardBorder}>
-          {/* Step 1: Item type */}
+        <div className="mt-4 space-y-4 border-t pt-4" style={cardBorder}>
           <div>
             <p className="label mb-2 text-text-muted">Item type</p>
             <div className="flex flex-wrap gap-1.5">
@@ -195,16 +192,25 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
                     type="button"
                     disabled={alreadyHas}
                     onClick={() => {
-                      setSelectedType(isSelected ? null : type)
+                      if (isSelected) {
+                        setSelectedType(null)
+                        setSelectedSystem(null)
+                        setSelectedSize(null)
+                        return
+                      }
+
+                      const defaultSystem = SIZE_SYSTEM[type].system
+                      setSelectedType(type)
+                      setSelectedSystem(defaultSystem)
                       setSelectedSize(null)
                     }}
                     className={`
-                      text-xs px-2.5 py-1 rounded-full border transition-all duration-150 font-medium
+                      rounded-full border px-2.5 py-1 text-xs font-medium transition-all duration-150
                       ${alreadyHas
-                        ? 'opacity-30 cursor-not-allowed border-text/10 text-text-muted'
+                        ? 'cursor-not-allowed border-text/10 text-text-muted opacity-30'
                         : isSelected
-                          ? 'bg-[#003D2B] text-white border-[#003D2B]'
-                          : 'bg-transparent text-text border-text/20 hover:border-text/40'
+                          ? 'border-[#003D2B] bg-[#003D2B] text-white'
+                          : 'border-text/20 bg-transparent text-text hover:border-text/40'
                       }
                     `}
                   >
@@ -215,44 +221,74 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
             </div>
           </div>
 
-          {/* Step 2: Size selection (chips) */}
           {selectedType && config && (
-            <div>
-              <p className="label mb-2 text-text-muted">
-                Size
-                <span className="ml-1.5 font-normal text-text-muted/60">({config.system})</span>
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {config.values.map((val) => {
-                  const isSelected = selectedSize === val
-                  return (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setSelectedSize(isSelected ? null : val)}
-                      className={`
-                        text-sm px-3 py-1.5 rounded-full border transition-all duration-150 font-medium min-w-[2.5rem] text-center
-                        ${isSelected
-                          ? 'bg-[#003D2B] text-white border-[#003D2B]'
-                          : 'bg-transparent text-text border-text/20 hover:border-text/40'
-                        }
-                      `}
-                    >
-                      {val}
-                    </button>
-                  )
-                })}
+            <div className="space-y-3">
+              {supportedSystems.length > 1 && (
+                <div>
+                  <p className="label mb-2 text-text-muted">Size system</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {supportedSystems.map((system) => {
+                      const isSelected = activeSystem === system
+                      return (
+                        <button
+                          key={system}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSystem(system)
+                            setSelectedSize(null)
+                          }}
+                          className={`
+                            rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150
+                            ${isSelected
+                              ? 'border-[#003D2B] bg-[#003D2B] text-white'
+                              : 'border-text/20 bg-transparent text-text hover:border-text/40'
+                            }
+                          `}
+                        >
+                          {system}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="label mb-2 text-text-muted">
+                  Size
+                  {activeSystem && <span className="ml-1.5 font-normal text-text-muted/60">({activeSystem})</span>}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectableSizes.map((val) => {
+                    const isSelected = selectedSize === val
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setSelectedSize(isSelected ? null : val)}
+                        className={`
+                          min-w-[2.5rem] rounded-full border px-3 py-1.5 text-center text-sm font-medium transition-all duration-150
+                          ${isSelected
+                            ? 'border-[#003D2B] bg-[#003D2B] text-white'
+                            : 'border-text/20 bg-transparent text-text hover:border-text/40'
+                          }
+                        `}
+                      >
+                        {val}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleSave}
-              disabled={!selectedType || !selectedSize || saving}
-              className="bg-primary text-white label px-3 py-1.5 text-xs disabled:opacity-40"
+              disabled={!selectedType || !selectedSize || !activeSystem || saving}
+              className="label bg-primary px-3 py-1.5 text-xs text-white disabled:opacity-40"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
@@ -260,7 +296,7 @@ export function SizingPanel({ clientId, sizing, knownSizes, canEdit }: Props) {
               type="button"
               onClick={resetForm}
               disabled={saving}
-              className="label px-3 py-1.5 text-text-muted text-xs hover:text-text"
+              className="label px-3 py-1.5 text-xs text-text-muted hover:text-text"
             >
               Cancel
             </button>

@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { ModalPortal } from '@/components/ModalPortal'
-import { PURCHASE_SOURCES, PurchaseSource } from '@/lib/types'
+import { PURCHASE_SOURCES, PurchaseSource, SizeSystem } from '@/lib/types'
+import { getSizeValues, getSupportedSizeSystems } from '@/lib/config/sizeSystem'
 
 const CONTACT_CHANNELS = [
   { value: 'whatsapp', label: 'WhatsApp' },
@@ -15,6 +16,14 @@ const CONTACT_CHANNELS = [
   { value: 'other', label: 'Other' },
 ] as const
 
+const PURCHASE_CATEGORY_TO_SIZE_CATEGORY: Record<string, string> = {
+  jacket: 'jackets',
+  trousers: 'pants',
+  shirt: 'shirts',
+  knitwear: 'knitwear',
+  shoes: 'shoes',
+  accessories: 'accessories',
+}
 // Context memory keys
 const STORAGE_KEY_CHANNEL = 'casa-one:last-contact-channel'
 const STORAGE_KEY_PURCHASE_SOURCE = 'casa-one:last-purchase-source'
@@ -75,10 +84,26 @@ export function ClientActions({ clientId }: Props) {
   const [purchaseSource, setPurchaseSource] = useState<PurchaseSource | ''>('')
   const [purchaseProductName, setPurchaseProductName] = useState('')
   const [purchaseCategory, setPurchaseCategory] = useState('')
+  const [purchaseSizeSystem, setPurchaseSizeSystem] = useState<SizeSystem | null>(null)
   const [purchaseSize, setPurchaseSize] = useState('')
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0])
   const [purchaseIsGift, setPurchaseIsGift] = useState(false)
   const [purchaseGiftRecipient, setPurchaseGiftRecipient] = useState('')
+  const mappedPurchaseSizeCategory = purchaseCategory
+    ? PURCHASE_CATEGORY_TO_SIZE_CATEGORY[purchaseCategory] ?? null
+    : null
+  const purchaseSupportedSizeSystems = mappedPurchaseSizeCategory
+    ? getSupportedSizeSystems(mappedPurchaseSizeCategory)
+    : []
+  const resolvedPurchaseSizeSystem =
+    purchaseSizeSystem && purchaseSupportedSizeSystems.includes(purchaseSizeSystem)
+      ? purchaseSizeSystem
+      : (purchaseSupportedSizeSystems[0] ?? null)
+  const structuredPurchaseSizes =
+    mappedPurchaseSizeCategory && resolvedPurchaseSizeSystem
+      ? getSizeValues(mappedPurchaseSizeCategory, resolvedPurchaseSizeSystem)
+      : []
+
 
   const [contactInfo, setContactInfo] = useState<string | null>(null)
 
@@ -121,6 +146,7 @@ export function ClientActions({ clientId }: Props) {
     setPurchaseDescription('')
     setPurchaseProductName('')
     setPurchaseCategory('')
+    setPurchaseSizeSystem(null)
     setPurchaseSize('')
     setPurchaseDate(new Date().toISOString().split('T')[0])
     setPurchaseIsGift(false)
@@ -203,9 +229,25 @@ export function ClientActions({ clientId }: Props) {
 
     const sizeVal = purchaseSize.trim() || null
     let sizeType: string | null = null
-    if (sizeVal) {
-      if (['S', 'M', 'L', 'XL', 'XXL'].includes(sizeVal.toUpperCase())) sizeType = 'letter'
-      else if (/^\d+$/.test(sizeVal)) sizeType = parseInt(sizeVal) >= 38 && parseInt(sizeVal) <= 47 ? 'shoe' : 'number'
+
+    if (sizeVal && mappedPurchaseSizeCategory) {
+      if (mappedPurchaseSizeCategory === 'shoes' || mappedPurchaseSizeCategory === 'sneakers') {
+        sizeType = 'shoe'
+      } else if (resolvedPurchaseSizeSystem === 'INTL') {
+        sizeType = 'letter'
+      } else {
+        sizeType = 'number'
+      }
+    } else if (sizeVal) {
+      const normalized = sizeVal.toUpperCase()
+      if (['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].includes(normalized)) {
+        sizeType = 'letter'
+      } else if (/^\d+$/.test(sizeVal)) {
+        const numericSize = parseInt(sizeVal, 10)
+        sizeType = (numericSize >= 3 && numericSize <= 15) || (numericSize >= 38 && numericSize <= 47)
+          ? 'shoe'
+          : 'number'
+      }
     }
 
     const payload = {
@@ -409,7 +451,20 @@ export function ClientActions({ clientId }: Props) {
                     <label className="label mb-2 block text-text-muted">Category</label>
                     <select
                       value={purchaseCategory}
-                      onChange={(e) => setPurchaseCategory(e.target.value)}
+                      onChange={(e) => {
+                        const nextCategory = e.target.value
+                        setPurchaseCategory(nextCategory)
+                        setPurchaseSize('')
+
+                        const mappedCategory = PURCHASE_CATEGORY_TO_SIZE_CATEGORY[nextCategory]
+                        if (!mappedCategory) {
+                          setPurchaseSizeSystem(null)
+                          return
+                        }
+
+                        const systems = getSupportedSizeSystems(mappedCategory)
+                        setPurchaseSizeSystem(systems[0] ?? null)
+                      }}
                       className="input-field"
                     >
                       <option value="">-</option>
@@ -423,14 +478,60 @@ export function ClientActions({ clientId }: Props) {
                     </select>
                   </div>
                   <div>
-                    <label className="label mb-2 block text-text-muted">Size</label>
-                    <input
-                      type="text"
-                      value={purchaseSize}
-                      onChange={(e) => setPurchaseSize(e.target.value)}
-                      className="input-field"
-                      placeholder="e.g. M, 48, 42"
-                    />
+                    <label className="label mb-2 block text-text-muted">
+                      Size
+                      {mappedPurchaseSizeCategory && resolvedPurchaseSizeSystem && (
+                        <span className="ml-1.5 text-text-muted/70">({resolvedPurchaseSizeSystem})</span>
+                      )}
+                    </label>
+
+                    {mappedPurchaseSizeCategory && structuredPurchaseSizes.length > 0 ? (
+                      <div className="space-y-2">
+                        {purchaseSupportedSizeSystems.length > 1 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {purchaseSupportedSizeSystems.map((system) => {
+                              const isSelected = resolvedPurchaseSizeSystem === system
+                              return (
+                                <button
+                                  key={system}
+                                  type="button"
+                                  onClick={() => {
+                                    setPurchaseSizeSystem(system)
+                                    setPurchaseSize('')
+                                  }}
+                                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all duration-150 ${
+                                    isSelected
+                                      ? 'border-[#003D2B] bg-[#003D2B] text-white'
+                                      : 'border-[rgba(28,27,25,0.18)] text-text-muted hover:border-text hover:text-text'
+                                  }`}
+
+                                >
+                                  {system}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                        <select
+                          value={purchaseSize}
+                          onChange={(e) => setPurchaseSize(e.target.value)}
+                          className="input-field"
+                        >
+                          <option value="">Select size...</option>
+                          {structuredPurchaseSizes.map((sizeValue) => (
+                            <option key={sizeValue} value={sizeValue}>{sizeValue}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={purchaseSize}
+                        onChange={(e) => setPurchaseSize(e.target.value)}
+                        className="input-field"
+                        placeholder="e.g. M, 48, 42"
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -546,4 +647,3 @@ export function ClientActions({ clientId }: Props) {
     </>
   )
 }
-

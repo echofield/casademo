@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
-import { getSizeConfig, SIZE_ITEM_TYPES } from '@/lib/config/sizeSystem'
+import { getSizeConfig, getSizeValues, getSupportedSizeSystems, SIZE_ITEM_TYPES } from '@/lib/config/sizeSystem'
 import type { SizeSystem } from '@/lib/types'
 
 const SIZING_TABLE = 'client_sizing'
@@ -114,19 +114,27 @@ export function validateSizingPayload(body: unknown):
     }
   }
 
-  if (!config.values.includes(parsed.data.size)) {
-    return {
-      success: false,
-      details: flattenFieldError('size', `Invalid size "${parsed.data.size}" for category "${category}"`),
-    }
-  }
+  const selectedSystem = parsed.data.size_system ?? config.system
+  const supportedSystems = getSupportedSizeSystems(category)
 
-  if (parsed.data.size_system && parsed.data.size_system !== config.system) {
+  if (!supportedSystems.includes(selectedSystem)) {
     return {
       success: false,
       details: flattenFieldError(
         'size_system',
-        `size_system must be ${config.system} for category "${category}"`
+        `Unsupported size system "${selectedSystem}" for category "${category}"`
+      ),
+    }
+  }
+
+  const allowedSizes = getSizeValues(category, selectedSystem)
+
+  if (!allowedSizes.includes(parsed.data.size)) {
+    return {
+      success: false,
+      details: flattenFieldError(
+        'size',
+        `Invalid size "${parsed.data.size}" for category "${category}" in ${selectedSystem}`
       ),
     }
   }
@@ -136,7 +144,7 @@ export function validateSizingPayload(body: unknown):
     data: {
       category,
       size: parsed.data.size,
-      size_system: parsed.data.size_system ?? config.system,
+      size_system: selectedSystem,
       fit_preference: parsed.data.fit_preference ?? null,
       notes: parsed.data.notes ?? null,
     },
@@ -317,3 +325,4 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
     }
   }
 }
+

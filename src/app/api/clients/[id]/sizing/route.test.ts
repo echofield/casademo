@@ -174,7 +174,7 @@ test('POST /api/clients/[id]/sizing rejects an invalid sizing payload', async ()
   assert.equal(touchedSupabase, true)
   const payload = await response.json()
   assert.equal(payload.error, 'Validation failed')
-  assert.deepEqual(payload.details.fieldErrors.size, ['Invalid size "44" for category "shirts"'])
+  assert.deepEqual(payload.details.fieldErrors.size, ['Invalid size "44" for category "shirts" in INTL'])
 })
 
 test('POST /api/clients/[id]/sizing maps Supabase write errors without masking them as generic 500s', async () => {
@@ -216,4 +216,56 @@ test('POST /api/clients/[id]/sizing maps Supabase write errors without masking t
   assert.equal(response.status, 400)
   const payload = await response.json()
   assert.equal(payload.error, 'Invalid sizing payload')
+})
+
+test('POST /api/clients/[id]/sizing supports UK shoe sizing values', async () => {
+  const handler = createPostSizingHandler({
+    createClient: async () =>
+      createSupabaseMock(async ({ table, operation, filters, values }) => {
+        if (table === 'clients' && operation === 'select') {
+          assert.equal(filters.id, 'client-1')
+          return { data: { id: 'client-1' }, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'select') {
+          assert.equal(filters.client_id, 'client-1')
+          assert.equal(filters.category, 'shoes')
+          return { data: null, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'insert') {
+          assert.deepEqual(values, {
+            client_id: 'client-1',
+            category: 'shoes',
+            size: '10',
+            size_system: 'UK',
+            fit_preference: null,
+            notes: null,
+          })
+
+          return {
+            data: {
+              id: 'sizing-uk-1',
+              ...(values as Record<string, unknown>),
+            },
+            error: null,
+          }
+        }
+
+        throw new Error(`Unexpected query: ${table} ${operation}`)
+      }) as any,
+    requireAuth: async () => ({ id: 'user-1' } as any),
+    logger,
+  })
+
+  const response = await handler(createRequest({
+    category: 'shoes',
+    size: '10',
+    size_system: 'UK',
+  }), { params: Promise.resolve({ id: 'client-1' }) })
+
+  assert.equal(response.status, 201)
+  const payload = await response.json()
+  assert.equal(payload.id, 'sizing-uk-1')
+  assert.equal(payload.size_system, 'UK')
 })

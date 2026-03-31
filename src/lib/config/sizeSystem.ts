@@ -4,6 +4,7 @@ export interface SizeCategoryConfig {
   label: string
   system: SizeSystem
   values: string[]
+  alternateSystems?: Partial<Record<SizeSystem, string[]>>
 }
 
 /**
@@ -17,17 +18,17 @@ export const SIZE_SYSTEM: Record<string, SizeCategoryConfig> = {
   knitwear: {
     label: 'Knitwear',
     system: 'INTL',
-    values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    values: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
   },
   shirts: {
     label: 'Shirts',
     system: 'INTL',
-    values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    values: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
   },
   t_shirts: {
     label: 'T-shirts',
     system: 'INTL',
-    values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    values: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
   },
   tailoring: {
     label: 'Tailoring',
@@ -47,17 +48,23 @@ export const SIZE_SYSTEM: Record<string, SizeCategoryConfig> = {
   shorts: {
     label: 'Shorts',
     system: 'INTL',
-    values: ['XS', 'S', 'M', 'L', 'XL'],
+    values: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
   },
   shoes: {
     label: 'Shoes',
     system: 'EU',
     values: ['39', '40', '41', '42', '43', '44', '45'],
+    alternateSystems: {
+      UK: ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+    },
   },
   sneakers: {
     label: 'Sneakers',
     system: 'EU',
     values: ['39', '40', '41', '42', '43', '44', '45'],
+    alternateSystems: {
+      UK: ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+    },
   },
   accessories: {
     label: 'Accessories',
@@ -67,7 +74,7 @@ export const SIZE_SYSTEM: Record<string, SizeCategoryConfig> = {
   swimwear: {
     label: 'Swimwear',
     system: 'INTL',
-    values: ['XS', 'S', 'M', 'L', 'XL'],
+    values: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
   },
 } as const
 
@@ -75,6 +82,23 @@ export const SIZE_ITEM_TYPES = Object.keys(SIZE_SYSTEM)
 
 export function getSizeConfig(itemType: string): SizeCategoryConfig | null {
   return SIZE_SYSTEM[itemType.toLowerCase()] ?? null
+}
+
+export function getSupportedSizeSystems(itemType: string): SizeSystem[] {
+  const config = getSizeConfig(itemType)
+  if (!config) return []
+
+  const alternate = config.alternateSystems ? Object.keys(config.alternateSystems) as SizeSystem[] : []
+  return [config.system, ...alternate.filter((system) => system !== config.system)]
+}
+
+export function getSizeValues(itemType: string, sizeSystem?: SizeSystem | null): string[] {
+  const config = getSizeConfig(itemType)
+  if (!config) return []
+
+  if (!sizeSystem || sizeSystem === config.system) return config.values
+
+  return config.alternateSystems?.[sizeSystem] ?? []
 }
 
 export function getItemTypeLabel(itemType: string): string {
