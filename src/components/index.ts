@@ -29,3 +29,5 @@ export { SellerCard } from './SellerCard'
 export { SellerImpactWidget } from './SellerImpactWidget'
 export { NavigationProgress } from './NavigationProgress'
 export { SystemHelper } from './SystemHelper'
+
+export { BackNavButton } from './BackNavButton'

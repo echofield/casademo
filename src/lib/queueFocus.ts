@@ -4,12 +4,14 @@ import type { ClientSignal } from '@/lib/types'
 export type QueueMode = 'all' | 'focus'
 export type FocusSignalBucket = 'all' | 'locked' | 'strong' | 'other'
 export type FocusValueFilter = 'all' | 'high_spend'
+export type FocusContactFilter = 'phone_ready' | 'not_enough_info'
 
 export const HIGH_SPEND_THRESHOLD = 10000
 
 type FocusClient = {
   id: string
   seller_signal?: ClientSignal | null
+  phone?: string | null
   total_spend: number
   days_overdue: number | null
   last_contact_date?: string | null
@@ -45,8 +47,25 @@ export function matchesFocusValueFilter(
   return totalSpend >= HIGH_SPEND_THRESHOLD
 }
 
+export function hasUsablePhoneNumber(phone: string | null | undefined): boolean {
+  if (!phone) return false
+  const normalizedDigits = phone.replace(/\D/g, '')
+  return normalizedDigits.length >= 6
+}
+
+export function matchesFocusContactFilter(
+  phone: string | null | undefined,
+  contactFilter: FocusContactFilter
+): boolean {
+  const phoneReady = hasUsablePhoneNumber(phone)
+  return contactFilter === 'phone_ready' ? phoneReady : !phoneReady
+}
+
 export function sortClientsForFocus<T extends FocusClient>(clients: T[]): T[] {
   return [...clients].sort((a, b) => {
+    const phoneReadyDelta = Number(hasUsablePhoneNumber(b.phone)) - Number(hasUsablePhoneNumber(a.phone))
+    if (phoneReadyDelta !== 0) return phoneReadyDelta
+
     const signalDelta = getSignalPriority(a.seller_signal ?? null) - getSignalPriority(b.seller_signal ?? null)
     if (signalDelta !== 0) return signalDelta
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { BackNavButton } from '@/components'
 
 export default function SetupMFAPage() {
   const router = useRouter()
@@ -175,7 +176,8 @@ export default function SetupMFAPage() {
 
   return (
     <main className="min-h-screen bg-[#F7F4EE] flex flex-col">
-      <header className="flex items-center justify-between px-8 py-6">
+      <header className="flex items-center px-8 py-6">
+        <BackNavButton fallbackHref="/login" label="Back" className="mr-4" />
         <span className="text-[#003D2B]/90 text-sm font-medium tracking-[0.2em] uppercase">
           Casa One
         </span>

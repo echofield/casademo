@@ -7,9 +7,11 @@ import { transitions } from '@/lib/motion'
 import type { ClientTier, ClientSignal, InterestItem } from '@/lib/types'
 import {
   HIGH_SPEND_THRESHOLD,
+  matchesFocusContactFilter,
   matchesFocusSignalBucket,
   matchesFocusValueFilter,
   sortClientsForFocus,
+  type FocusContactFilter,
   type FocusSignalBucket,
   type FocusValueFilter,
   type QueueMode,
@@ -70,6 +72,7 @@ export function QueueStack({
   const [queueMode, setQueueMode] = useState<QueueMode>('all')
   const [signalBucket, setSignalBucket] = useState<FocusSignalBucket>('all')
   const [valueFilter, setValueFilter] = useState<FocusValueFilter>('all')
+  const [contactFilter, setContactFilter] = useState<FocusContactFilter>('phone_ready')
   const activeClientIdRef = useRef<string | null>(clients[0]?.id ?? null)
 
   const filteredClients = sourceClients.filter((client) => {
@@ -77,6 +80,7 @@ export function QueueStack({
 
     return matchesFocusSignalBucket(client.seller_signal ?? null, signalBucket)
       && matchesFocusValueFilter(client.total_spend || 0, valueFilter)
+      && matchesFocusContactFilter(client.phone, contactFilter)
   })
 
   const queueClients = queueMode === 'focus'
@@ -187,6 +191,19 @@ export function QueueStack({
             </button>
           )
         })}
+        {(['phone_ready', 'not_enough_info'] as FocusContactFilter[]).map((state) => {
+          const isActive = contactFilter === state
+          return (
+            <button
+              key={state}
+              type="button"
+              onClick={() => setContactFilter(state)}
+              className={`px-3 py-2 text-xs uppercase tracking-wider transition-colors ${isActive ? 'bg-primary text-white' : 'bg-bg-soft text-text-muted hover:text-text'}`}
+            >
+              {state === 'phone_ready' ? 'Actionable (Phone)' : 'Not enough info'}
+            </button>
+          )
+        })}
       </div>
     )
   }
@@ -216,6 +233,7 @@ export function QueueStack({
                 setQueueMode('all')
                 setSignalBucket('all')
                 setValueFilter('all')
+                setContactFilter('phone_ready')
               }}
               className="px-4 py-2 text-xs uppercase tracking-wider bg-primary text-white transition-colors"
             >
@@ -226,6 +244,7 @@ export function QueueStack({
               onClick={() => {
                 setSignalBucket('all')
                 setValueFilter('all')
+                setContactFilter('phone_ready')
               }}
               className="px-4 py-2 text-xs uppercase tracking-wider bg-bg-soft text-text-muted transition-colors hover:text-text"
             >

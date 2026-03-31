@@ -24,6 +24,9 @@ export const createClientBodySchema = z
     last_name: z.string().min(1, 'Last name is required'),
     email: optionalEmail,
     phone: z.string().optional().nullable().transform((v) => (v === '' || v === undefined ? null : v)),
+    locale: z
+      .enum(['local', 'foreign'])
+      .optional(),
     birthday: optionalBirthdayCreate,
     notes: z.string().optional().nullable().transform((v) => (v === '' || v === undefined ? null : v)),
     seller_id: z.string().uuid().optional(),

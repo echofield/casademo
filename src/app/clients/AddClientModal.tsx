@@ -57,6 +57,7 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
       last_name: String(fd.get('last_name') ?? '').trim(),
       phone: String(fd.get('phone') ?? '').trim() || null,
       email: String(fd.get('email') ?? '').trim() || null,
+      locale: String(fd.get('locale') ?? 'local').trim() || 'local',
       birthday: String(fd.get('birthday') ?? '').trim() || null,
       notes: String(fd.get('notes') ?? '').trim() || null,
     }
@@ -242,6 +243,17 @@ export function AddClientModal({ onClose, isSupervisor, sellers = [] }: Props) {
               className="input-field"
               placeholder="jean@example.com"
             />
+          </div>
+          <div>
+            <label className="small-caps block mb-1">Origin type</label>
+            <select
+              name="locale"
+              className="input-field"
+              defaultValue="local"
+            >
+              <option value="local">Local</option>
+              <option value="foreign">Foreign</option>
+            </select>
           </div>
 
           <div>

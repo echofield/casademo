@@ -1,8 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { AppShell, QueueStack } from '@/components'
+import { AppShell, BackNavButton, QueueStack } from '@/components'
 import type { InterestItem, ClientSignal } from '@/lib/types'
 
 interface PageProps {
@@ -128,14 +127,11 @@ export default async function SellerDetailPage({ params }: PageProps) {
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Back link */}
-        <Link
-          href="/team"
-          className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to team
-        </Link>
+        <BackNavButton
+          fallbackHref="/team"
+          label="Back to team"
+          className="mb-6"
+        />
 
         {/* Seller header */}
         <div className="border bg-surface p-6 mb-8" style={cardBorder}>

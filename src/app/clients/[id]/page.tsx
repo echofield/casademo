@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { AppShell, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
+import { AppShell, BackNavButton, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
 import type { Client360, ContactHistoryItem, PurchaseHistoryItem, ClientTier, ContactChannel, ClientOrigin, ClientSignal, KnownSizeItem, ClientLocale, FirstImpact, PurchaseSource, BrandAffinity, FashionInterestLevel } from '@/lib/types'
 import { FIRST_IMPACT_CONFIG, LOCALE_LABELS, PURCHASE_SOURCE_COLORS, getPurchaseSourceLabel, SIGNAL_LABELS, getCadenceLabel, getChannelHint } from '@/lib/types'
 import { ClientLifeNotes } from './ClientLifeNotes'
@@ -302,13 +302,11 @@ export default async function Client360Page({ params }: Props) {
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
       <div className="mx-auto max-w-5xl pb-32 md:pb-10">
-        <Link
-          href="/clients"
-          className="label mb-6 inline-flex items-center gap-2 text-text-muted transition-colors duration-200 hover:text-text md:mb-8"
-        >
-          <span aria-hidden>←</span>
-          Clients
-        </Link>
+        <BackNavButton
+          fallbackHref="/clients"
+          label="Clients"
+          className="label mb-6 md:mb-8"
+        />
 
         <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* Fiche client */}
