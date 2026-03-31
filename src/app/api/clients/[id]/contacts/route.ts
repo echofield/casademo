@@ -2,15 +2,63 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth, AuthError } from '@/lib/auth'
-import type { ContactChannel } from '@/lib/types'
+import type { ContactChannel, ClientSignal, ClientTier } from '@/lib/types'
 
 const VALID_CHANNELS: ContactChannel[] = ['whatsapp', 'sms', 'phone', 'email', 'in_store', 'other']
+const MARK_DONE_COMMENT = 'Follow-up completed'
 
 const createContactSchema = z.object({
   channel: z.enum(VALID_CHANNELS as [ContactChannel, ...ContactChannel[]]),
   comment: z.string().optional().nullable(),
   contact_date: z.string().datetime().optional(),
 })
+
+type ContactClient = {
+  id: string
+  first_name: string
+  last_name: string
+  seller_id: string
+  tier: ClientTier
+  seller_signal: ClientSignal | null
+  locale: 'local' | 'foreign' | null
+  first_contact_date: string | null
+}
+
+const TIER_BASE_DAYS: Record<ClientTier, number> = {
+  grand_prix: 7,
+  diplomatico: 14,
+  idealiste: 21,
+  kaizen: 30,
+  optimisto: 45,
+  rainbow: 60,
+}
+
+function fallbackRecontactDays(tier: ClientTier, signal: ClientSignal | null): number {
+  const baseDays = TIER_BASE_DAYS[tier] ?? 60
+  const multiplier = signal === 'very_hot'
+    ? 0.5
+    : signal === 'cold'
+      ? 1.5
+      : signal === 'lost'
+        ? 3
+        : 1
+
+  return Math.max(3, Math.round(baseDays * multiplier))
+}
+
+function toIsoDateKey(inputIso: string): string {
+  const date = new Date(inputIso)
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().slice(0, 10)
+  }
+  return date.toISOString().slice(0, 10)
+}
+
+function addDaysToIsoDate(dateKey: string, days: number): string {
+  const base = new Date(`${dateKey}T00:00:00.000Z`)
+  base.setUTCDate(base.getUTCDate() + days)
+  return base.toISOString().slice(0, 10)
+}
 
 // POST /api/clients/[id]/contacts - Log interaction
 export async function POST(
@@ -25,9 +73,9 @@ export async function POST(
     // Verify client exists and is accessible
     const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('id, first_name, last_name, seller_id, tier')
+      .select('id, first_name, last_name, seller_id, tier, seller_signal, locale, first_contact_date')
       .eq('id', client_id)
-      .single()
+      .single<ContactClient>()
 
     if (clientError || !client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
@@ -45,7 +93,11 @@ export async function POST(
 
     const isMarkDone =
       parsed.data.channel === 'other' &&
-      (parsed.data.comment || '').trim().toLowerCase() === 'follow-up completed'
+      (parsed.data.comment || '').trim().toLowerCase() === MARK_DONE_COMMENT.toLowerCase()
+
+    const normalizedComment = isMarkDone
+      ? MARK_DONE_COMMENT
+      : (parsed.data.comment || '').trim() || null
 
     const getSellerRemainingCount = async () => {
       const { count } = await supabase
@@ -54,6 +106,54 @@ export async function POST(
         .eq('seller_id', client.seller_id)
 
       return count || 0
+    }
+
+    const resolveRecontactDays = async () => {
+      const { data: dbDays, error: daysError } = await supabase.rpc('get_recontact_days', {
+        p_tier: client.tier,
+        p_signal: client.seller_signal,
+        p_is_foreign: client.locale === 'foreign',
+      })
+
+      if (!daysError && typeof dbDays === 'number' && Number.isFinite(dbDays)) {
+        return Math.max(3, Math.round(dbDays))
+      }
+
+      return fallbackRecontactDays(client.tier, client.seller_signal)
+    }
+
+    const reconcileClientDates = async (contactDateIso: string | null | undefined) => {
+      const contactDateKey = toIsoDateKey(contactDateIso || new Date().toISOString())
+      const recontactDays = await resolveRecontactDays()
+      const nextRecontactKey = addDaysToIsoDate(contactDateKey, recontactDays)
+
+      const updates: Record<string, string> = {
+        last_contact_date: contactDateKey,
+        next_recontact_date: nextRecontactKey,
+      }
+
+      if (!client.first_contact_date) {
+        updates.first_contact_date = contactDateKey
+      }
+
+      const { data: reconciledClient } = await supabase
+        .from('clients')
+        .update(updates as any)
+        .eq('id', client_id)
+        .select('id, last_contact_date, next_recontact_date')
+        .single()
+
+      if (reconciledClient) {
+        return reconciledClient
+      }
+
+      const { data: fallbackClient } = await supabase
+        .from('clients')
+        .select('id, last_contact_date, next_recontact_date')
+        .eq('id', client_id)
+        .single()
+
+      return fallbackClient
     }
 
     // Idempotency for "Mark as done": one completion log per seller/client/day.
@@ -66,23 +166,20 @@ export async function POST(
 
       const { data: existingDone } = await supabase
         .from('contacts')
-        .select('id')
+        .select('id, contact_date')
         .eq('client_id', client_id)
         .eq('seller_id', user.id)
         .eq('channel', 'other')
-        .eq('comment', 'Follow-up completed')
+        .eq('comment', MARK_DONE_COMMENT)
         .gte('contact_date', startOfDayUtc.toISOString())
         .lt('contact_date', endOfDayUtc.toISOString())
+        .order('contact_date', { ascending: false })
         .limit(1)
         .maybeSingle()
 
       if (existingDone) {
-        const { data: updatedClient } = await supabase
-          .from('clients')
-          .select('id, last_contact_date, next_recontact_date')
-          .eq('id', client_id)
-          .single()
-
+        // Repair/confirm client dates from the persisted completion row to avoid ghost queue entries.
+        const updatedClient = await reconcileClientDates(existingDone.contact_date)
         const seller_remaining_count = await getSellerRemainingCount()
 
         return NextResponse.json(
@@ -103,7 +200,7 @@ export async function POST(
         client_id,
         seller_id: user.id,
         channel: parsed.data.channel as string,
-        comment: parsed.data.comment,
+        comment: normalizedComment,
         contact_date: parsed.data.contact_date || new Date().toISOString(),
       } as any)
       .select()
@@ -128,7 +225,7 @@ export async function POST(
         user_id: s.id,
         type: 'manual' as const,
         title: `${user.profile.full_name} contacted ${client.first_name} ${client.last_name}`,
-        message: `${channelLabel} · ${tierLabel}`,
+        message: `${channelLabel} - ${tierLabel}`,
         client_id,
       }))
 
@@ -144,14 +241,7 @@ export async function POST(
       }
     }
 
-    // Trigger auto-updates last_contact_date and next_recontact_date
-    // Return updated client dates so UIs can react immediately.
-    const { data: updatedClient } = await supabase
-      .from('clients')
-      .select('id, last_contact_date, next_recontact_date')
-      .eq('id', client_id)
-      .single()
-
+    const updatedClient = await reconcileClientDates(data?.contact_date)
     const seller_remaining_count = await getSellerRemainingCount()
 
     return NextResponse.json(
