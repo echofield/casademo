@@ -68,7 +68,7 @@ interface Props {
 
 export function ClientActions({ clientId }: Props) {
   const router = useRouter()
-  const [isRefreshing, startRefreshTransition] = useTransition()
+  const [, startRefreshTransition] = useTransition()
   const [showContactModal, setShowContactModal] = useState(false)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -128,7 +128,7 @@ export function ClientActions({ clientId }: Props) {
     }
   }, [])
 
-  const scheduleRefresh = (delayMs = 200) => {
+  const scheduleRefresh = (delayMs = 450) => {
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current)
     }
@@ -199,7 +199,7 @@ export function ClientActions({ clientId }: Props) {
         setTimeout(() => setContactSuccess(false), 1500)
       }
 
-      scheduleRefresh()
+      scheduleRefresh(500)
     } catch (err) {
       // Error after optimistic close - show brief error state
       setContactError(err instanceof Error ? err.message : 'Error saving contact')
@@ -281,7 +281,7 @@ export function ClientActions({ clientId }: Props) {
       setTimeout(() => setPurchaseSuccess(false), 1500)
       resetPurchaseForm()
       setShowPurchaseModal(false)
-      scheduleRefresh()
+      scheduleRefresh(500)
     } catch (err) {
       setPurchaseError(err instanceof Error ? err.message : 'Error saving purchase')
     } finally {
@@ -297,7 +297,7 @@ export function ClientActions({ clientId }: Props) {
           <Button
             type="button"
             onClick={() => { setContactError(null); setShowContactModal(true) }}
-            disabled={loading || isRefreshing}
+            disabled={loading}
             className={contactSuccess ? 'ring-2 ring-emerald-400/50' : ''}
           >
             {contactSuccess ? (
@@ -323,7 +323,7 @@ export function ClientActions({ clientId }: Props) {
               setPurchaseError(null)
               setShowPurchaseModal(true)
             }}
-            disabled={loading || isRefreshing}
+            disabled={loading}
             className={purchaseSuccess ? 'ring-2 ring-emerald-400/50' : ''}
           >
             {purchaseSuccess ? (

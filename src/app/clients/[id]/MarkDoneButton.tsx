@@ -12,7 +12,7 @@ interface MarkDoneButtonProps {
 
 export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
   const router = useRouter()
-  const [isRefreshing, startRefreshTransition] = useTransition()
+  const [, startRefreshTransition] = useTransition()
   const [loading, setLoading] = useState(false)
   const [doneLocked, setDoneLocked] = useState(false)
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -25,7 +25,7 @@ export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
     }
   }, [])
 
-  const scheduleRefresh = (delayMs = 200) => {
+  const scheduleRefresh = (delayMs = 450) => {
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current)
     }
@@ -69,7 +69,7 @@ export function MarkDoneButton({ clientId, clientName }: MarkDoneButtonProps) {
   return (
     <button
       onClick={handleMarkDone}
-      disabled={loading || doneLocked || isRefreshing}
+      disabled={loading || doneLocked}
       className="mt-4 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
     >
       <Check className="h-4 w-4" />
