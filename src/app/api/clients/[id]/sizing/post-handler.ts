@@ -52,6 +52,12 @@ type PostSizingDeps = {
   logger: Logger
 }
 
+type RequiredSizingFields = {
+  category: string
+  size: string
+  size_system: SizeSystem
+}
+
 function flattenFieldError(field: string, message: string): FlattenedValidation {
   return {
     formErrors: [],
@@ -84,6 +90,25 @@ function getSupabaseErrorSummary(error: SupabaseErrorLike | null | undefined) {
     hint: error.hint ?? null,
     code: error.code ?? null,
   }
+}
+
+function pickRequiredSizingFields(data: NormalizedSizingPayload): RequiredSizingFields {
+  return {
+    category: data.category,
+    size: data.size,
+    size_system: data.size_system,
+  }
+}
+
+function isOptionalColumnSchemaCacheError(error: SupabaseErrorLike | null | undefined): boolean {
+  if (!error) return false
+
+  const message = `${error.message} ${error.details ?? ''} ${error.hint ?? ''}`.toLowerCase()
+  if (error.code !== 'PGRST204' && !message.includes('schema cache')) {
+    return false
+  }
+
+  return message.includes('notes') || message.includes('fit_preference')
 }
 
 export function validateSizingPayload(body: unknown):
@@ -162,6 +187,10 @@ export function mapSizingSupabaseError(error: SupabaseErrorLike) {
     return { status: 404, error: 'Client not found' }
   }
 
+  if (error.code === 'PGRST204' && message.includes('schema cache')) {
+    return { status: 500, error: 'Sizing schema mismatch in database' }
+  }
+
   if (
     error.code === '22P02' ||
     error.code === '23502' ||
@@ -230,15 +259,24 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
         )
       }
 
-      const writePayload = {
+      const fullInsertPayload = {
         client_id,
         ...validated.data,
+      }
+      const requiredFields = pickRequiredSizingFields(validated.data)
+      const fallbackInsertPayload = {
+        client_id,
+        ...requiredFields,
+      }
+      const fallbackUpdatePayload = {
+        size: requiredFields.size,
+        size_system: requiredFields.size_system,
       }
 
       logSizing(deps.logger, 'info', 'request.validated', {
         client_id,
         routeParams,
-        parsedPayload: writePayload,
+        parsedPayload: fullInsertPayload,
         table: SIZING_TABLE,
       })
 
@@ -282,27 +320,51 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
         return NextResponse.json({ error: mapped.error }, { status: mapped.status })
       }
 
-      const writeQuery = existing?.id
-        ? supabase
+      const operation = existing?.id ? 'update' : 'insert'
+      const runWrite = async (useFullPayload: boolean) => {
+        if (operation === 'update') {
+          const updatePayload = useFullPayload ? validated.data : fallbackUpdatePayload
+          return await supabase
             .from(SIZING_TABLE)
-            .update(validated.data as any)
-            .eq('id', existing.id)
-        : supabase
-            .from(SIZING_TABLE)
-            .insert(writePayload as any)
+            .update(updatePayload as any)
+            .eq('id', existing!.id)
+            .select()
+            .single()
+        }
 
-      const { data, error } = await writeQuery
-        .select()
-        .single()
+        const insertPayload = useFullPayload ? fullInsertPayload : fallbackInsertPayload
+        return await supabase
+          .from(SIZING_TABLE)
+          .insert(insertPayload as any)
+          .select()
+          .single()
+      }
+
+      let { data, error } = await runWrite(true)
+
+      if (error && isOptionalColumnSchemaCacheError(error)) {
+        logSizing(deps.logger, 'warn', 'sizing.write_retry_without_optional_columns', {
+          client_id,
+          routeParams,
+          table: SIZING_TABLE,
+          operation,
+          supabaseError: getSupabaseErrorSummary(error),
+          fallbackPayload: operation === 'update' ? fallbackUpdatePayload : fallbackInsertPayload,
+        })
+
+        const retryResult = await runWrite(false)
+        data = retryResult.data
+        error = retryResult.error
+      }
 
       if (error) {
         logSizing(deps.logger, 'error', 'sizing.write_failed', {
           client_id,
           routeParams,
           table: SIZING_TABLE,
-          operation: existing?.id ? 'update' : 'insert',
+          operation,
           incomingBody: body,
-          parsedPayload: writePayload,
+          parsedPayload: fullInsertPayload,
           supabaseError: getSupabaseErrorSummary(error),
         })
 
@@ -325,4 +387,3 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
     }
   }
 }
-

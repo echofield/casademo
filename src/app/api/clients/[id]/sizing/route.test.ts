@@ -269,3 +269,147 @@ test('POST /api/clients/[id]/sizing supports UK shoe sizing values', async () =>
   assert.equal(payload.id, 'sizing-uk-1')
   assert.equal(payload.size_system, 'UK')
 })
+
+test('POST /api/clients/[id]/sizing retries insert with required fields when optional columns are missing in production schema', async () => {
+  let insertAttempt = 0
+
+  const handler = createPostSizingHandler({
+    createClient: async () =>
+      createSupabaseMock(async ({ table, operation, values }) => {
+        if (table === 'clients' && operation === 'select') {
+          return { data: { id: 'client-1' }, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'select') {
+          return { data: null, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'insert') {
+          insertAttempt += 1
+
+          if (insertAttempt === 1) {
+            assert.deepEqual(values, {
+              client_id: 'client-1',
+              category: 'shirts',
+              size: 'S',
+              size_system: 'INTL',
+              fit_preference: null,
+              notes: null,
+            })
+
+            return {
+              data: null,
+              error: {
+                code: 'PGRST204',
+                message: "Could not find the 'notes' column of 'client_sizing' in the schema cache",
+                details: null,
+                hint: null,
+              },
+            }
+          }
+
+          assert.deepEqual(values, {
+            client_id: 'client-1',
+            category: 'shirts',
+            size: 'S',
+            size_system: 'INTL',
+          })
+
+          return {
+            data: {
+              id: 'sizing-fallback-insert',
+              ...(values as Record<string, unknown>),
+            },
+            error: null,
+          }
+        }
+
+        throw new Error(`Unexpected query: ${table} ${operation}`)
+      }) as any,
+    requireAuth: async () => ({ id: 'user-1' } as any),
+    logger,
+  })
+
+  const response = await handler(createRequest({
+    category: 'shirts',
+    size: 'S',
+    size_system: 'INTL',
+  }), { params: Promise.resolve({ id: 'client-1' }) })
+
+  assert.equal(response.status, 201)
+  assert.equal(insertAttempt, 2)
+  const payload = await response.json()
+  assert.equal(payload.id, 'sizing-fallback-insert')
+})
+
+test('POST /api/clients/[id]/sizing retries update with required fields when optional columns are missing in production schema', async () => {
+  let updateAttempt = 0
+
+  const handler = createPostSizingHandler({
+    createClient: async () =>
+      createSupabaseMock(async ({ table, operation, values }) => {
+        if (table === 'clients' && operation === 'select') {
+          return { data: { id: 'client-1' }, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'select') {
+          return { data: { id: 'sizing-existing' }, error: null }
+        }
+
+        if (table === 'client_sizing' && operation === 'update') {
+          updateAttempt += 1
+
+          if (updateAttempt === 1) {
+            assert.deepEqual(values, {
+              category: 'shirts',
+              size: 'L',
+              size_system: 'INTL',
+              fit_preference: null,
+              notes: null,
+            })
+
+            return {
+              data: null,
+              error: {
+                code: 'PGRST204',
+                message: "Could not find the 'fit_preference' column of 'client_sizing' in the schema cache",
+                details: null,
+                hint: null,
+              },
+            }
+          }
+
+          assert.deepEqual(values, {
+            size: 'L',
+            size_system: 'INTL',
+          })
+
+          return {
+            data: {
+              id: 'sizing-existing',
+              category: 'shirts',
+              size: 'L',
+              size_system: 'INTL',
+            },
+            error: null,
+          }
+        }
+
+        throw new Error(`Unexpected query: ${table} ${operation}`)
+      }) as any,
+    requireAuth: async () => ({ id: 'user-1' } as any),
+    logger,
+  })
+
+  const response = await handler(createRequest({
+    category: 'shirts',
+    size: 'L',
+    size_system: 'INTL',
+  }), { params: Promise.resolve({ id: 'client-1' }) })
+
+  assert.equal(response.status, 200)
+  assert.equal(updateAttempt, 2)
+  const payload = await response.json()
+  assert.equal(payload.id, 'sizing-existing')
+  assert.equal(payload.size, 'L')
+})
