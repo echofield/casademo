@@ -1,5 +1,5 @@
 /**
- * Create admin user for SYMI observation account
+ * Create admin user for observation account
  *
  * Run with: npx tsx scripts/create-admin-user.ts
  */
@@ -14,16 +14,24 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+  return value
+}
+
 async function createAdminUser() {
-  const email = 'contact@symi.io'
-  const password = 'Success26'
-  const fullName = 'SYMI Admin'
+  const email = requireEnv('ADMIN_EMAIL')
+  const password = requireEnv('ADMIN_PASSWORD')
+  const fullName = process.env.ADMIN_FULL_NAME || 'SYMI Admin'
 
   console.log('Creating admin user:', email)
 
   // Check if user already exists
   const { data: existingUsers } = await supabase.auth.admin.listUsers()
-  const existing = existingUsers?.users?.find(u => u.email === email)
+  const existing = (existingUsers?.users || []).find((u: { id: string; email?: string | null }) => u.email === email)
 
   if (existing) {
     console.log('User already exists with ID:', existing.id)
@@ -35,7 +43,7 @@ async function createAdminUser() {
       .eq('id', existing.id)
 
     if (updateError) {
-      console.error('Failed to update profile:', updateError)
+      console.error('Failed to update profile:', updateError.message)
     } else {
       console.log('Updated profile to supervisor role')
     }
@@ -46,7 +54,7 @@ async function createAdminUser() {
   const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
     email,
     password,
-    email_confirm: true, // Auto-confirm email
+    email_confirm: true,
     user_metadata: {
       full_name: fullName,
       role: 'supervisor'
@@ -54,14 +62,13 @@ async function createAdminUser() {
   })
 
   if (createError) {
-    console.error('Failed to create user:', createError)
+    console.error('Failed to create user:', createError.message)
     return
   }
 
   console.log('Created user:', newUser.user.id)
 
   // The trigger should create the profile, but let's ensure supervisor role
-  // Wait a moment for trigger to fire
   await new Promise(r => setTimeout(r, 1000))
 
   const { error: updateError } = await supabase
@@ -70,16 +77,15 @@ async function createAdminUser() {
     .eq('id', newUser.user.id)
 
   if (updateError) {
-    console.error('Failed to update profile:', updateError)
+    console.error('Failed to update profile:', updateError.message)
   } else {
     console.log('Profile set to supervisor role')
   }
 
-  console.log('\n=== Admin Account Created ===')
+  console.log('\n=== Admin Account Ready ===')
   console.log('Email:', email)
-  console.log('Password:', password)
   console.log('Role: supervisor')
-  console.log('\nYou can also sign in with Google using this email.')
 }
 
 createAdminUser().catch(console.error)
+

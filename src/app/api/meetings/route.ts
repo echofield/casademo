@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const { data: meetings, error, count } = await query
 
     if (error) {
-      console.error('Error fetching meetings:', error)
+      console.error('Error fetching meetings:', error.message)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       count: count || transformed.length,
     })
   } catch (error) {
-    console.error('GET /api/meetings error:', error)
+    console.error('GET /api/meetings error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      console.error('Error creating meeting:', insertError)
+      console.error('Error creating meeting:', insertError.message)
       return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
 
@@ -210,10 +210,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: transformed }, { status: 201 })
   } catch (error) {
-    console.error('POST /api/meetings error:', error)
+    console.error('POST /api/meetings error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+

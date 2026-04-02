@@ -13,6 +13,14 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+  return value
+}
+
 async function main() {
   // Read migration SQL
   const sql = readFileSync('supabase/migrations/020_symi_admin_profile.sql', 'utf-8')
@@ -27,15 +35,9 @@ async function main() {
   console.log(insertSql)
   console.log('')
 
-  // Execute via Supabase
-  // Since we can't run raw SQL directly, we need to use the REST API
-  // Let's just do the insert manually
-
-  // First get the user ID from auth
-  const email = 'contact@symi.io'
-
-  // Try inserting the profile - if user doesn't exist in auth, this will fail
-  // We need the user ID from auth.users
+  const email = requireEnv('ADMIN_EMAIL')
+  const password = requireEnv('ADMIN_PASSWORD')
+  const fullName = process.env.ADMIN_FULL_NAME || 'SYMI Observer'
 
   // Workaround: Use fetch to hit Supabase REST API directly
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -56,13 +58,9 @@ async function main() {
   if (!response.ok) {
     console.log('RPC not available, trying alternative approach...')
 
-    // Get all auth users and find the one we need
-    // This is a workaround since we can't query auth.users directly via REST
-
-    // Alternative: Sign in to get the user ID
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: 'contact@symi.io',
-      password: 'Success26'
+      email,
+      password,
     })
 
     if (signInError) {
@@ -78,8 +76,8 @@ async function main() {
       .from('profiles')
       .upsert({
         id: userId,
-        email: 'contact@symi.io',
-        full_name: 'SYMI Observer',
+        email,
+        full_name: fullName,
         role: 'supervisor',
         active: true
       }, { onConflict: 'id' })
@@ -87,7 +85,7 @@ async function main() {
       .single()
 
     if (profileError) {
-      console.error('Profile error:', profileError)
+      console.error('Profile error:', profileError.message)
     } else {
       console.log('Profile created:', profile)
     }

@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         message: `Assigned to you by ${user.profile.full_name}`,
         client_id: data.id,
       }).then(({ error: notifErr }) => {
-        if (notifErr) console.error('Failed to send assignment notification:', notifErr)
+        if (notifErr) console.error('Failed to send assignment notification:', notifErr.message)
       })
     }
 
@@ -138,3 +138,4 @@ export async function POST(request: NextRequest) {
     throw err
   }
 }
+

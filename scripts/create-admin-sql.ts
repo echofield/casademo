@@ -12,9 +12,18 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+  return value
+}
+
 async function main() {
-  const email = 'contact@symi.io'
-  const fullName = 'SYMI Observer'
+  const email = requireEnv('ADMIN_EMAIL')
+  const password = requireEnv('ADMIN_PASSWORD')
+  const fullName = process.env.ADMIN_FULL_NAME || 'SYMI Observer'
 
   // Query auth.users directly via SQL
   const { data: authUsers, error: sqlError } = await supabase.rpc('exec_sql', {
@@ -33,22 +42,18 @@ async function main() {
     console.log('All profiles:')
     allProfiles?.forEach(p => console.log(`  ${p.email} - ${p.role}`))
 
-    // Check if contact@symi.io profile exists
-    const symiProfile = allProfiles?.find(p => p.email === email)
-    if (symiProfile) {
-      console.log('\nSYMI profile exists:', symiProfile)
+    // Check if profile exists
+    const profileMatch = allProfiles?.find(p => p.email === email)
+    if (profileMatch) {
+      console.log('\nProfile exists:', profileMatch)
       return
     }
 
-    // If not, we need to create the auth user first via the dashboard
-    // or use the admin API correctly
-    console.log('\nProfile does not exist. Let me try admin.getUserById...')
+    console.log('\nProfile does not exist. Creating user via admin API...')
 
-    // Try to get the user ID by attempting login (won't work without correct password)
-    // Instead, let's just create a fresh user
     const { data: created, error: createErr } = await supabase.auth.admin.createUser({
       email,
-      password: 'Success26',
+      password,
       email_confirm: true,
       user_metadata: { full_name: fullName, role: 'supervisor' }
     })
@@ -56,10 +61,8 @@ async function main() {
     if (createErr) {
       if (createErr.code === 'email_exists') {
         console.log('\nUser exists in auth but not in profiles.')
-        console.log('This means the trigger failed. Manual fix needed.')
-        console.log('\nOption 1: Sign in at /login with contact@symi.io / Success26')
-        console.log('          The system will create the profile on first login.')
-        console.log('\nOption 2: Run this SQL in Supabase dashboard:')
+        console.log('Manual profile backfill may be required.')
+        console.log('\nSuggested SQL:')
         console.log(`
 INSERT INTO profiles (id, email, full_name, role, active)
 SELECT id, email, '${fullName}', 'supervisor', true
@@ -67,7 +70,7 @@ FROM auth.users WHERE email = '${email}'
 ON CONFLICT (id) DO UPDATE SET role = 'supervisor', full_name = '${fullName}';
         `)
       } else {
-        console.error('Create error:', createErr)
+        console.error('Create error:', createErr.message)
       }
       return
     }
@@ -86,7 +89,7 @@ ON CONFLICT (id) DO UPDATE SET role = 'supervisor', full_name = '${fullName}';
       })
 
     if (insertErr) {
-      console.error('Profile insert error:', insertErr)
+      console.error('Profile insert error:', insertErr.message)
     } else {
       console.log('Profile created successfully')
     }

@@ -85,10 +85,8 @@ function getSupabaseErrorSummary(error: SupabaseErrorLike | null | undefined) {
   }
 
   return {
-    message: error.message,
-    details: error.details ?? null,
-    hint: error.hint ?? null,
     code: error.code ?? null,
+    message: error.message,
   }
 }
 
@@ -212,11 +210,10 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
     { params }: { params: Promise<{ id: string }> }
   ) {
     try {
-      const user = await deps.requireAuth()
+      await deps.requireAuth()
       const supabase = await deps.createClient()
       const { id: client_id } = await params
-      const routeParams = { id: client_id }
-      const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries())
+      const searchParamKeys = Array.from(request.nextUrl.searchParams.keys())
       const rawBodyText = await request.text()
 
       let body: unknown = null
@@ -225,11 +222,7 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
           body = JSON.parse(rawBodyText)
         } catch {
           logSizing(deps.logger, 'warn', 'request.invalid_json', {
-            client_id,
-            routeParams,
-            searchParams,
-            rawBodyText,
-            user_id: user.id,
+            search_param_keys: searchParamKeys,
           })
 
           return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
@@ -237,19 +230,14 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
       }
 
       logSizing(deps.logger, 'info', 'request.received', {
-        client_id,
-        routeParams,
-        searchParams,
-        incomingBody: body,
-        user_id: user.id,
+        search_param_keys: searchParamKeys,
+        has_body: body !== null,
       })
 
       const validated = validateSizingPayload(body)
       if (!validated.success) {
         logSizing(deps.logger, 'warn', 'request.validation_failed', {
-          client_id,
-          routeParams,
-          parsedPayload: body,
+          validation_fields: Object.keys(validated.details.fieldErrors),
           validation: validated.details,
         })
 
@@ -274,9 +262,6 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
       }
 
       logSizing(deps.logger, 'info', 'request.validated', {
-        client_id,
-        routeParams,
-        parsedPayload: fullInsertPayload,
         table: SIZING_TABLE,
       })
 
@@ -288,9 +273,7 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
 
       if (clientErr) {
         logSizing(deps.logger, 'error', 'client.lookup_failed', {
-          client_id,
-          routeParams,
-          supabaseError: getSupabaseErrorSummary(clientErr),
+          supabase_error: getSupabaseErrorSummary(clientErr),
         })
 
         const mapped = mapSizingSupabaseError(clientErr)
@@ -310,10 +293,8 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
 
       if (existingErr) {
         logSizing(deps.logger, 'error', 'sizing.lookup_failed', {
-          client_id,
-          routeParams,
           table: SIZING_TABLE,
-          supabaseError: getSupabaseErrorSummary(existingErr),
+          supabase_error: getSupabaseErrorSummary(existingErr),
         })
 
         const mapped = mapSizingSupabaseError(existingErr)
@@ -344,12 +325,9 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
 
       if (error && isOptionalColumnSchemaCacheError(error)) {
         logSizing(deps.logger, 'warn', 'sizing.write_retry_without_optional_columns', {
-          client_id,
-          routeParams,
           table: SIZING_TABLE,
           operation,
-          supabaseError: getSupabaseErrorSummary(error),
-          fallbackPayload: operation === 'update' ? fallbackUpdatePayload : fallbackInsertPayload,
+          supabase_error: getSupabaseErrorSummary(error),
         })
 
         const retryResult = await runWrite(false)
@@ -359,13 +337,9 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
 
       if (error) {
         logSizing(deps.logger, 'error', 'sizing.write_failed', {
-          client_id,
-          routeParams,
           table: SIZING_TABLE,
           operation,
-          incomingBody: body,
-          parsedPayload: fullInsertPayload,
-          supabaseError: getSupabaseErrorSummary(error),
+          supabase_error: getSupabaseErrorSummary(error),
         })
 
         const mapped = mapSizingSupabaseError(error)
@@ -378,12 +352,13 @@ export function createPostSizingHandler(deps: PostSizingDeps = { createClient, r
         return NextResponse.json({ error: err.message }, { status: err.status })
       }
 
-      deps.logger.error('[client-sizing]', {
-        event: 'request.unhandled_error',
-        error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
-      })
+      deps.logger.error(
+        '[client-sizing] request.unhandled_error:',
+        err instanceof Error ? err.message : 'unknown'
+      )
 
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
   }
 }
+

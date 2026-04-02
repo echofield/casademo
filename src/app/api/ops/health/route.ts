@@ -142,7 +142,7 @@ export async function GET() {
       return NextResponse.json({ error: err.message }, { status: err.status })
     }
 
-    console.error('[Ops Health] Unexpected error:', err)
+    console.error('[Ops Health] Unexpected error:', err instanceof Error ? err.message : 'unknown')
     return NextResponse.json({
       status: 'error',
       timestamp: new Date().toISOString(),
@@ -151,3 +151,4 @@ export async function GET() {
     }, { status: 500 })
   }
 }
+

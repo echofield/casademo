@@ -1,6 +1,6 @@
 /**
  * Update Passwords Script
- * Updates passwords for existing users who were seeded with placeholder passwords.
+ * Updates passwords for existing users.
  *
  * Run: npm run update:passwords
  */
@@ -21,25 +21,60 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-/**
- * ============================================================================
- * PRODUCTION CREDENTIALS - FILL IN BEFORE RUNNING
- * ============================================================================
- * Replace 'REAL_EMAIL' and 'REAL_PASSWORD' with actual credentials.
- * ============================================================================
- */
+type UserCredential = {
+  email: string
+  full_name: string
+  password_env: string
+}
 
-const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
-  { email: 'hicham.elhimar@casablancaparis.com', full_name: 'Hicham EL Himar', password: 'Casaovervision26' },
+function requireSecret(envName: string): string {
+  const value = process.env[envName]
+  if (!value) {
+    console.error(`Missing required env var: ${envName}`)
+    process.exit(1)
+  }
+  return value
+}
+
+const SUPERVISORS: UserCredential[] = [
+  {
+    email: 'julane.moussa@casablancaparis.com',
+    full_name: 'Hasael Moussa',
+    password_env: 'CASABLANCA_PASSWORD_HASAEL',
+  },
+  {
+    email: 'hicham.elhimar@casablancaparis.com',
+    full_name: 'Hicham EL Himar',
+    password_env: 'CASABLANCA_PASSWORD_HICHAM',
+  },
 ]
 
-const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'elliott.nowack@casablancaparis.com', full_name: 'Elliott Nowack', password: 'elliott1993casablanca' },
-  { email: 'helen.kidane@casablancaparis.com', full_name: 'Helen Kidane', password: 'Cropit2003' },
-  { email: 'maxime.hudzevych@casablancaparis.com', full_name: 'Maxime Hudzevych', password: 'Dyakuyumax26' },
-  { email: 'raphael.rivera@casablancaparis.com', full_name: 'Raphael Rivera', password: 'Badbunnybaby93' },
-  { email: 'yassmine.moutaouakil@casablancaparis.com', full_name: 'Yassmine Moutaouakil', password: 'Casayass26' },
+const CASABLANCA_TEAM: UserCredential[] = [
+  {
+    email: 'elliott.nowack@casablancaparis.com',
+    full_name: 'Elliott Nowack',
+    password_env: 'CASABLANCA_PASSWORD_ELLIOTT',
+  },
+  {
+    email: 'helen.kidane@casablancaparis.com',
+    full_name: 'Helen Kidane',
+    password_env: 'CASABLANCA_PASSWORD_HELEN',
+  },
+  {
+    email: 'maxime.hudzevych@casablancaparis.com',
+    full_name: 'Maxime Hudzevych',
+    password_env: 'CASABLANCA_PASSWORD_MAXIME',
+  },
+  {
+    email: 'raphael.rivera@casablancaparis.com',
+    full_name: 'Raphael Rivera',
+    password_env: 'CASABLANCA_PASSWORD_RAPHAEL',
+  },
+  {
+    email: 'yassmine.moutaouakil@casablancaparis.com',
+    full_name: 'Yassmine Moutaouakil',
+    password_env: 'CASABLANCA_PASSWORD_YASSMINE',
+  },
 ]
 
 const ALL_USERS = [...SUPERVISORS, ...CASABLANCA_TEAM]
@@ -59,32 +94,28 @@ async function getAllAuthUsers() {
 
 let cachedUsers: Array<{ id: string; email?: string }> | null = null
 
-async function updatePassword(row: typeof ALL_USERS[0]) {
-  if (row.email === 'REAL_EMAIL' || row.password === 'REAL_PASSWORD') {
-    console.log(`SKIPPED (placeholder): ${row.full_name}`)
-    return { success: false, skipped: true }
-  }
-
+async function updatePassword(row: UserCredential) {
   if (!cachedUsers) cachedUsers = await getAllAuthUsers()
   const user = cachedUsers.find((u) => u.email?.toLowerCase() === row.email.toLowerCase())
 
   if (!user) {
     console.log(`NOT FOUND: ${row.email} (${row.full_name})`)
-    return { success: false, skipped: false }
+    return { success: false }
   }
 
+  const password = requireSecret(row.password_env)
   const { error } = await supabase.auth.admin.updateUserById(user.id, {
-    password: row.password,
+    password,
     email_confirm: true,
   })
 
   if (error) {
     console.error(`FAILED: ${row.email} - ${error.message}`)
-    return { success: false, skipped: false }
+    return { success: false }
   }
 
   console.log(`UPDATED: ${row.full_name} <${row.email}>`)
-  return { success: true, skipped: false }
+  return { success: true }
 }
 
 async function main() {
@@ -93,26 +124,13 @@ async function main() {
   console.log('='.repeat(60))
   console.log()
 
-  // Check for placeholder values
-  const hasPlaceholders = ALL_USERS.some(
-    u => u.email === 'REAL_EMAIL' || u.password === 'REAL_PASSWORD'
-  )
-
-  if (hasPlaceholders) {
-    console.log('WARNING: Some users have placeholder credentials.')
-    console.log('Please fill in real emails and passwords before running.')
-    console.log()
-  }
-
   let updated = 0
-  let skipped = 0
   let failed = 0
 
   console.log('--- Supervisors ---')
   for (const row of SUPERVISORS) {
     const result = await updatePassword(row)
     if (result.success) updated++
-    else if (result.skipped) skipped++
     else failed++
   }
 
@@ -120,7 +138,6 @@ async function main() {
   for (const row of CASABLANCA_TEAM) {
     const result = await updatePassword(row)
     if (result.success) updated++
-    else if (result.skipped) skipped++
     else failed++
   }
 
@@ -129,7 +146,6 @@ async function main() {
   console.log('SUMMARY')
   console.log('='.repeat(60))
   console.log(`Updated: ${updated}`)
-  console.log(`Skipped: ${skipped} (placeholders)`)
   console.log(`Failed:  ${failed}`)
 }
 

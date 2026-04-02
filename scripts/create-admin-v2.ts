@@ -12,10 +12,18 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+  return value
+}
+
 async function main() {
-  const email = 'contact@symi.io'
-  const password = 'Success26'
-  const fullName = 'SYMI Observer'
+  const email = requireEnv('ADMIN_EMAIL')
+  const password = requireEnv('ADMIN_PASSWORD')
+  const fullName = process.env.ADMIN_FULL_NAME || 'SYMI Observer'
 
   console.log('Creating/fixing admin user:', email)
 
@@ -35,9 +43,6 @@ async function main() {
   if (createError?.code === 'email_exists') {
     console.log('User already exists, fetching by email...')
 
-    // Get user by email using signInWithPassword (admin can do this)
-    // Or we can use getUserById if we had the ID
-    // Let's use a workaround - query auth.users directly
     const { data: authUsers } = await supabase.rpc('get_user_by_email', { p_email: email })
 
     if (!authUsers) {
@@ -52,21 +57,14 @@ async function main() {
         userId = profile.id
         console.log('Found user via profile:', userId)
       } else {
-        console.error('Could not find user. Try signing in to get the ID.')
-
-        // Last resort - delete and recreate
-        console.log('\nTrying to delete and recreate...')
-        const { error: delError } = await supabase.auth.admin.deleteUser(
-          '00000000-0000-0000-0000-000000000000', // This won't work without real ID
-          true
-        )
+        console.error('Could not find user. Manual profile fix required.')
         return
       }
     } else {
       userId = authUsers
     }
   } else if (createError) {
-    console.error('Create error:', createError)
+    console.error('Create error:', createError.message)
     return
   } else {
     userId = newUser!.user.id
@@ -90,14 +88,13 @@ async function main() {
     .single()
 
   if (profileError) {
-    console.error('Profile error:', profileError)
+    console.error('Profile error:', profileError.message)
   } else {
     console.log('Profile ready:', profile)
   }
 
   console.log('\n=== Account Ready ===')
   console.log('Email:', email)
-  console.log('Password:', password)
   console.log('Role: supervisor (invisible)')
 }
 

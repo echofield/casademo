@@ -43,7 +43,8 @@ export async function GET() {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status })
     }
-    console.error('Seller impact API error:', err)
+    console.error('Seller impact API error:', err instanceof Error ? err.message : 'unknown')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+

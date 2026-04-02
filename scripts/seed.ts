@@ -16,30 +16,32 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 // Seed data
+const seedSupervisorPassword = process.env.SEED_SUPERVISOR_PASSWORD || 'dev-supervisor-change-me'
+const seedSellerPassword = process.env.SEED_SELLER_PASSWORD || 'dev-seller-change-me'
 const SUPERVISORS = [
-  { email: 'marie@casaone.fr', full_name: 'Marie Laurent', password: 'supervisor123' },
-  { email: 'pierre@casaone.fr', full_name: 'Pierre Dubois', password: 'supervisor123' },
+  { email: 'marie@casaone.fr', full_name: 'Marie Laurent', password: seedSupervisorPassword },
+  { email: 'pierre@casaone.fr', full_name: 'Pierre Dubois', password: seedSupervisorPassword },
 ]
 
 const SELLERS = [
-  { email: 'alice@casaone.fr', full_name: 'Alice Martin', password: 'seller123' },
-  { email: 'lucas@casaone.fr', full_name: 'Lucas Bernard', password: 'seller123' },
-  { email: 'emma@casaone.fr', full_name: 'Emma Petit', password: 'seller123' },
-  { email: 'hugo@casaone.fr', full_name: 'Hugo Robert', password: 'seller123' },
-  { email: 'chloe@casaone.fr', full_name: 'Chloé Richard', password: 'seller123' },
-  { email: 'theo@casaone.fr', full_name: 'Théo Moreau', password: 'seller123' },
+  { email: 'alice@casaone.fr', full_name: 'Alice Martin', password: seedSellerPassword },
+  { email: 'lucas@casaone.fr', full_name: 'Lucas Bernard', password: seedSellerPassword },
+  { email: 'emma@casaone.fr', full_name: 'Emma Petit', password: seedSellerPassword },
+  { email: 'hugo@casaone.fr', full_name: 'Hugo Robert', password: seedSellerPassword },
+  { email: 'chloe@casaone.fr', full_name: 'ChloÃƒÂ© Richard', password: seedSellerPassword },
+  { email: 'theo@casaone.fr', full_name: 'ThÃƒÂ©o Moreau', password: seedSellerPassword },
 ]
 
 const FIRST_NAMES = [
   'Jean', 'Sophie', 'Antoine', 'Claire', 'Maxime', 'Julie', 'Thomas', 'Camille',
-  'Nicolas', 'Léa', 'Alexandre', 'Marine', 'Julien', 'Charlotte', 'Baptiste',
+  'Nicolas', 'LÃƒÂ©a', 'Alexandre', 'Marine', 'Julien', 'Charlotte', 'Baptiste',
   'Pauline', 'Romain', 'Laura', 'Florian', 'Manon', 'Adrien', 'Sarah', 'Kevin',
-  'Audrey', 'Mathieu', 'Anaïs', 'Guillaume', 'Mélanie', 'Vincent', 'Céline',
+  'Audrey', 'Mathieu', 'AnaÃƒÂ¯s', 'Guillaume', 'MÃƒÂ©lanie', 'Vincent', 'CÃƒÂ©line',
 ]
 
 const LAST_NAMES = [
   'Dupont', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Michel', 'Lefebvre', 'Garcia',
-  'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier', 'Morel', 'Girard', 'André',
+  'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier', 'Morel', 'Girard', 'AndrÃƒÂ©',
 ]
 
 const CONTACT_CHANNELS = ['whatsapp', 'sms', 'phone', 'email', 'in_store', 'other'] as const
@@ -65,7 +67,7 @@ const TIER_TARGETS = [
   { tier: 'grand_prix', min: 25000, max: 40000 },
 ]
 
-function randomElement<T>(arr: T[]): T {
+function randomElement<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
@@ -102,7 +104,7 @@ async function createUserWithProfile(
     if (authError.message.includes('already been registered')) {
       // Get existing user
       const { data: users } = await supabase.auth.admin.listUsers()
-      const existing = users?.users?.find(u => u.email === email)
+      const existing = (users?.users || []).find((u: { id: string; email?: string | null }) => u.email === email)
       if (existing) {
         console.log(`User ${email} already exists`)
         return existing.id
@@ -245,3 +247,5 @@ async function seed() {
 }
 
 seed().catch(console.error)
+
+

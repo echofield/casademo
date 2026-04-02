@@ -64,7 +64,7 @@ export async function PATCH(
         message: `Reassigned to you by ${user.profile.full_name}`,
         client_id: client_id,
       }).then(({ error: notifErr }) => {
-        if (notifErr) console.error('Failed to send reassignment notification:', notifErr)
+        if (notifErr) console.error('Failed to send reassignment notification:', notifErr.message)
       })
     }
 
@@ -79,3 +79,4 @@ export async function PATCH(
     throw err
   }
 }
+

@@ -25,27 +25,36 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 interface TeamMember {
   mock_email: string | null   // existing @casaone.fr email, null if no auth user exists
   real_email: string
-  password: string
+  password_env: string
   full_name: string
   role: 'seller' | 'supervisor'
 }
 
 const TEAM: TeamMember[] = [
   // Supervisors
-  { mock_email: 'hasael.moussa@casaone.fr',   real_email: 'julane.moussa@casablancaparis.com',        password: 'Lifecasaway26',         full_name: 'Hasael Moussa',        role: 'supervisor' },
-  { mock_email: 'hicham.elhimar@casaone.fr',  real_email: 'hicham.elhimar@casablancaparis.com',       password: 'Casaovervision26',      full_name: 'Hicham EL Himar',      role: 'supervisor' },
+  { mock_email: 'hasael.moussa@casaone.fr',   real_email: 'julane.moussa@casablancaparis.com',        password_env: 'CASABLANCA_PASSWORD_HASAEL',         full_name: 'Hasael Moussa',        role: 'supervisor' },
+  { mock_email: 'hicham.elhimar@casaone.fr',  real_email: 'hicham.elhimar@casablancaparis.com',       password_env: 'CASABLANCA_PASSWORD_HICHAM',      full_name: 'Hicham EL Himar',      role: 'supervisor' },
   // Sellers with existing mock accounts
-  { mock_email: 'elliott.nowack@casaone.fr',  real_email: 'elliott.nowack@casablancaparis.com',       password: 'elliott1993casablanca', full_name: 'Elliott Nowack',        role: 'seller' },
-  { mock_email: 'helen.kidane@casaone.fr',    real_email: 'helen.kidane@casablancaparis.com',         password: 'Cropit2003',            full_name: 'Helen Kidane',          role: 'seller' },
+  { mock_email: 'elliott.nowack@casaone.fr',  real_email: 'elliott.nowack@casablancaparis.com',       password_env: 'CASABLANCA_PASSWORD_ELLIOTT', full_name: 'Elliott Nowack',        role: 'seller' },
+  { mock_email: 'helen.kidane@casaone.fr',    real_email: 'helen.kidane@casablancaparis.com',         password_env: 'CASABLANCA_PASSWORD_HELEN',            full_name: 'Helen Kidane',          role: 'seller' },
   // Sellers without auth accounts (only profiles from CSV import)
-  { mock_email: null,                         real_email: 'maxime.hudzevych@casablancaparis.com',     password: 'Dyakuyumax26',          full_name: 'Maxime Hudzevych',      role: 'seller' },
-  { mock_email: null,                         real_email: 'raphael.rivera@casablancaparis.com',       password: 'Badbunnybaby93',        full_name: 'Raphael Rivera',        role: 'seller' },
-  { mock_email: null,                         real_email: 'yassmine.moutaouakil@casablancaparis.com', password: 'Casayass26',            full_name: 'Yassmine Moutaouakil',  role: 'seller' },
+  { mock_email: null,                         real_email: 'maxime.hudzevych@casablancaparis.com',     password_env: 'CASABLANCA_PASSWORD_MAXIME',          full_name: 'Maxime Hudzevych',      role: 'seller' },
+  { mock_email: null,                         real_email: 'raphael.rivera@casablancaparis.com',       password_env: 'CASABLANCA_PASSWORD_RAPHAEL',        full_name: 'Raphael Rivera',        role: 'seller' },
+  { mock_email: null,                         real_email: 'yassmine.moutaouakil@casablancaparis.com', password_env: 'CASABLANCA_PASSWORD_YASSMINE',            full_name: 'Yassmine Moutaouakil',  role: 'seller' },
 ]
 
 const DEACTIVATE_NAMES = ['Hamza Said', 'Ryan Jackson']
 
 // Orphan duplicates from previous seed runs (not linked to client data)
+function requireSecret(envName: string): string {
+  const value = process.env[envName]
+  if (!value) {
+    console.error(`Missing required env var: ${envName}`)
+    process.exit(1)
+  }
+  return value
+}
+
 const ORPHAN_EMAILS = [
   'julane.moussa@casablancaparis.com',
   'julane.moussa@casaone.com',
@@ -80,7 +89,7 @@ async function main() {
   const allUsers = await getAllUsers()
   const byEmail = new Map(allUsers.map(u => [u.email?.toLowerCase() || '', u]))
 
-  // ── Step 1: Clean up orphan duplicates ──
+  // â”€â”€ Step 1: Clean up orphan duplicates â”€â”€
   console.log('--- Step 1: Cleaning orphan duplicate accounts ---')
   for (const email of ORPHAN_EMAILS) {
     const user = byEmail.get(email.toLowerCase())
@@ -99,19 +108,19 @@ async function main() {
     console.log(`  DELETED orphan: ${email}`)
   }
 
-  // ── Step 2: Migrate existing mock accounts ──
-  console.log('\n--- Step 2: Updating mock accounts → real credentials ---')
+  // â”€â”€ Step 2: Migrate existing mock accounts â”€â”€
+  console.log('\n--- Step 2: Updating mock accounts â†’ real credentials ---')
   for (const m of TEAM.filter(t => t.mock_email)) {
     const mockUser = byEmail.get(m.mock_email!.toLowerCase())
     if (!mockUser) {
-      console.log(`  NOT FOUND: ${m.mock_email} — will create fresh`)
+      console.log(`  NOT FOUND: ${m.mock_email} â€” will create fresh`)
       m.mock_email = null // fall through to step 3
       continue
     }
 
     const { error: authErr } = await supabase.auth.admin.updateUserById(mockUser.id, {
       email: m.real_email,
-      password: m.password,
+      password: requireSecret(m.password_env),
       email_confirm: true,
       user_metadata: { full_name: m.full_name, role: m.role },
     })
@@ -123,10 +132,10 @@ async function main() {
       .eq('id', mockUser.id)
 
     const clients = await getClientCount(mockUser.id)
-    console.log(`  MIGRATED: ${m.mock_email} → ${m.real_email} [${m.role}] (${clients} clients)`)
+    console.log(`  MIGRATED: ${m.mock_email} â†’ ${m.real_email} [${m.role}] (${clients} clients)`)
   }
 
-  // ── Step 3: Create auth users for sellers who only have profiles ──
+  // â”€â”€ Step 3: Create auth users for sellers who only have profiles â”€â”€
   console.log('\n--- Step 3: Creating auth for profile-only sellers ---')
   for (const m of TEAM.filter(t => !t.mock_email)) {
     // Find existing profile by full_name (case-insensitive)
@@ -140,9 +149,9 @@ async function main() {
     // Check if auth user already exists with the real email (maybe re-running script)
     const existingAuth = byEmail.get(m.real_email.toLowerCase())
     if (existingAuth) {
-      console.log(`  EXISTS: ${m.real_email} — updating password + profile`)
+      console.log(`  EXISTS: ${m.real_email} â€” updating password + profile`)
       await supabase.auth.admin.updateUserById(existingAuth.id, {
-        password: m.password,
+        password: requireSecret(m.password_env),
         email_confirm: true,
         user_metadata: { full_name: m.full_name, role: m.role },
       })
@@ -161,7 +170,7 @@ async function main() {
         if (count && count > 0) {
           await supabase.from('clients').update({ seller_id: existingAuth.id }).eq('seller_id', oldProfile.id)
           await supabase.from('profiles').delete().eq('id', oldProfile.id)
-          console.log(`    Relinked ${count} clients from old profile → new`)
+          console.log(`    Relinked ${count} clients from old profile â†’ new`)
         }
       }
       continue
@@ -170,7 +179,7 @@ async function main() {
     // Create new auth user
     const { data: created, error: createErr } = await supabase.auth.admin.createUser({
       email: m.real_email,
-      password: m.password,
+      password: requireSecret(m.password_env),
       email_confirm: true,
       user_metadata: { full_name: m.full_name, role: m.role },
     })
@@ -201,7 +210,7 @@ async function main() {
     console.log(`  CREATED: ${m.full_name} <${m.real_email}> [${m.role}]`)
   }
 
-  // ── Step 4: Deactivate removed team members ──
+  // â”€â”€ Step 4: Deactivate removed team members â”€â”€
   console.log('\n--- Step 4: Deactivating removed members ---')
   for (const name of DEACTIVATE_NAMES) {
     const { data: profiles } = await supabase
@@ -225,7 +234,7 @@ async function main() {
         const clientCount = await getClientCount(p.id)
         if (clientCount > 0) {
           await supabase.from('clients').update({ seller_id: hasael.id }).eq('seller_id', p.id)
-          console.log(`    Reassigned ${clientCount} clients → Hasael Moussa`)
+          console.log(`    Reassigned ${clientCount} clients â†’ Hasael Moussa`)
         }
       }
 
@@ -234,7 +243,7 @@ async function main() {
     }
   }
 
-  // ── Step 5: Deactivate pure demo accounts ──
+  // â”€â”€ Step 5: Deactivate pure demo accounts â”€â”€
   console.log('\n--- Step 5: Deactivating remaining demo accounts ---')
   const { data: demoProfiles } = await supabase
     .from('profiles')
@@ -251,7 +260,7 @@ async function main() {
     console.log('  None found')
   }
 
-  // ── Summary ──
+  // â”€â”€ Summary â”€â”€
   console.log('\n' + '='.repeat(60))
   console.log('FINAL ACTIVE TEAM')
   console.log('='.repeat(60))
@@ -265,7 +274,7 @@ async function main() {
   if (finalProfiles) {
     for (const p of finalProfiles) {
       const clients = await getClientCount(p.id)
-      console.log(`  [${p.role.padEnd(10)}] ${p.full_name.padEnd(22)} <${p.email}> — ${clients} clients`)
+      console.log(`  [${p.role.padEnd(10)}] ${p.full_name.padEnd(22)} <${p.email}> â€” ${clients} clients`)
     }
   }
 
@@ -273,3 +282,5 @@ async function main() {
 }
 
 main().catch(console.error)
+
+

@@ -18,19 +18,63 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 interface User {
   email: string
-  password: string
+  password_env: string
   full_name: string
   role: 'seller' | 'supervisor'
 }
 
+function requireSecret(envName: string): string {
+  const value = process.env[envName]
+  if (!value) {
+    console.error(`Missing required env var: ${envName}`)
+    process.exit(1)
+  }
+  return value
+}
+
 const USERS: User[] = [
-  { email: 'julane.moussa@casablancaparis.com',        password: 'Lifecasaway26',         full_name: 'Hasael Moussa',        role: 'supervisor' },
-  { email: 'hicham.elhimar@casablancaparis.com',       password: 'Casaovervision26',      full_name: 'Hicham EL Himar',      role: 'supervisor' },
-  { email: 'elliott.nowack@casablancaparis.com',       password: 'elliott1993casablanca', full_name: 'Elliott Nowack',        role: 'seller' },
-  { email: 'helen.kidane@casablancaparis.com',         password: 'Cropit2003',            full_name: 'Helen Kidane',          role: 'seller' },
-  { email: 'maxime.hudzevych@casablancaparis.com',     password: 'Dyakuyumax26',          full_name: 'Maxime Hudzevych',      role: 'seller' },
-  { email: 'raphael.rivera@casablancaparis.com',       password: 'Badbunnybaby93',        full_name: 'Raphael Rivera',        role: 'seller' },
-  { email: 'yassmine.moutaouakil@casablancaparis.com', password: 'Casayass26',            full_name: 'Yassmine Moutaouakil',  role: 'seller' },
+  {
+    email: 'julane.moussa@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_HASAEL',
+    full_name: 'Hasael Moussa',
+    role: 'supervisor',
+  },
+  {
+    email: 'hicham.elhimar@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_HICHAM',
+    full_name: 'Hicham EL Himar',
+    role: 'supervisor',
+  },
+  {
+    email: 'elliott.nowack@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_ELLIOTT',
+    full_name: 'Elliott Nowack',
+    role: 'seller',
+  },
+  {
+    email: 'helen.kidane@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_HELEN',
+    full_name: 'Helen Kidane',
+    role: 'seller',
+  },
+  {
+    email: 'maxime.hudzevych@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_MAXIME',
+    full_name: 'Maxime Hudzevych',
+    role: 'seller',
+  },
+  {
+    email: 'raphael.rivera@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_RAPHAEL',
+    full_name: 'Raphael Rivera',
+    role: 'seller',
+  },
+  {
+    email: 'yassmine.moutaouakil@casablancaparis.com',
+    password_env: 'CASABLANCA_PASSWORD_YASSMINE',
+    full_name: 'Yassmine Moutaouakil',
+    role: 'seller',
+  },
 ]
 
 async function main() {
@@ -53,12 +97,13 @@ async function main() {
   const byEmail = new Map(allUsers.map(u => [u.email?.toLowerCase() || '', u]))
 
   for (const u of USERS) {
+    const password = requireSecret(u.password_env)
     const existing = byEmail.get(u.email.toLowerCase())
 
     if (existing) {
-      // User exists — update password
+      // User exists - update password
       const { error } = await supabase.auth.admin.updateUserById(existing.id, {
-        password: u.password,
+        password,
         email_confirm: true,
         user_metadata: { full_name: u.full_name, role: u.role },
       })
@@ -76,10 +121,10 @@ async function main() {
         console.log(`UPDATED: ${u.full_name} <${u.email}>`)
       }
     } else {
-      // User doesn't exist — create
+      // User doesn't exist - create
       const { data: created, error: createErr } = await supabase.auth.admin.createUser({
         email: u.email,
-        password: u.password,
+        password,
         email_confirm: true,
         user_metadata: { full_name: u.full_name, role: u.role },
       })
@@ -130,10 +175,12 @@ async function main() {
   console.log('='.repeat(60))
 
   for (const u of USERS) {
+    const password = requireSecret(u.password_env)
+
     // Test sign-in
     const { error } = await supabase.auth.signInWithPassword({
       email: u.email,
-      password: u.password,
+      password,
     })
     const status = error ? `FAIL: ${error.message}` : 'OK'
     const { count } = await supabase

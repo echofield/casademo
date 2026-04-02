@@ -8,17 +8,27 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+  return value
+}
+
 async function testLogin() {
-  console.log('Testing login with marie@casaone.fr / supervisor123...')
+  const email = requireEnv('TEST_LOGIN_EMAIL')
+  const password = requireEnv('TEST_LOGIN_PASSWORD')
+
+  console.log(`Testing login with ${email}...`)
 
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: 'marie@casaone.fr',
-    password: 'supervisor123',
+    email,
+    password,
   })
 
   if (error) {
     console.error('Login failed:', error.message)
-    console.error('Error details:', JSON.stringify(error, null, 2))
     return
   }
 

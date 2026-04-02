@@ -274,7 +274,8 @@ export async function GET(request: NextRequest) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status })
     }
-    console.error('Conversion API error:', err)
+    console.error('Conversion API error:', err instanceof Error ? err.message : 'unknown')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+

@@ -243,12 +243,10 @@ export function createPostContactsHandler(
         const { error: notifError } = await supabase.from('notifications').insert(notificationRows)
         if (notifError) {
           // Log but don't fail - contact was already saved successfully
-          deps.logger.warn('[Contacts] Supervisor notification insert failed:', {
-            client_id,
-            seller_id: user.id,
-            supervisor_count: supervisorRows.length,
-            error: notifError.message,
-          })
+          deps.logger.warn(
+            '[Contacts] Supervisor notification insert failed:',
+            `supervisors=${supervisorRows.length}; reason=${notifError.message}`
+          )
         }
       }
 
@@ -272,3 +270,4 @@ export function createPostContactsHandler(
     }
   }
 }
+

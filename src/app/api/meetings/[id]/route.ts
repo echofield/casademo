@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: transformed })
   } catch (error) {
-    console.error('GET /api/meetings/[id] error:', error)
+    console.error('GET /api/meetings/[id] error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -127,7 +127,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (updateError) {
-      console.error('Error updating meeting:', updateError)
+      console.error('Error updating meeting:', updateError.message)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
@@ -144,7 +144,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: transformed })
   } catch (error) {
-    console.error('PATCH /api/meetings/[id] error:', error)
+    console.error('PATCH /api/meetings/[id] error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -193,16 +193,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', id)
 
     if (updateError) {
-      console.error('Error cancelling meeting:', updateError)
+      console.error('Error cancelling meeting:', updateError.message)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, message: 'Meeting cancelled' })
   } catch (error) {
-    console.error('DELETE /api/meetings/[id] error:', error)
+    console.error('DELETE /api/meetings/[id] error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+

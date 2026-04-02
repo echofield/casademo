@@ -118,7 +118,7 @@ export async function GET(request: Request) {
     }
 
     // For any other error, return empty state to avoid breaking the UI
-    console.error('Notifications error:', error)
+    console.error('Notifications error:', error instanceof Error ? error.message : 'unknown')
     return NextResponse.json({
       notifications: [],
       unread_count: 0,
@@ -180,7 +180,8 @@ export async function PATCH(request: Request) {
     }
 
     // Real unexpected error - log and return failure
-    console.error('[Notifications] PATCH unexpected error:', error)
+    console.error('[Notifications] PATCH unexpected error:', error instanceof Error ? error.message : 'unknown')
     return NextResponse.json({ success: false, error: 'Unexpected error' })
   }
 }
+

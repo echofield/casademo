@@ -20,41 +20,83 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-/**
- * ============================================================================
- * PRODUCTION CREDENTIALS — FILL IN BEFORE RUNNING
- * ============================================================================
- * Replace 'REAL_EMAIL' and 'REAL_PASSWORD' with actual credentials.
- * DO NOT commit real passwords to git. Consider using environment variables
- * or a separate .credentials.json file (git-ignored) for production.
- * ============================================================================
- */
+type TeamCredential = {
+  email: string
+  full_name: string
+  password_env: string
+}
 
-/** Supervisors */
-const SUPERVISORS: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
-  { email: 'hicham.elhimar@casablancaparis.com', full_name: 'Hicham EL Himar', password: 'Casaovervision26' },
+function requireSecret(envName: string): string {
+  const value = process.env[envName]
+  if (!value) {
+    console.error(`Missing required env var: ${envName}`)
+    process.exit(1)
+  }
+  return value
+}
+
+/**
+ * Passwords must be supplied through environment variables.
+ * Example: CASABLANCA_PASSWORD_HASAEL=... npm run seed:casablanca-team
+ */
+const SUPERVISORS: TeamCredential[] = [
+  {
+    email: 'julane.moussa@casablancaparis.com',
+    full_name: 'Hasael Moussa',
+    password_env: 'CASABLANCA_PASSWORD_HASAEL',
+  },
+  {
+    email: 'hicham.elhimar@casablancaparis.com',
+    full_name: 'Hicham EL Himar',
+    password_env: 'CASABLANCA_PASSWORD_HICHAM',
+  },
 ]
 
 /** Sellers (full_name must match CSV `seller` column exactly) */
-const CASABLANCA_TEAM: Array<{ email: string; full_name: string; password: string }> = [
-  { email: 'elliott.nowack@casablancaparis.com', full_name: 'Elliott Nowack', password: 'elliott1993casablanca' },
-  { email: 'helen.kidane@casablancaparis.com', full_name: 'Helen Kidane', password: 'Cropit2003' },
-  { email: 'julane.moussa@casablancaparis.com', full_name: 'Hasael Moussa', password: 'Lifecasaway26' },
-  { email: 'maxime.hudzevych@casablancaparis.com', full_name: 'Maxime Hudzevych', password: 'Dyakuyumax26' },
-  { email: 'raphael.rivera@casablancaparis.com', full_name: 'Raphael Rivera', password: 'Badbunnybaby93' },
-  { email: 'yassmine.moutaouakil@casablancaparis.com', full_name: 'Yassmine Moutaouakil', password: 'Casayass26' },
+const CASABLANCA_TEAM: TeamCredential[] = [
+  {
+    email: 'elliott.nowack@casablancaparis.com',
+    full_name: 'Elliott Nowack',
+    password_env: 'CASABLANCA_PASSWORD_ELLIOTT',
+  },
+  {
+    email: 'helen.kidane@casablancaparis.com',
+    full_name: 'Helen Kidane',
+    password_env: 'CASABLANCA_PASSWORD_HELEN',
+  },
+  {
+    email: 'julane.moussa@casablancaparis.com',
+    full_name: 'Hasael Moussa',
+    password_env: 'CASABLANCA_PASSWORD_HASAEL',
+  },
+  {
+    email: 'maxime.hudzevych@casablancaparis.com',
+    full_name: 'Maxime Hudzevych',
+    password_env: 'CASABLANCA_PASSWORD_MAXIME',
+  },
+  {
+    email: 'raphael.rivera@casablancaparis.com',
+    full_name: 'Raphael Rivera',
+    password_env: 'CASABLANCA_PASSWORD_RAPHAEL',
+  },
+  {
+    email: 'yassmine.moutaouakil@casablancaparis.com',
+    full_name: 'Yassmine Moutaouakil',
+    password_env: 'CASABLANCA_PASSWORD_YASSMINE',
+  },
 ]
 
 const supervisorEmails = new Set(SUPERVISORS.map(s => s.email.toLowerCase()))
 
-async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supervisor' = 'seller') {
+async function ensureUser(row: TeamCredential, role: 'seller' | 'supervisor' = 'seller') {
+  const password = requireSecret(row.password_env)
+
   // Supervisors who are also sellers keep the supervisor role
   const effectiveRole = supervisorEmails.has(row.email.toLowerCase()) ? 'supervisor' : role
 
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email: row.email,
-    password: row.password,
+    password,
     email_confirm: true,
     user_metadata: {
       full_name: row.full_name,
@@ -65,7 +107,7 @@ async function ensureUser(row: typeof CASABLANCA_TEAM[0], role: 'seller' | 'supe
   if (authError) {
     if (authError.message.includes('already been registered')) {
       const { data: list } = await supabase.auth.admin.listUsers()
-      const existing = list?.users?.find((u) => u.email?.toLowerCase() === row.email.toLowerCase())
+      const existing = (list?.users || []).find((u: { id: string; email?: string | null }) => u.email?.toLowerCase() === row.email.toLowerCase())
       if (existing) {
         await supabase
           .from('profiles')
@@ -113,7 +155,8 @@ async function main() {
     await ensureUser(row, 'seller')
   }
 
-  console.log('\nDone. Set real passwords in Supabase Auth if needed.')
+  console.log('\nDone.')
 }
 
 main().catch(console.error)
+

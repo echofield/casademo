@@ -6,20 +6,27 @@ dotenv.config({ path: '.env.local' })
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+  process.exit(1)
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false }
 })
 
+const demoPassword = process.env.DEMO_USER_PASSWORD || 'demo-change-me'
+
 const DEMO_USERS = [
   {
-    email: 'julane.moussa@casaone.com',
-    password: 'test1234',
+    email: process.env.DEMO_SUPERVISOR_EMAIL || 'julane.moussa@casaone.com',
+    password: demoPassword,
     full_name: 'Julane Moussa',
     role: 'supervisor',
   },
   {
-    email: 'hasael.moussa@casaone.fr',
-    password: 'test1234',
+    email: process.env.DEMO_SELLER_EMAIL || 'hasael.moussa@casaone.fr',
+    password: demoPassword,
     full_name: 'Hasael Moussa',
     role: 'seller',
   },
@@ -42,13 +49,13 @@ async function main() {
 
         // Get user by email and update password
         const { data: users } = await supabase.auth.admin.listUsers()
-        const existingUser = users?.users?.find(u => u.email === user.email)
+        const existingUser = (users?.users || []).find((u: { id: string; email?: string | null }) => u.email === user.email)
 
         if (existingUser) {
           await supabase.auth.admin.updateUserById(existingUser.id, {
             password: user.password,
           })
-          console.log(`  Password updated to: ${user.password}`)
+          console.log('  Password updated')
         }
         continue
       }
@@ -69,7 +76,7 @@ async function main() {
     })
 
     if (profileError) {
-      console.error(`  Profile error:`, profileError.message)
+      console.error('  Profile error:', profileError.message)
     } else {
       console.log(`  Profile created: ${user.full_name} (${user.role})`)
     }
@@ -81,19 +88,17 @@ async function main() {
     })
 
     if (roleError) {
-      console.error(`  Role error:`, roleError.message)
+      console.error('  Role error:', roleError.message)
     } else {
       console.log(`  Role assigned: ${user.role}`)
     }
 
-    console.log(`  Password: ${user.password}\n`)
+    console.log('')
   }
 
   console.log('Done!')
-  console.log('\nLogin credentials:')
-  DEMO_USERS.forEach(u => {
-    console.log(`  ${u.email} / ${u.password} (${u.role})`)
-  })
+  console.log('Set DEMO_USER_PASSWORD to control seeded demo passwords.')
 }
 
 main().catch(console.error)
+

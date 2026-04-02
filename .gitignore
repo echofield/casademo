@@ -31,3 +31,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 tmpclaude-*
+
+# Sensitive local data and credentials
+*.credentials.json
+credentials/*.json
+data/casablanca/private/
+data/casablanca/*.real.csv
+data/casablanca/*.real.txt
+
+# Local tooling logs / temp
+codex-dev.log
+codex-start.log
+supabase/.temp/
+docs/release/artifacts/
+

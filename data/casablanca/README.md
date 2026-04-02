@@ -1,46 +1,43 @@
-# Casablanca cleanup → Casa One backend
+# Casablanca Cleanup -> Casa One backend
 
-Source export from `casblanca/cleanup_output/` (client names, spend, sellers, tiers).
+This folder intentionally contains **sanitized fixture data only**.
+
+## Data-handling rules
+
+1. Do not commit real client exports to the repository.
+2. Keep production CSV/report files outside git (for example in a local private path).
+3. Set `CASABLANCA_CSV` to an absolute path when importing real data.
 
 ## One-time setup (Supabase)
 
-1. **Create seller profiles** (14 names that appear in the CSV):
+1. Create seller profiles:
 
-   ```bash
-   npm run seed:casablanca-team
-   ```
+```bash
+npm run seed:casablanca-team
+```
 
-   Password for new accounts defaults to `casablanca-seller` — change in Supabase Auth after first login.
+Passwords are now read from env vars (`CASABLANCA_PASSWORD_*`) and are not stored in this repo.
 
-2. **Dry-run import** (validates CSV + seller coverage, no writes):
+2. Dry-run import (validates CSV + seller coverage, no writes):
 
-   ```bash
-   npm run import:casablanca:dry
-   ```
+```bash
+npm run import:casablanca:dry
+```
 
-3. **Import clients** (use an empty DB or expect skips for existing email/phone):
+3. Import clients:
 
-   ```bash
-   npm run import:casablanca
-   ```
+```bash
+npm run import:casablanca
+```
 
-   The script prints **pre** stats (row counts, spend sum, tier distribution vs cleanup report) and **post** checks (tagged client count + sum `total_spend`).
-
-## Files
+## Files in this folder
 
 | File | Purpose |
 |------|---------|
-| `clients_clean.csv` | Master client rows (from cleanup pipeline) |
-| `cleanup_report.txt` | Row counts / tier distribution reference |
-
-**Row count:** The bundled CSV has **1405** lines; one line is an empty junk row (no seller). The importer prepares **1404** clients; tier totals match `cleanup_report.txt` within that row.
-
-## Alternate CSV path
-
-Set `CASABLANCA_CSV` to an absolute path if the file lives outside this folder.
+| `clients_clean.csv` | Synthetic fixture rows for local test import plumbing |
+| `cleanup_report.txt` | Synthetic fixture summary |
 
 ## Supervisor UI import
 
-Supervisors can also upload the same CSV via **POST `/api/import`** (multipart `file`). Rows are normalized the same way (`#N/A` names, `tier`, `purchase_history` → purchase description).
-
-Imported rows are tagged in `notes` with `[import:casablanca-cleanup]` for verification and optional cleanup.
+Supervisors can upload a CSV via **POST `/api/import`** (multipart `file`).
+Rows are normalized through the same import pipeline.
