@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Bell, Check } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   clientId: string
@@ -20,18 +19,25 @@ export function NotifySellerButton({ clientId, sellerId, sellerName, clientName 
     setSending(true)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from('notifications').insert({
-        user_id: sellerId,
-        type: 'manual',
-        title: `Follow up with ${clientName}`,
-        message: `Supervisor reminder: Please check in with this client.`,
-        client_id: clientId,
+      const response = await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seller_id: sellerId,
+          client_id: clientId,
+          client_name: clientName,
+          message: 'Supervisor reminder: Please check in with this client.',
+        }),
       })
-      if (error) {
-        console.error('Failed to notify:', error)
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        console.error('Failed to notify:', payload)
         return
       }
+
       setSent(true)
     } catch (err) {
       console.error('Failed to notify:', err)

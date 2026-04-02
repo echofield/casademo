@@ -3,7 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import type { AuthUser, Profile, UserRole } from '@/lib/types'
 
 export const VIEW_MODE_COOKIE = 'casa_view_mode'
-const HIDDEN_OBSERVER_EMAILS = new Set(['contact@symi.io'])
+
+type GetCurrentUserOptions = {
+  includeInactive?: boolean
+}
 
 export class AuthError extends Error {
   constructor(
@@ -15,7 +18,7 @@ export class AuthError extends Error {
   }
 }
 
-export async function getCurrentUser(): Promise<AuthUser | null> {
+export async function getCurrentUser(options: GetCurrentUserOptions = {}): Promise<AuthUser | null> {
   const supabase = await createClient()
 
   const {
@@ -33,6 +36,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     .single()
 
   if (!profile) {
+    return null
+  }
+
+  if (!profile.active && !options.includeInactive) {
     return null
   }
 
@@ -54,16 +61,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 export async function requireAuth(): Promise<AuthUser> {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser({ includeInactive: true })
 
   if (!user) {
     throw new AuthError('Authentication required', 401)
   }
 
-  // Hidden observer accounts are intentionally inactive for directory/list visibility,
-  // but still need authenticated access for debugging/monitoring.
-  const isHiddenObserver = HIDDEN_OBSERVER_EMAILS.has(user.email.toLowerCase())
-  if (!user.profile.active && !isHiddenObserver) {
+  if (!user.profile.active) {
     throw new AuthError('Account is deactivated', 403)
   }
 

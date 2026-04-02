@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { BackNavButton } from '@/components'
 
+const allowMfaSkip = process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+
 export default function SetupMFAPage() {
   const router = useRouter()
   const [qrCode, setQrCode] = useState<string | null>(null)
@@ -33,65 +35,38 @@ export default function SetupMFAPage() {
         return
       }
 
-      // Clean up ALL unverified TOTP factors (must complete before enrolling)
       const allTotp = (factors?.totp || []) as Array<{ id: string; status: string; friendly_name?: string }>
       const unverified = allTotp.filter(f => f.status !== 'verified')
 
       if (unverified.length > 0) {
-        console.log('[MFA Setup] Cleaning up', unverified.length, 'unverified factors')
-        // Unenroll all unverified factors and wait for all to complete
-        const unenrollResults = await Promise.all(
+        await Promise.all(
           unverified.map(f => supabase.auth.mfa.unenroll({ factorId: f.id }))
         )
-
-        // Check if any unenroll failed
-        const failedUnenrolls = unenrollResults.filter(r => r.error)
-        if (failedUnenrolls.length > 0) {
-          console.error('[MFA Setup] Some unenrolls failed:', failedUnenrolls.map(r => r.error?.message))
-        }
-
-        // Re-fetch factors to confirm cleanup worked
-        const { data: refreshedFactors } = await supabase.auth.mfa.listFactors()
-        const stillUnverified = (refreshedFactors?.totp || []).filter(f => f.status !== 'verified')
-        if (stillUnverified.length > 0) {
-          console.warn('[MFA Setup] Still have', stillUnverified.length, 'unverified factors after cleanup')
-        }
       }
 
-      // Enroll a fresh TOTP factor
       const { data, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: `Casa One ${Date.now()}`
       })
 
-      // If enrollment fails due to existing factor, try one more cleanup and retry
       if (enrollError?.message?.includes('already exists')) {
-        console.log('[MFA Setup] Factor exists error, attempting aggressive cleanup')
-
-        // Fetch factors again and force-remove any with our friendly name
         const { data: retryFactors } = await supabase.auth.mfa.listFactors()
         const existingCasaOne = (retryFactors?.totp || []).filter(
           (f) => f.friendly_name === 'Casa One'
         )
 
         for (const f of existingCasaOne) {
-          const { error: unenrollErr } = await supabase.auth.mfa.unenroll({ factorId: f.id })
-          if (unenrollErr) {
-            console.error('[MFA Setup] Failed to unenroll factor', f.id, ':', unenrollErr.message)
-          }
+          await supabase.auth.mfa.unenroll({ factorId: f.id })
         }
 
-        // Small delay to let Supabase process the unenrollment
         await new Promise(resolve => setTimeout(resolve, 500))
 
-        // Retry enrollment
         const { data: retryData, error: retryError } = await supabase.auth.mfa.enroll({
           factorType: 'totp',
           friendlyName: `Casa One ${Date.now()}`
         })
 
         if (retryError) {
-          console.error('[MFA Setup] Retry enrollment failed:', retryError.message)
           setError(retryError.message)
           setLoading(false)
           return
@@ -105,7 +80,6 @@ export default function SetupMFAPage() {
       }
 
       if (enrollError) {
-        console.error('[MFA Setup] Enrollment error:', enrollError.message)
         setError(enrollError.message)
         setLoading(false)
         return
@@ -151,18 +125,21 @@ export default function SetupMFAPage() {
       return
     }
 
-    // Success - redirect to home
     window.location.replace('/')
   }
 
   async function handleSkip() {
+    if (!allowMfaSkip) {
+      return
+    }
+
     const supabase = createClient()
-    // Remove any unverified factor so middleware won't loop back here
     if (factorId) {
       await supabase.auth.mfa.unenroll({ factorId })
     }
-    // Set a cookie so middleware knows user chose to skip
-    document.cookie = 'casa_mfa_skipped=1; path=/; max-age=604800'
+
+    const secureSuffix = window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `casa_mfa_skipped=1; path=/; max-age=604800; SameSite=Lax${secureSuffix}`
     window.location.replace('/')
   }
 
@@ -280,15 +257,17 @@ export default function SetupMFAPage() {
             </form>
           )}
 
-          <div className="mt-8 text-center">
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="text-[#003D2B]/40 text-xs hover:text-[#003D2B]/60 transition-colors"
-            >
-              Set up later
-            </button>
-          </div>
+          {allowMfaSkip && (
+            <div className="mt-8 text-center">
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="text-[#003D2B]/40 text-xs hover:text-[#003D2B]/60 transition-colors"
+              >
+                Set up later
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -5,6 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PUBLIC_PATHS = ['/login', '/auth/callback', '/reset-password']
 const MFA_PATHS = ['/setup-mfa', '/verify-mfa']
 const API_AUTH_PATHS = ['/api/auth']
+const MFA_SKIP_COOKIE = 'casa_mfa_skipped'
+const MFA_SKIP_ENABLED = process.env.NODE_ENV !== 'production' && process.env.ALLOW_MFA_SKIP === 'true'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -81,7 +83,7 @@ export async function middleware(request: NextRequest) {
   const isOAuthSession = user.app_metadata?.provider === 'google' ||
     user.app_metadata?.providers?.includes('google')
 
-  // OAuth users (Google) skip MFA — Google handles its own security
+  // OAuth users (Google) skip MFA - Google handles its own security
   if (isOAuthSession) {
     return supabaseResponse
   }
@@ -98,11 +100,20 @@ export async function middleware(request: NextRequest) {
 
   // If user doesn't have MFA enrolled at all (nextLevel is aal1)
   if (aal?.nextLevel === 'aal1') {
-    // Allow users to skip MFA setup temporarily
-    const mfaSkipped = request.cookies.get('casa_mfa_skipped')?.value === '1'
-    if (mfaSkipped) {
+    const mfaSkipped = request.cookies.get(MFA_SKIP_COOKIE)?.value === '1'
+
+    // Ignore stale skip cookies unless explicitly enabled in non-production environments
+    if (mfaSkipped && !MFA_SKIP_ENABLED) {
+      supabaseResponse.cookies.set(MFA_SKIP_COOKIE, '', {
+        maxAge: 0,
+        path: '/',
+      })
+    }
+
+    if (MFA_SKIP_ENABLED && mfaSkipped) {
       return supabaseResponse
     }
+
     if (pathname.startsWith('/setup-mfa')) {
       return supabaseResponse
     }
