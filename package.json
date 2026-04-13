@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "warning": "echo 'Do NOT develop on main. Use demo branch.'",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
