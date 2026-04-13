@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoAuthUser } from '@/lib/demo/presentation-data'
 import type { AuthUser, Profile, UserRole } from '@/lib/types'
 
 export const VIEW_MODE_COOKIE = 'casa_view_mode'
@@ -19,6 +21,12 @@ export class AuthError extends Error {
 }
 
 export async function getCurrentUser(options: GetCurrentUserOptions = {}): Promise<AuthUser | null> {
+  if (isDemoMode) {
+    const cookieStore = await cookies()
+    const viewMode = cookieStore.get(VIEW_MODE_COOKIE)?.value === 'seller' ? 'seller' : 'supervisor'
+    return getDemoAuthUser(viewMode)
+  }
+
   const supabase = await createClient()
 
   const {
@@ -77,7 +85,7 @@ export async function requireAuth(): Promise<AuthUser> {
 export async function requireRole(role: UserRole): Promise<AuthUser> {
   const user = await requireAuth()
 
-  if (user.profile.role !== role) {
+  if (user.profile.role !== role && !isDemoMode) {
     throw new AuthError(`Requires ${role} role`, 403)
   }
 

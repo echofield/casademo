@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from './NotificationBell'
 import { SystemHelper } from './SystemHelper'
+import { isDemoMode } from '@/lib/demo/config'
 
 interface NavProps {
   userRole: 'seller' | 'supervisor'
@@ -84,6 +85,12 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
 
   const handleLogout = async () => {
     setLoggingOut(true)
+    if (isDemoMode) {
+      document.cookie = 'casa_view_mode=; path=/; max-age=0'
+      router.push('/login')
+      return
+    }
+
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
@@ -133,9 +140,16 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
       >
         <div className="flex items-center gap-3">
           {historyControls}
-          <Link href="/" className="font-serif text-xl tracking-tight text-primary">
-            Casa One
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="font-serif text-xl tracking-tight text-primary">
+              Casa One
+            </Link>
+            {isDemoMode && (
+              <span className="rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-primary">
+                Presentation
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-10">
@@ -171,7 +185,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
               disabled={loggingOut}
               className="text-xs font-medium uppercase tracking-[0.1em] text-text-muted transition-colors duration-200 hover:text-text disabled:opacity-50"
             >
-              {loggingOut ? '...' : 'Logout'}
+              {loggingOut ? '...' : isDemoMode ? 'Exit' : 'Logout'}
             </button>
           </div>
         </div>
@@ -181,9 +195,16 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             {historyControls}
-            <Link href="/" className="font-serif text-lg text-primary">
-              Casa One
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/" className="font-serif text-lg text-primary">
+                Casa One
+              </Link>
+              {isDemoMode && (
+                <span className="rounded-full border border-primary/15 bg-primary/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.14em] text-primary">
+                  Demo
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <SystemHelper role={effectiveRole} pathname={pathname} />
@@ -246,7 +267,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
                   disabled={loggingOut}
                   className="text-xs font-medium uppercase tracking-[0.08em] text-text-muted transition-colors hover:text-text"
                 >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
+                  {loggingOut ? 'Logging out...' : isDemoMode ? 'Exit demo' : 'Logout'}
                 </button>
               </div>
             </div>
@@ -256,3 +277,4 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
     </>
   )
 }
+

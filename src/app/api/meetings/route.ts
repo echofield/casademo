@@ -1,32 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
-import {
-  MeetingInsert,
-  MeetingWithDetails,
-  DEFAULT_BOUTIQUE_LOCATION,
-  getWeekBounds,
-} from '@/lib/types/meetings'
+import { MeetingInsert, MeetingWithDetails, DEFAULT_BOUTIQUE_LOCATION, getWeekBounds } from '@/lib/types/meetings'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoMeetings } from '@/lib/demo/presentation-data'
 
-/**
- * GET /api/meetings
- * List meetings for the authenticated seller (or all for supervisor)
- *
- * Query params:
- * - start: ISO date string (default: start of current week)
- * - end: ISO date string (default: end of current week)
- * - seller_id: UUID (supervisor only, filter by seller)
- * - client_id: UUID (filter by client)
- * - status: meeting status filter
- */
 export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth()
-    const supabase = await createClient()
-
     const { searchParams } = new URL(request.url)
 
-    // Default to current week
     const { start: defaultStart, end: defaultEnd } = getWeekBounds()
     const startParam = searchParams.get('start') || defaultStart.toISOString()
     const endParam = searchParams.get('end') || defaultEnd.toISOString()
@@ -34,7 +17,20 @@ export async function GET(request: NextRequest) {
     const clientIdParam = searchParams.get('client_id')
     const statusParam = searchParams.get('status')
 
-    // Build query with joins
+    if (isDemoMode) {
+      const isSupervisor = user.effectiveRole === 'supervisor'
+      const effectiveSellerId = isSupervisor ? sellerIdParam || user.id : user.id
+      const meetings = getDemoMeetings(isSupervisor ? 'supervisor' : 'seller', effectiveSellerId)
+        .filter((meeting) => new Date(meeting.start_time) >= new Date(startParam))
+        .filter((meeting) => new Date(meeting.start_time) <= new Date(endParam))
+        .filter((meeting) => (clientIdParam ? meeting.client_id === clientIdParam : true))
+        .filter((meeting) => (statusParam ? meeting.status === statusParam : true))
+        .filter((meeting) => (isSupervisor || meeting.seller_id === user.id))
+
+      return NextResponse.json({ data: meetings, count: meetings.length })
+    }
+
+    const supabase = await createClient()
     let query = supabase
       .from('meetings')
       .select(`
@@ -47,19 +43,16 @@ export async function GET(request: NextRequest) {
       .order('start_time', { ascending: true })
 
     const isSupervisor = user.effectiveRole === 'supervisor'
-
     if (isSupervisor && sellerIdParam) {
       query = query.eq('seller_id', sellerIdParam)
     } else if (!isSupervisor) {
       query = query.eq('seller_id', user.id)
     }
 
-    // Optional client filter
     if (clientIdParam) {
       query = query.eq('client_id', clientIdParam)
     }
 
-    // Optional status filter
     if (statusParam) {
       query = query.eq('status', statusParam)
     }
@@ -71,35 +64,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform to MeetingWithDetails format
-    const transformed: MeetingWithDetails[] = (meetings || []).map((m) => ({
-      id: m.id,
-      seller_id: m.seller_id,
-      client_id: m.client_id,
-      title: m.title,
-      description: m.description,
-      format: m.format,
-      location: m.location,
-      start_time: m.start_time,
-      end_time: m.end_time,
-      all_day: m.all_day,
-      status: m.status,
-      outcome_notes: m.outcome_notes,
-      outcome_purchased: m.outcome_purchased,
-      created_at: m.created_at,
-      updated_at: m.updated_at,
-      client_name: m.client
-        ? `${m.client.first_name} ${m.client.last_name}`
-        : null,
-      client_tier: m.client?.tier || null,
-      client_phone: m.client?.phone || null,
-      seller_name: m.seller?.full_name || 'Unknown',
+    const transformed: MeetingWithDetails[] = (meetings || []).map((meeting) => ({
+      id: meeting.id,
+      seller_id: meeting.seller_id,
+      client_id: meeting.client_id,
+      title: meeting.title,
+      description: meeting.description,
+      format: meeting.format,
+      location: meeting.location,
+      start_time: meeting.start_time,
+      end_time: meeting.end_time,
+      all_day: meeting.all_day,
+      status: meeting.status,
+      outcome_notes: meeting.outcome_notes,
+      outcome_purchased: meeting.outcome_purchased,
+      created_at: meeting.created_at,
+      updated_at: meeting.updated_at,
+      client_name: meeting.client ? `${meeting.client.first_name} ${meeting.client.last_name}` : null,
+      client_tier: meeting.client?.tier || null,
+      client_phone: meeting.client?.phone || null,
+      seller_name: meeting.seller?.full_name || 'Unknown',
     }))
 
-    return NextResponse.json({
-      data: transformed,
-      count: count || transformed.length,
-    })
+    return NextResponse.json({ data: transformed, count: count || transformed.length })
   } catch (error) {
     console.error('GET /api/meetings error:', error instanceof Error ? error.message : 'unknown')
     if (error instanceof Error && error.message.includes('Authentication')) {
@@ -109,53 +96,37 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * POST /api/meetings
- * Create a new meeting
- *
- * Body: MeetingInsert
- */
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth()
-    const supabase = await createClient()
 
-    const body: MeetingInsert = await request.json()
-
-    // Validate required fields
-    if (!body.title || !body.start_time || !body.end_time || !body.format) {
-      return NextResponse.json(
-        { error: 'Missing required fields: title, start_time, end_time, format' },
-        { status: 400 }
-      )
+    if (isDemoMode) {
+      return NextResponse.json({ error: 'Presentation mode is read-only for meetings' }, { status: 403 })
     }
 
-    // Validate time range
+    const supabase = await createClient()
+    const body: MeetingInsert = await request.json()
+
+    if (!body.title || !body.start_time || !body.end_time || !body.format) {
+      return NextResponse.json({ error: 'Missing required fields: title, start_time, end_time, format' }, { status: 400 })
+    }
+
     if (new Date(body.end_time) <= new Date(body.start_time)) {
-      return NextResponse.json(
-        { error: 'end_time must be after start_time' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'end_time must be after start_time' }, { status: 400 })
     }
 
     const isEffectiveSupervisor = user.effectiveRole === 'supervisor'
     const sellerId = isEffectiveSupervisor && body.seller_id ? body.seller_id : user.id
 
-    // Auto-fill location for boutique format
     let location = body.location
     if (body.format === 'boutique' && !location) {
       location = DEFAULT_BOUTIQUE_LOCATION
     }
 
-    // Require location for external format
     if (body.format === 'external' && !location) {
-      return NextResponse.json(
-        { error: 'Location is required for external meetings' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Location is required for external meetings' }, { status: 400 })
     }
 
-    // Idempotency check: prevent duplicate meeting at same start time for same seller
     const { data: existingMeeting } = await supabase
       .from('meetings')
       .select('id')
@@ -165,13 +136,9 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (existingMeeting) {
-      return NextResponse.json(
-        { error: 'A meeting already exists at this time', duplicate: true },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: 'A meeting already exists at this time', duplicate: true }, { status: 409 })
     }
 
-    // Insert meeting
     const { data: meeting, error: insertError } = await supabase
       .from('meetings')
       .insert({
@@ -198,12 +165,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
 
-    // Transform response
     const transformed: MeetingWithDetails = {
       ...meeting,
-      client_name: meeting.client
-        ? `${meeting.client.first_name} ${meeting.client.last_name}`
-        : null,
+      client_name: meeting.client ? `${meeting.client.first_name} ${meeting.client.last_name}` : null,
       client_tier: meeting.client?.tier || null,
       seller_name: meeting.seller?.full_name || 'Unknown',
     }

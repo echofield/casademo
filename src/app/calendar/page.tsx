@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
@@ -16,10 +16,11 @@ import { CalendarNav } from './CalendarNav'
 import { AgendaView } from './AgendaView'
 import { WeekView } from './WeekView'
 import { TeamView } from './TeamView'
+import { isDemoMode } from '@/lib/demo/config'
+import { DEMO_SUPERVISOR_ID, getDemoSellerRoster } from '@/lib/demo/presentation-data'
 
-// Dynamic imports for modals - not needed in initial bundle
-const AddMeetingModal = dynamic(() => import('./AddMeetingModal').then(mod => ({ default: mod.AddMeetingModal })), { ssr: false })
-const MeetingCompletionSheet = dynamic(() => import('./MeetingCompletionSheet').then(mod => ({ default: mod.MeetingCompletionSheet })), { ssr: false })
+const AddMeetingModal = dynamic(() => import('./AddMeetingModal').then((mod) => ({ default: mod.AddMeetingModal })), { ssr: false })
+const MeetingCompletionSheet = dynamic(() => import('./MeetingCompletionSheet').then((mod) => ({ default: mod.MeetingCompletionSheet })), { ssr: false })
 
 type CalendarView = 'list' | 'week' | 'team'
 
@@ -80,56 +81,58 @@ export default function CalendarPage() {
   const [userRole, setUserRole] = useState<'seller' | 'supervisor'>('seller')
   const [effectiveRole, setEffectiveRole] = useState<'seller' | 'supervisor'>('seller')
   const [userName, setUserName] = useState('')
-
-  // Modal states
   const [showAddModal, setShowAddModal] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
-  const [modalPrefill, setModalPrefill] = useState<{
-    date?: string
-    startTime?: string
-    meeting?: MeetingWithDetails
-  }>({})
+  const [modalPrefill, setModalPrefill] = useState<{ date?: string; startTime?: string; meeting?: MeetingWithDetails }>({})
   const [completionMeeting, setCompletionMeeting] = useState<MeetingWithDetails | null>(null)
-
-  // Sellers list for supervisor filter
   const [sellers, setSellers] = useState<{ id: string; name: string }[]>([])
 
-  // Fetch user info
+  const canManageMeetings = !isDemoMode
+
   useEffect(() => {
     async function fetchUser() {
+      if (isDemoMode) {
+        const roster = getDemoSellerRoster()
+        const currentSeller = roster.find((seller) => seller.id === DEMO_SUPERVISOR_ID) || roster[0]
+        setUserRole('supervisor')
+        setEffectiveRole(computeEffectiveRole('supervisor'))
+        setUserName(currentSeller?.full_name || 'Presentation User')
+        setSellers(normalizeSellerOptions(roster.map((seller) => ({ ...seller, email: null }))))
+        return
+      }
+
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile) return
+
+      const role = profile.role as 'seller' | 'supervisor'
+      setUserRole(role)
+      setEffectiveRole(computeEffectiveRole(role))
+      setUserName(profile.full_name || '')
+
+      if (role === 'supervisor') {
+        const { data: sellersData } = await supabase
           .from('profiles')
-          .select('role, full_name')
-          .eq('id', user.id)
-          .single()
-
-        if (profile) {
-          const role = profile.role as 'seller' | 'supervisor'
-          setUserRole(role)
-          setEffectiveRole(computeEffectiveRole(role))
-          setUserName(profile.full_name || '')
-
-          // If supervisor, fetch active team list
-          if (role === 'supervisor') {
-            const { data: sellersData } = await supabase
-              .from('profiles')
-              .select('id, full_name, email, active')
-              .in('role', ['seller', 'supervisor'])
-              .eq('active', true)
-            if (sellersData) {
-              setSellers(normalizeSellerOptions(sellersData))
-            }
-          }
+          .select('id, full_name, email, active')
+          .in('role', ['seller', 'supervisor'])
+          .eq('active', true)
+        if (sellersData) {
+          setSellers(normalizeSellerOptions(sellersData))
         }
       }
     }
+
     fetchUser()
   }, [])
 
-  // Fetch meetings for current week
   const fetchMeetings = useCallback(async () => {
     setLoading(true)
     try {
@@ -145,13 +148,12 @@ export default function CalendarPage() {
     } finally {
       setLoading(false)
     }
-  }, [weekStart, view, effectiveRole])
+  }, [weekStart, view])
 
   useEffect(() => {
     fetchMeetings()
   }, [fetchMeetings])
 
-  // Navigation handlers
   const handlePrevWeek = () => {
     const newStart = new Date(weekStart)
     newStart.setDate(newStart.getDate() - 7)
@@ -168,11 +170,7 @@ export default function CalendarPage() {
     setWeekStart(getWeekBounds().start)
   }
 
-  // Meeting actions
-  const handleMeetingAction = async (
-    action: 'complete' | 'no_show' | 'cancel' | 'edit',
-    meeting: MeetingWithDetails
-  ) => {
+  const handleMeetingAction = async (action: 'complete' | 'no_show' | 'cancel' | 'edit', meeting: MeetingWithDetails) => {
     if (action === 'edit') {
       handleMeetingClick(meeting)
       return
@@ -201,7 +199,6 @@ export default function CalendarPage() {
     }
   }
 
-  // Create meeting
   const handleCreateMeeting = async (meeting: MeetingInsert) => {
     const res = await fetch('/api/meetings', {
       method: 'POST',
@@ -217,7 +214,6 @@ export default function CalendarPage() {
     fetchMeetings()
   }
 
-  // Complete meeting
   const handleCompleteMeeting = async (meetingId: string, update: MeetingUpdate) => {
     const res = await fetch(`/api/meetings/${meetingId}`, {
       method: 'PATCH',
@@ -232,14 +228,12 @@ export default function CalendarPage() {
     fetchMeetings()
   }
 
-  // Meeting click in week view - open edit modal
   const handleMeetingClick = (meeting: MeetingWithDetails) => {
     setModalMode('edit')
     setModalPrefill({ meeting })
     setShowAddModal(true)
   }
 
-  // Empty slot click - open create modal with prefilled date/time
   const handleEmptySlotClick = (date: Date, hour: number) => {
     const dateStr = date.toISOString().split('T')[0]
     const timeStr = String(hour).padStart(2, '0') + ':00'
@@ -248,7 +242,6 @@ export default function CalendarPage() {
     setShowAddModal(true)
   }
 
-  // Open create modal (from FAB)
   const handleOpenCreateModal = () => {
     setModalMode('create')
     setModalPrefill({})
@@ -256,10 +249,7 @@ export default function CalendarPage() {
   }
 
   const meetingBuckets = groupMeetingsForSurface(meetings)
-  const upcomingThisWeek =
-    meetingBuckets.today.length +
-    meetingBuckets.tomorrow.length +
-    meetingBuckets.laterThisWeek.length
+  const upcomingThisWeek = meetingBuckets.today.length + meetingBuckets.tomorrow.length + meetingBuckets.laterThisWeek.length
   const summaryBits = [
     meetingBuckets.today.length > 0 ? `${meetingBuckets.today.length} today` : null,
     upcomingThisWeek > 0 ? `${upcomingThisWeek} this week` : null,
@@ -274,19 +264,23 @@ export default function CalendarPage() {
             <p className="label mb-3 text-text-muted">Meetings</p>
             <h1 className="heading-1 text-text">Meetings</h1>
             {view === 'list' && summaryBits.length > 0 && (
-              <p className="mt-2 text-sm text-text-muted">
-                {summaryBits.join(' · ')}
-              </p>
+              <p className="mt-2 text-sm text-text-muted">{summaryBits.join(' · ')}</p>
+            )}
+            {isDemoMode && (
+              <p className="mt-2 text-sm text-text-muted">Presentation data is seeded and read-only for this calendar surface.</p>
             )}
           </div>
 
-          <button
-            onClick={handleOpenCreateModal}
-            className="inline-flex items-center justify-center gap-2 self-start bg-[#003D2B] px-5 py-3 text-xs font-medium uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#004D38]"
-          >
-            <Plus className="h-4 w-4" />
-            Add meeting
-          </button>
+          {canManageMeetings ? (
+            <button onClick={handleOpenCreateModal} className="inline-flex items-center justify-center gap-2 self-start bg-[#003D2B] px-5 py-3 text-xs font-medium uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#004D38]">
+              <Plus className="h-4 w-4" />
+              Add meeting
+            </button>
+          ) : (
+            <div className="self-start rounded-full border border-primary/15 bg-primary/5 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-primary">
+              Presentation mode
+            </div>
+          )}
         </header>
 
         <CalendarNav
@@ -304,83 +298,74 @@ export default function CalendarPage() {
             <p className="text-text-muted">Loading...</p>
           </div>
         ) : view === 'list' ? (
-          <AgendaView
-            meetings={meetings}
-            onAction={handleMeetingAction}
-          />
+          <AgendaView meetings={meetings} onAction={canManageMeetings ? handleMeetingAction : undefined} />
         ) : view === 'week' ? (
           <WeekView
             meetings={meetings}
             weekStart={weekStart}
-            onMeetingClick={handleMeetingClick}
-            onEmptySlotClick={handleEmptySlotClick}
+            onMeetingClick={canManageMeetings ? handleMeetingClick : undefined}
+            onEmptySlotClick={canManageMeetings ? handleEmptySlotClick : undefined}
             isSupervisor={effectiveRole === 'supervisor'}
             sellers={sellers}
           />
         ) : (
-          <TeamView
-            meetings={meetings}
-            onMeetingClick={handleMeetingClick}
-          />
+          <TeamView meetings={meetings} onMeetingClick={canManageMeetings ? handleMeetingClick : undefined} />
         )}
       </div>
 
-      {/* Add Meeting Modal */}
-      <AddMeetingModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSubmit={handleCreateMeeting}
-        mode={modalMode}
-        prefillDate={modalPrefill.date}
-        prefillStartTime={modalPrefill.startTime}
-        editMeeting={modalPrefill.meeting}
-        onUpdate={async (id, update) => {
-          const previousMeetings = meetings
-          setMeetings(prev => prev.map(m =>
-            m.id === id ? { ...m, ...update } as MeetingWithDetails : m
-          ))
-          try {
-            const res = await fetch('/api/meetings/' + id, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(update),
-            })
-            if (!res.ok) {
-              setMeetings(previousMeetings)
-              throw new Error('Failed to update meeting')
-            }
-            fetchMeetings()
-          } catch (err) {
-            setMeetings(previousMeetings)
-            throw err
-          }
-        }}
-        onDelete={async (id) => {
-          const previousMeetings = meetings
-          setMeetings(prev => prev.filter(m => m.id !== id))
-          try {
-            const res = await fetch('/api/meetings/' + id, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'cancelled' }),
-            })
-            if (!res.ok) {
-              setMeetings(previousMeetings)
-              throw new Error('Failed to delete meeting')
-            }
-          } catch (err) {
-            setMeetings(previousMeetings)
-            throw err
-          }
-        }}
-      />
+      {canManageMeetings && (
+        <>
+          <AddMeetingModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onSubmit={handleCreateMeeting}
+            mode={modalMode}
+            prefillDate={modalPrefill.date}
+            prefillStartTime={modalPrefill.startTime}
+            editMeeting={modalPrefill.meeting}
+            onUpdate={async (id, update) => {
+              const previousMeetings = meetings
+              setMeetings((prev) => prev.map((meeting) => (meeting.id === id ? ({ ...meeting, ...update } as MeetingWithDetails) : meeting)))
+              try {
+                const res = await fetch('/api/meetings/' + id, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(update),
+                })
+                if (!res.ok) {
+                  setMeetings(previousMeetings)
+                  throw new Error('Failed to update meeting')
+                }
+                fetchMeetings()
+              } catch (err) {
+                setMeetings(previousMeetings)
+                throw err
+              }
+            }}
+            onDelete={async (id) => {
+              const previousMeetings = meetings
+              setMeetings((prev) => prev.filter((meeting) => meeting.id !== id))
+              try {
+                const res = await fetch('/api/meetings/' + id, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ status: 'cancelled' }),
+                })
+                if (!res.ok) {
+                  setMeetings(previousMeetings)
+                  throw new Error('Failed to delete meeting')
+                }
+              } catch (err) {
+                setMeetings(previousMeetings)
+                throw err
+              }
+            }}
+          />
 
-      {/* Completion Sheet */}
-      <MeetingCompletionSheet
-        meeting={completionMeeting}
-        onClose={() => setCompletionMeeting(null)}
-        onSubmit={handleCompleteMeeting}
-      />
+          <MeetingCompletionSheet meeting={completionMeeting} onClose={() => setCompletionMeeting(null)} onSubmit={handleCompleteMeeting} />
+        </>
+      )}
     </AppShell>
   )
 }
+

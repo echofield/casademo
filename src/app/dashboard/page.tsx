@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/lib/auth'
+﻿import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AppShell, CornerBrackets } from '@/components'
 import { ClientTier } from '@/lib/types'
@@ -13,6 +13,8 @@ import {
 } from '@/components/dashboard'
 import { ClientSignal } from '@/lib/types'
 import { Users, Phone, Calendar } from 'lucide-react'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoClients, getDemoMeetings, getDemoQueue, getDemoSellerRoster } from '@/lib/demo/presentation-data'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
@@ -41,9 +43,6 @@ export default async function DashboardPage() {
     redirect('/queue')
   }
 
-  const { createClient } = await import('@/lib/supabase/server')
-  const supabase = await createClient()
-
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
 
@@ -56,68 +55,23 @@ export default async function DashboardPage() {
   weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay()))
   weekEnd.setHours(23, 59, 59, 999)
 
-  // 6 months ago for progression chart
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
   sixMonthsAgo.setDate(1)
   sixMonthsAgo.setHours(0, 0, 0, 0)
 
-  // PARALLELIZED QUERIES with graceful degradation
-  const queryResults = await Promise.allSettled([
-    supabase.from('clients').select('tier'),
-    supabase.from('recontact_queue').select('seller_id, seller_name, days_overdue', { count: 'exact' }).gt('days_overdue', 0),
-    supabase.from('contacts').select('id', { count: 'exact', head: true }).gte('contact_date', weekAgo.toISOString()),
-    supabase.from('contacts').select('seller_id').gte('contact_date', monthStart.toISOString()),
-    supabase.from('profiles').select('id, full_name').eq('role', 'seller').eq('active', true),
-    supabase.from('clients').select('seller_id, tier, total_spend'),
-    supabase.from('clients').select('seller_id, seller_signal'),
-    supabase.from('contacts').select('contact_date, client_id').gte('contact_date', sixMonthsAgo.toISOString()).order('contact_date', { ascending: true }),
-    supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('start_time', now.toISOString()).lte('start_time', weekEnd.toISOString()).eq('status', 'scheduled'),
-  ])
-
-  // Extract results with fallbacks; track failures for operator visibility
   const failedQueries: string[] = []
-  const queryNames = ['tierCounts', 'overdueData', 'contactsThisWeek', 'sellerActivity', 'allSellers', 'clientsWithSeller', 'clientSignals', 'monthlyContacts', 'upcomingMeetings']
-
-  // Helper to safely extract settled results
-  function getSettled<T>(result: PromiseSettledResult<T>, name: string, fallback: T): T {
-    if (result.status === 'rejected') {
-      failedQueries.push(name)
-      console.error(`[Dashboard] Query failed: ${name}`, result.reason)
-      return fallback
-    }
-    return result.value
-  }
-
-  // Type-safe extraction with proper fallbacks
-  const tierCountsResult = getSettled(queryResults[0] as PromiseSettledResult<{ data: { tier: string | null }[] | null }>, queryNames[0], { data: null })
-  const overdueResult = getSettled(queryResults[1] as PromiseSettledResult<{ data: { seller_id: string; seller_name: string | null; days_overdue: number }[] | null; count: number | null }>, queryNames[1], { data: null, count: null })
-  const contactsWeekResult = getSettled(queryResults[2] as PromiseSettledResult<{ count: number | null }>, queryNames[2], { count: null })
-  const sellerActivityResult = getSettled(queryResults[3] as PromiseSettledResult<{ data: { seller_id: string }[] | null }>, queryNames[3], { data: null })
-  const allSellersResult = getSettled(queryResults[4] as PromiseSettledResult<{ data: { id: string; full_name: string }[] | null }>, queryNames[4], { data: null })
-  const clientsWithSellerResult = getSettled(queryResults[5] as PromiseSettledResult<{ data: { seller_id: string; tier: string | null; total_spend: number | null }[] | null }>, queryNames[5], { data: null })
-  const clientSignalsResult = getSettled(queryResults[6] as PromiseSettledResult<{ data: { seller_id: string; seller_signal: string | null }[] | null }>, queryNames[6], { data: null })
-  const monthlyContactsResult = getSettled(queryResults[7] as PromiseSettledResult<{ data: { contact_date: string; client_id: string }[] | null }>, queryNames[7], { data: null })
-  const upcomingMeetingsResult = getSettled(queryResults[8] as PromiseSettledResult<{ count: number | null }>, queryNames[8], { count: null })
-
-  const tierCounts = tierCountsResult.data
-  const overdueData = overdueResult.data
-  const totalOverdue = overdueResult.count
-  const contactsThisWeek = contactsWeekResult.count
-  const sellerActivity = sellerActivityResult.data
-  const allSellers = allSellersResult.data
-  const clientsWithSeller = clientsWithSellerResult.data
-  const clientSignals = clientSignalsResult.data
-  const monthlyContacts = monthlyContactsResult.data
-  const upcomingMeetingsCount = upcomingMeetingsResult.count
-
-  // Log degraded state for operators
-  const isDegraded = failedQueries.length > 0
-  if (isDegraded) {
-    console.warn(`[Dashboard] Running in degraded mode. Failed queries: ${failedQueries.join(', ')}`)
-  }
-
-  // Process tier counts
+  let allSellers: { id: string; full_name: string }[] = []
+  let sellerOverdue: Record<string, { name: string; count: number }> = {}
+  let activityMap: Record<string, number> = {}
+  let sellerBreakdownData: Array<{ seller_id: string; seller_name: string; tiers: Record<ClientTier, number>; total: number }> = []
+  let signalDistributionData: Array<{ seller_id: string; seller_name: string; signals: Record<ClientSignal | 'null', number>; total: number }> = []
+  let sellerRadarData: Array<{ name: string; contacts: number; clients: number; ca: number; aJour: number }> = []
+  let contactsWeek = 0
+  let overdueTotal = 0
+  let upcomingMeetingsCount = 0
+  let totalClients = 0
+  let progressionData: Array<{ month: string; value: number; target: number }> = []
   const clientsByTier: Record<ClientTier, number> = {
     rainbow: 0,
     optimisto: 0,
@@ -126,129 +80,258 @@ export default async function DashboardPage() {
     diplomatico: 0,
     grand_prix: 0,
   }
-  tierCounts?.forEach((c) => {
-    if (c.tier) clientsByTier[c.tier as ClientTier]++
-  })
-  const totalClients = tierCounts?.length || 0
 
-  // Process overdue data
-  const sellerOverdue: Record<string, { name: string; count: number }> = {}
-  overdueData?.forEach((item) => {
-    const sellerId = item.seller_id
-    const sellerName = item.seller_name || 'Unknown'
-    if (!sellerOverdue[sellerId]) {
-      sellerOverdue[sellerId] = { name: sellerName, count: 0 }
-    }
-    sellerOverdue[sellerId].count++
-  })
+  if (isDemoMode) {
+    const demoClients = getDemoClients()
+    const demoQueue = getDemoQueue('supervisor')
+    const demoMeetings = getDemoMeetings('supervisor')
+    allSellers = getDemoSellerRoster().filter((seller) => seller.active).map((seller) => ({ id: seller.id, full_name: seller.full_name }))
 
-  // Process activity map
-  const activityMap: Record<string, number> = {}
-  sellerActivity?.forEach((item) => {
-    activityMap[item.seller_id] = (activityMap[item.seller_id] || 0) + 1
-  })
+    totalClients = demoClients.length
+    demoClients.forEach((client) => {
+      clientsByTier[client.tier] += 1
+      const monthlyContacts = (client.contact_history || []).filter((contact) => new Date(contact.date) >= monthStart)
+      activityMap[client.seller_id] = (activityMap[client.seller_id] || 0) + monthlyContacts.length
+    })
 
-  // Build seller tier breakdown
-  const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
-  ;(allSellers || []).forEach((seller) => {
-    sellerTierMap[seller.id] = {
-      name: seller.full_name,
-      tiers: { rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0 },
-      total: 0,
-    }
-  })
-  ;(clientsWithSeller || []).forEach((c) => {
-    if (sellerTierMap[c.seller_id]) {
-      sellerTierMap[c.seller_id].tiers[c.tier as ClientTier]++
-      sellerTierMap[c.seller_id].total++
-    }
-  })
+    contactsWeek = demoClients.flatMap((client) => client.contact_history || []).filter((contact) => new Date(contact.date) >= weekAgo).length
+    overdueTotal = demoQueue.filter((item) => item.days_overdue > 0).length
+    upcomingMeetingsCount = demoMeetings.filter((meeting) => meeting.status === 'scheduled' && new Date(meeting.start_time) >= now && new Date(meeting.start_time) <= weekEnd).length
 
-  const sellerBreakdownData = Object.entries(sellerTierMap)
-    .map(([id, data]) => ({ seller_id: id, seller_name: data.name, tiers: data.tiers, total: data.total }))
-    .filter(s => s.total > 0)
-    .sort((a, b) => b.total - a.total)
+    demoQueue.filter((item) => item.days_overdue > 0).forEach((item) => {
+      if (!sellerOverdue[item.seller_id]) {
+        sellerOverdue[item.seller_id] = { name: item.seller_name, count: 0 }
+      }
+      sellerOverdue[item.seller_id].count++
+    })
 
-  // Build signal distribution data per seller
-  type SignalCounts = Record<ClientSignal | 'null', number>
-  const sellerSignalMap: Record<string, { name: string; signals: SignalCounts; total: number }> = {}
-  ;(allSellers || []).forEach((seller) => {
-    sellerSignalMap[seller.id] = {
-      name: seller.full_name,
-      signals: { very_hot: 0, hot: 0, warm: 0, cold: 0, lost: 0, null: 0 },
-      total: 0,
-    }
-  })
-  ;(clientSignals || []).forEach((c) => {
-    if (sellerSignalMap[c.seller_id]) {
-      const signalKey = (c.seller_signal || 'null') as ClientSignal | 'null'
-      sellerSignalMap[c.seller_id].signals[signalKey]++
-      sellerSignalMap[c.seller_id].total++
-    }
-  })
+    const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
+    const sellerSignalMap: Record<string, { name: string; signals: Record<ClientSignal | 'null', number>; total: number }> = {}
 
-  const signalDistributionData = Object.entries(sellerSignalMap)
-    .map(([id, data]) => ({
-      seller_id: id,
-      seller_name: data.name,
-      signals: data.signals,
-      total: data.total,
-    }))
-    .filter(s => s.total > 0)
-    .sort((a, b) => b.total - a.total)
+    allSellers.forEach((seller) => {
+      sellerTierMap[seller.id] = {
+        name: seller.full_name,
+        tiers: { rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0 },
+        total: 0,
+      }
+      sellerSignalMap[seller.id] = {
+        name: seller.full_name,
+        signals: { very_hot: 0, hot: 0, warm: 0, cold: 0, lost: 0, null: 0 },
+        total: 0,
+      }
+    })
 
-  // Build seller data for radar
-  const sellerRadarData = (allSellers || []).slice(0, 4).map((seller) => {
-    const contacts = activityMap[seller.id] || 0
-    const overdue = sellerOverdue[seller.id]?.count || 0
-    const sellerClients = (clientsWithSeller || []).filter(c => c.seller_id === seller.id)
-    const clientCount = sellerClients.length
-    const totalCA = sellerClients.reduce((sum, c) => sum + (c.total_spend || 0), 0)
-    const aJourPct = clientCount > 0 ? Math.round(((clientCount - overdue) / clientCount) * 100) : 100
+    demoClients.forEach((client) => {
+      if (sellerTierMap[client.seller_id]) {
+        sellerTierMap[client.seller_id].tiers[client.tier]++
+        sellerTierMap[client.seller_id].total++
+      }
+      if (sellerSignalMap[client.seller_id]) {
+        const signalKey = (client.seller_signal || 'null') as ClientSignal | 'null'
+        sellerSignalMap[client.seller_id].signals[signalKey]++
+        sellerSignalMap[client.seller_id].total++
+      }
+    })
 
-    return {
-      name: seller.full_name.split(' ')[0],
-      contacts: contacts,
-      clients: clientCount,
-      ca: totalCA,
-      aJour: aJourPct,
-    }
-  }).filter(s => s.clients > 0)
+    sellerBreakdownData = Object.entries(sellerTierMap)
+      .map(([seller_id, data]) => ({ seller_id, seller_name: data.name, tiers: data.tiers, total: data.total }))
+      .filter((seller) => seller.total > 0)
+      .sort((a, b) => b.total - a.total)
 
+    signalDistributionData = Object.entries(sellerSignalMap)
+      .map(([seller_id, data]) => ({ seller_id, seller_name: data.name, signals: data.signals, total: data.total }))
+      .filter((seller) => seller.total > 0)
+      .sort((a, b) => b.total - a.total)
 
-  const contactsWeek = contactsThisWeek || 0
-  const overdueTotal = totalOverdue || 0
+    sellerRadarData = allSellers
+      .map((seller) => {
+        const sellerClients = demoClients.filter((client) => client.seller_id === seller.id)
+        const overdue = sellerOverdue[seller.id]?.count || 0
+        const totalCA = sellerClients.reduce((sum, client) => sum + client.total_spend, 0)
+        const clientCount = sellerClients.length
+        const aJourPct = clientCount > 0 ? Math.round(((clientCount - overdue) / clientCount) * 100) : 100
+        return {
+          name: seller.full_name.split(' ')[0],
+          contacts: activityMap[seller.id] || 0,
+          clients: clientCount,
+          ca: totalCA,
+          aJour: aJourPct,
+        }
+      })
+      .filter((seller) => seller.clients > 0)
 
-  // Build real monthly progression from contacts data
-  const progressionData: { month: string; value: number; target: number }[] = []
-  {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const contactGoalPct = 70
-
     for (let i = 5; i >= 0; i--) {
       const d = new Date()
       d.setMonth(d.getMonth() - i)
       const mStart = new Date(d.getFullYear(), d.getMonth(), 1)
       const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-
       const uniqueClientsContacted = new Set(
-        (monthlyContacts || [])
-          .filter(c => {
-            const cd = new Date(c.contact_date)
-            return cd >= mStart && cd <= mEnd
+        demoClients
+          .flatMap((client) => (client.contact_history || []).map((contact) => ({ contact_date: contact.date, client_id: client.id })))
+          .filter((contact) => {
+            const contactDate = new Date(contact.contact_date)
+            return contactDate >= mStart && contactDate <= mEnd
           })
-          .map(c => c.client_id)
+          .map((contact) => contact.client_id)
       ).size
-
-      const pct = totalClients > 0 ? Math.round((uniqueClientsContacted / totalClients) * 100) : 0
 
       progressionData.push({
         month: monthNames[mStart.getMonth()],
-        value: pct,
+        value: totalClients > 0 ? Math.round((uniqueClientsContacted / totalClients) * 100) : 0,
+        target: contactGoalPct,
+      })
+    }
+  } else {
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+
+    const queryResults = await Promise.allSettled([
+      supabase.from('clients').select('tier'),
+      supabase.from('recontact_queue').select('seller_id, seller_name, days_overdue', { count: 'exact' }).gt('days_overdue', 0),
+      supabase.from('contacts').select('id', { count: 'exact', head: true }).gte('contact_date', weekAgo.toISOString()),
+      supabase.from('contacts').select('seller_id').gte('contact_date', monthStart.toISOString()),
+      supabase.from('profiles').select('id, full_name').eq('role', 'seller').eq('active', true),
+      supabase.from('clients').select('seller_id, tier, total_spend'),
+      supabase.from('clients').select('seller_id, seller_signal'),
+      supabase.from('contacts').select('contact_date, client_id').gte('contact_date', sixMonthsAgo.toISOString()).order('contact_date', { ascending: true }),
+      supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('start_time', now.toISOString()).lte('start_time', weekEnd.toISOString()).eq('status', 'scheduled'),
+    ])
+
+    const queryNames = ['tierCounts', 'overdueData', 'contactsThisWeek', 'sellerActivity', 'allSellers', 'clientsWithSeller', 'clientSignals', 'monthlyContacts', 'upcomingMeetings']
+    const getSettled = <T,>(result: PromiseSettledResult<T>, name: string, fallback: T): T => {
+      if (result.status === 'rejected') {
+        failedQueries.push(name)
+        console.error(`[Dashboard] Query failed: ${name}`, result.reason)
+        return fallback
+      }
+      return result.value
+    }
+
+    const tierCountsResult = getSettled(queryResults[0] as PromiseSettledResult<{ data: { tier: string | null }[] | null }>, queryNames[0], { data: null })
+    const overdueResult = getSettled(queryResults[1] as PromiseSettledResult<{ data: { seller_id: string; seller_name: string | null; days_overdue: number }[] | null; count: number | null }>, queryNames[1], { data: null, count: null })
+    const contactsWeekResult = getSettled(queryResults[2] as PromiseSettledResult<{ count: number | null }>, queryNames[2], { count: null })
+    const sellerActivityResult = getSettled(queryResults[3] as PromiseSettledResult<{ data: { seller_id: string }[] | null }>, queryNames[3], { data: null })
+    const allSellersResult = getSettled(queryResults[4] as PromiseSettledResult<{ data: { id: string; full_name: string }[] | null }>, queryNames[4], { data: null })
+    const clientsWithSellerResult = getSettled(queryResults[5] as PromiseSettledResult<{ data: { seller_id: string; tier: string | null; total_spend: number | null }[] | null }>, queryNames[5], { data: null })
+    const clientSignalsResult = getSettled(queryResults[6] as PromiseSettledResult<{ data: { seller_id: string; seller_signal: string | null }[] | null }>, queryNames[6], { data: null })
+    const monthlyContactsResult = getSettled(queryResults[7] as PromiseSettledResult<{ data: { contact_date: string; client_id: string }[] | null }>, queryNames[7], { data: null })
+    const upcomingMeetingsResult = getSettled(queryResults[8] as PromiseSettledResult<{ count: number | null }>, queryNames[8], { count: null })
+
+    const tierCounts = tierCountsResult.data
+    const overdueData = overdueResult.data
+    const sellerActivity = sellerActivityResult.data
+    const clientsWithSeller = clientsWithSellerResult.data
+    const clientSignals = clientSignalsResult.data
+    const monthlyContacts = monthlyContactsResult.data
+
+    allSellers = allSellersResult.data || []
+    tierCounts?.forEach((client) => {
+      if (client.tier) clientsByTier[client.tier as ClientTier]++
+    })
+    totalClients = tierCounts?.length || 0
+    overdueTotal = overdueResult.count || 0
+    contactsWeek = contactsWeekResult.count || 0
+    upcomingMeetingsCount = upcomingMeetingsResult.count || 0
+
+    overdueData?.forEach((item) => {
+      if (!sellerOverdue[item.seller_id]) {
+        sellerOverdue[item.seller_id] = { name: item.seller_name || 'Unknown', count: 0 }
+      }
+      sellerOverdue[item.seller_id].count++
+    })
+
+    sellerActivity?.forEach((item) => {
+      activityMap[item.seller_id] = (activityMap[item.seller_id] || 0) + 1
+    })
+
+    const sellerTierMap: Record<string, { name: string; tiers: Record<ClientTier, number>; total: number }> = {}
+    allSellers.forEach((seller) => {
+      sellerTierMap[seller.id] = {
+        name: seller.full_name,
+        tiers: { rainbow: 0, optimisto: 0, kaizen: 0, idealiste: 0, diplomatico: 0, grand_prix: 0 },
+        total: 0,
+      }
+    })
+    ;(clientsWithSeller || []).forEach((client) => {
+      if (sellerTierMap[client.seller_id]) {
+        sellerTierMap[client.seller_id].tiers[client.tier as ClientTier]++
+        sellerTierMap[client.seller_id].total++
+      }
+    })
+
+    sellerBreakdownData = Object.entries(sellerTierMap)
+      .map(([seller_id, data]) => ({ seller_id, seller_name: data.name, tiers: data.tiers, total: data.total }))
+      .filter((seller) => seller.total > 0)
+      .sort((a, b) => b.total - a.total)
+
+    const sellerSignalMap: Record<string, { name: string; signals: Record<ClientSignal | 'null', number>; total: number }> = {}
+    allSellers.forEach((seller) => {
+      sellerSignalMap[seller.id] = {
+        name: seller.full_name,
+        signals: { very_hot: 0, hot: 0, warm: 0, cold: 0, lost: 0, null: 0 },
+        total: 0,
+      }
+    })
+    ;(clientSignals || []).forEach((client) => {
+      if (sellerSignalMap[client.seller_id]) {
+        const signalKey = (client.seller_signal || 'null') as ClientSignal | 'null'
+        sellerSignalMap[client.seller_id].signals[signalKey]++
+        sellerSignalMap[client.seller_id].total++
+      }
+    })
+
+    signalDistributionData = Object.entries(sellerSignalMap)
+      .map(([seller_id, data]) => ({ seller_id, seller_name: data.name, signals: data.signals, total: data.total }))
+      .filter((seller) => seller.total > 0)
+      .sort((a, b) => b.total - a.total)
+
+    sellerRadarData = allSellers
+      .slice(0, 4)
+      .map((seller) => {
+        const contacts = activityMap[seller.id] || 0
+        const overdue = sellerOverdue[seller.id]?.count || 0
+        const sellerClients = (clientsWithSeller || []).filter((client) => client.seller_id === seller.id)
+        const clientCount = sellerClients.length
+        const totalCA = sellerClients.reduce((sum, client) => sum + (client.total_spend || 0), 0)
+        const aJourPct = clientCount > 0 ? Math.round(((clientCount - overdue) / clientCount) * 100) : 100
+
+        return {
+          name: seller.full_name.split(' ')[0],
+          contacts,
+          clients: clientCount,
+          ca: totalCA,
+          aJour: aJourPct,
+        }
+      })
+      .filter((seller) => seller.clients > 0)
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const contactGoalPct = 70
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date()
+      d.setMonth(d.getMonth() - i)
+      const mStart = new Date(d.getFullYear(), d.getMonth(), 1)
+      const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
+      const uniqueClientsContacted = new Set(
+        (monthlyContacts || [])
+          .filter((contact) => {
+            const contactDate = new Date(contact.contact_date)
+            return contactDate >= mStart && contactDate <= mEnd
+          })
+          .map((contact) => contact.client_id)
+      ).size
+
+      progressionData.push({
+        month: monthNames[mStart.getMonth()],
+        value: totalClients > 0 ? Math.round((uniqueClientsContacted / totalClients) * 100) : 0,
         target: contactGoalPct,
       })
     }
   }
+
+  const isDegraded = !isDemoMode && failedQueries.length > 0
 
   // Greeting based on time
   const hour = new Date().getHours()
@@ -363,7 +446,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Signal Overview — second block, first-class feature */}
+        {/* Signal Overview â€” second block, first-class feature */}
         {signalDistributionData.length > 0 && (
           <>
             <SignalMatrix
@@ -377,7 +460,7 @@ export default async function DashboardPage() {
           </>
         )}
 
-        {/* Casa One Impact — conversion metrics */}
+        {/* Casa One Impact â€” conversion metrics */}
         <ConversionMetrics className="mb-10" />
 
         {/* Two column layout */}
@@ -551,3 +634,8 @@ function StatPill({
 
   return content
 }
+
+
+
+
+

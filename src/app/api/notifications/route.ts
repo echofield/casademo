@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { AuthError, requireAuth } from '@/lib/auth'
 import type { NotificationRow } from '@/lib/types'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoNotifications } from '@/lib/demo/presentation-data'
 
 const NO_RETRY_HEADERS = {
   'Cache-Control': 'no-store',
@@ -27,20 +29,21 @@ function isMissingDueAtColumn(error: { code?: string; message?: string }) {
   )
 }
 
-// GET /api/notifications - Get user's notifications
 export async function GET(request: Request) {
   try {
     const user = await requireAuth()
+
+    if (isDemoMode) {
+      return NextResponse.json(getDemoNotifications(user.effectiveRole))
+    }
+
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const unreadOnly = searchParams.get('unread') === 'true'
     const nowIso = new Date().toISOString()
 
     const fetchNotifications = async (useDueAt: boolean) => {
-      let query = supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
+      let query = supabase.from('notifications').select('*').eq('user_id', user.id)
 
       if (useDueAt) {
         query = query.lte('due_at', nowIso)
@@ -70,10 +73,7 @@ export async function GET(request: Request) {
     }
 
     if (error) {
-      const missing =
-        error.code === '42P01' ||
-        error.message.includes('relation') ||
-        error.message.includes('does not exist')
+      const missing = error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')
       console.warn('Notifications query failed:', error.message)
       return NextResponse.json({
         notifications: [] as NotificationRow[],
@@ -83,16 +83,8 @@ export async function GET(request: Request) {
     }
 
     const fetchUnreadCount = async (withDueAt: boolean) => {
-      let query = supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('read', false)
-
-      if (withDueAt) {
-        query = query.lte('due_at', nowIso)
-      }
-
+      let query = supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('read', false)
+      if (withDueAt) query = query.lte('due_at', nowIso)
       return await query
     }
 
@@ -108,44 +100,33 @@ export async function GET(request: Request) {
       console.warn('Notifications unread count query failed:', countError.message)
     }
 
-    return NextResponse.json({
-      notifications: (data || []) as NotificationRow[],
-      unread_count: count ?? 0,
-    })
+    return NextResponse.json({ notifications: (data || []) as NotificationRow[], unread_count: count ?? 0 })
   } catch (error) {
     if (error instanceof AuthError) {
       return authFailureResponse(error)
     }
 
-    // For any other error, return empty state to avoid breaking the UI
     console.error('Notifications error:', error instanceof Error ? error.message : 'unknown')
-    return NextResponse.json({
-      notifications: [],
-      unread_count: 0,
-    })
+    return NextResponse.json({ notifications: [], unread_count: 0 })
   }
 }
 
-// PATCH /api/notifications - Mark notifications as read
 export async function PATCH(request: Request) {
   try {
     const user = await requireAuth()
+
+    if (isDemoMode) {
+      return NextResponse.json({ success: true, demo: true })
+    }
+
     const supabase = await createClient()
     const body = await request.json()
-
-    // Mark specific notifications or all as read
     const { notification_ids, mark_all } = body
     let updateError: string | null = null
 
     if (mark_all) {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false)
-
+      const { error } = await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false)
       if (error) {
-        // Table not found is expected during setup; other errors are real failures
         const isSetupIssue = error.code === '42P01' || error.message.includes('does not exist')
         if (!isSetupIssue) {
           console.warn('[Notifications] PATCH mark_all failed:', error.message)
@@ -153,12 +134,7 @@ export async function PATCH(request: Request) {
         }
       }
     } else if (notification_ids && Array.isArray(notification_ids)) {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .in('id', notification_ids)
-
+      const { error } = await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).in('id', notification_ids)
       if (error) {
         const isSetupIssue = error.code === '42P01' || error.message.includes('does not exist')
         if (!isSetupIssue) {
@@ -168,8 +144,6 @@ export async function PATCH(request: Request) {
       }
     }
 
-    // Return honest status (200 for now, frontend should eventually handle success: false)
-    // TODO: Once frontend handles errors gracefully, return 500 on real failures
     if (updateError) {
       return NextResponse.json({ success: false, error: updateError })
     }
@@ -179,7 +153,6 @@ export async function PATCH(request: Request) {
       return authFailureResponse(error)
     }
 
-    // Real unexpected error - log and return failure
     console.error('[Notifications] PATCH unexpected error:', error instanceof Error ? error.message : 'unknown')
     return NextResponse.json({ success: false, error: 'Unexpected error' })
   }

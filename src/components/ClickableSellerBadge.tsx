@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Bell, Check } from 'lucide-react'
+import { isDemoMode } from '@/lib/demo/config'
 
 interface Props {
   sellerId: string
@@ -29,7 +30,7 @@ export function ClickableSellerBadge({
 
   const isSupervisor = userRole === 'supervisor'
   const isOwnClient = currentUserId === sellerId
-  const canNotify = isSupervisor && !isOwnClient
+  const canNotify = isSupervisor && !isOwnClient && !isDemoMode
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -48,7 +49,7 @@ export function ClickableSellerBadge({
           client_name: clientName,
           message: isOverdue
             ? `This client is ${daysOverdue} days overdue. Please follow up.`
-            : `Supervisor reminder to check in with this client.`,
+            : 'Supervisor reminder to check in with this client.',
         }),
       })
 
@@ -66,7 +67,6 @@ export function ClickableSellerBadge({
   }
 
   if (!canNotify) {
-    // Non-clickable display for sellers or own clients
     return <span className="text-text-muted">· {sellerName}</span>
   }
 
@@ -75,19 +75,12 @@ export function ClickableSellerBadge({
       type="button"
       onClick={handleClick}
       disabled={sending}
-      className={`inline-flex items-center gap-1 transition-colors ${
-        sent
-          ? 'text-primary'
-          : 'text-text-muted hover:text-gold cursor-pointer'
-      }`}
+      className={`inline-flex items-center gap-1 transition-colors ${sent ? 'text-primary' : 'cursor-pointer text-text-muted hover:text-gold'}`}
       title={sent ? 'Reminder sent!' : `Click to remind ${sellerName}`}
     >
       · {sellerName}
-      {sent ? (
-        <Check className="w-3 h-3 text-primary" />
-      ) : (
-        <Bell className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-      )}
+      {sent ? <Check className="h-3 w-3 text-primary" /> : <Bell className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />}
     </button>
   )
 }
+

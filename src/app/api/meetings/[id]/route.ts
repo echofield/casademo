@@ -1,22 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { MeetingUpdate, MeetingWithDetails } from '@/lib/types/meetings'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoMeetings } from '@/lib/demo/presentation-data'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-/**
- * GET /api/meetings/[id]
- * Get a single meeting with full details
- */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth()
-    const supabase = await createClient()
     const { id } = await params
 
+    if (isDemoMode) {
+      const meetings = getDemoMeetings(user.effectiveRole, user.id)
+      const meeting = meetings.find((entry) => entry.id === id)
+      if (!meeting) {
+        return NextResponse.json({ error: 'Meeting not found' }, { status: 404 })
+      }
+      return NextResponse.json({ data: meeting })
+    }
+
+    const supabase = await createClient()
     const { data: meeting, error } = await supabase
       .from('meetings')
       .select(`
@@ -39,12 +46,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    // Transform response
     const transformed: MeetingWithDetails = {
       ...meeting,
-      client_name: meeting.client
-        ? `${meeting.client.first_name} ${meeting.client.last_name}`
-        : null,
+      client_name: meeting.client ? `${meeting.client.first_name} ${meeting.client.last_name}` : null,
       client_tier: meeting.client?.tier || null,
       client_phone: meeting.client?.phone || null,
       seller_name: meeting.seller?.full_name || 'Unknown',
@@ -60,19 +64,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-/**
- * PATCH /api/meetings/[id]
- * Update a meeting (status, time, notes, outcome)
- */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth()
-    const supabase = await createClient()
     const { id } = await params
 
+    if (isDemoMode) {
+      return NextResponse.json({ error: 'Presentation mode is read-only for meetings' }, { status: 403 })
+    }
+
+    const supabase = await createClient()
     const body: MeetingUpdate = await request.json()
 
-    // First, check if meeting exists and user has access
     const { data: existing, error: fetchError } = await supabase
       .from('meetings')
       .select('seller_id')
@@ -91,17 +94,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    // Validate time range if both are provided
-    if (body.start_time && body.end_time) {
-      if (new Date(body.end_time) <= new Date(body.start_time)) {
-        return NextResponse.json(
-          { error: 'end_time must be after start_time' },
-          { status: 400 }
-        )
-      }
+    if (body.start_time && body.end_time && new Date(body.end_time) <= new Date(body.start_time)) {
+      return NextResponse.json({ error: 'end_time must be after start_time' }, { status: 400 })
     }
 
-    // Build update object
     const updateData: Record<string, unknown> = {}
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
@@ -114,7 +110,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.outcome_notes !== undefined) updateData.outcome_notes = body.outcome_notes
     if (body.outcome_purchased !== undefined) updateData.outcome_purchased = body.outcome_purchased
 
-    // Update meeting
     const { data: meeting, error: updateError } = await supabase
       .from('meetings')
       .update(updateData)
@@ -131,12 +126,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    // Transform response
     const transformed: MeetingWithDetails = {
       ...meeting,
-      client_name: meeting.client
-        ? `${meeting.client.first_name} ${meeting.client.last_name}`
-        : null,
+      client_name: meeting.client ? `${meeting.client.first_name} ${meeting.client.last_name}` : null,
       client_tier: meeting.client?.tier || null,
       client_phone: meeting.client?.phone || null,
       seller_name: meeting.seller?.full_name || 'Unknown',
@@ -152,17 +144,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-/**
- * DELETE /api/meetings/[id]
- * Soft delete - sets status to 'cancelled'
- */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth()
-    const supabase = await createClient()
     const { id } = await params
 
-    // First, check if meeting exists and user has access
+    if (isDemoMode) {
+      return NextResponse.json({ error: 'Presentation mode is read-only for meetings' }, { status: 403 })
+    }
+
+    const supabase = await createClient()
     const { data: existing, error: fetchError } = await supabase
       .from('meetings')
       .select('seller_id, status')
@@ -181,16 +172,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    // Don't cancel already cancelled meetings
     if (existing.status === 'cancelled') {
       return NextResponse.json({ error: 'Meeting is already cancelled' }, { status: 400 })
     }
 
-    // Soft delete - set status to cancelled
-    const { error: updateError } = await supabase
-      .from('meetings')
-      .update({ status: 'cancelled' })
-      .eq('id', id)
+    const { error: updateError } = await supabase.from('meetings').update({ status: 'cancelled' }).eq('id', id)
 
     if (updateError) {
       console.error('Error cancelling meeting:', updateError.message)

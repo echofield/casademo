@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Meeting Types for Casa One Calendar System
  */
 
@@ -9,7 +9,7 @@ export type MeetingFormat = 'boutique' | 'external' | 'call' | 'video' | 'whatsa
 export type MeetingStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show'
 
 // Default boutique location
-export const DEFAULT_BOUTIQUE_LOCATION = 'Casablanca Paris — Faubourg Saint-Honore'
+export const DEFAULT_BOUTIQUE_LOCATION = 'Maison Serein Paris - Avenue Montaigne'
 
 // Format display configuration (icons are SVG paths rendered in components)
 export const MEETING_FORMAT_CONFIG: Record<MeetingFormat, {
@@ -183,13 +183,13 @@ export function formatTimeRange(startTime: string, endTime: string): string {
   const start = new Date(startTime)
   const end = new Date(endTime)
   const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  return `${formatTime(start)} – ${formatTime(end)}`
+  return `${formatTime(start)} â€“ ${formatTime(end)}`
 }
 
 export function formatMeetingOwnerLine(
   meeting: Pick<MeetingWithDetails, 'seller_name' | 'format'>
 ): string {
-  return [meeting.seller_name, MEETING_FORMAT_CONFIG[meeting.format].label].join(' · ')
+  return [meeting.seller_name, MEETING_FORMAT_CONFIG[meeting.format].label].join(' Â· ')
 }
 
 // Helper to check if meeting is today
@@ -360,3 +360,5 @@ export function generateTimeOptions(): { value: string; label: string }[] {
   options.push({ value: '00:00', label: '00:00' })
   return options
 }
+
+

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -9,6 +9,7 @@ import { ClickableSellerBadge } from './ClickableSellerBadge'
 import { SignalBadge } from './SignalBadge'
 import { InterestTag } from './InterestTag'
 import type { ClientTier, ClientSignal, InterestItem } from '@/lib/types'
+import { isDemoMode } from '@/lib/demo/config'
 
 interface Props {
   client: {
@@ -39,6 +40,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
   const isPremium = ['grand_prix', 'diplomatico'].includes(client.tier)
   const isSupervisor = userRole === 'supervisor'
   const isOwnClient = currentUserId === client.seller_id
+  const canNotifySeller = isSupervisor && !isOwnClient && !isDemoMode
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -238,7 +240,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          {isSupervisor && !isOwnClient ? (
+          {canNotifySeller ? (
             /* Supervisor viewing another seller's client - show notify button */
             <button
               type="button"
@@ -284,7 +286,7 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
           >
             Full profile
           </Link>
-          {(isOwnClient || !isSupervisor) && (
+          {!isDemoMode && (isOwnClient || !isSupervisor) && (
             <button
               type="button"
               onClick={handleMarkDone}
@@ -300,3 +302,5 @@ export function FocusedClientCard({ client, userRole = 'seller', currentUserId, 
     </div>
   )
 }
+
+

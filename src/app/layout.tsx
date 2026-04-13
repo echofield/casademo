@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next'
+﻿import type { Metadata, Viewport } from 'next'
 import { Inter, Cormorant_Garamond } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { Suspense } from 'react'
@@ -19,7 +19,7 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: 'Casa One',
-  description: 'Luxury clienteling for Casablanca',
+  description: 'Luxury clienteling and presentation workflow for premium retail teams',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.png',
@@ -60,3 +60,5 @@ export default function RootLayout({
     </html>
   )
 }
+
+

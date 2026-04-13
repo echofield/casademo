@@ -1,8 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft } from 'lucide-react'
+import { isDemoMode } from '@/lib/demo/config'
 
 type LoginStep = 'credentials' | 'mfa' | 'forgot' | 'forgot-sent'
 
@@ -32,6 +33,67 @@ export default function LoginPage() {
   const [factorId, setFactorId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  function enterDemo(mode: 'supervisor' | 'seller') {
+    document.cookie = mode === 'seller'
+      ? 'casa_view_mode=seller; path=/; max-age=31536000'
+      : 'casa_view_mode=; path=/; max-age=0'
+    window.location.replace('/')
+  }
+
+  if (isDemoMode) {
+    return (
+      <main className="min-h-screen bg-[#F7F4EE] flex flex-col">
+        <header className="flex items-center justify-between px-8 py-6">
+          <span className="text-[#003D2B]/90 text-sm font-medium tracking-[0.2em] uppercase">
+            Casa One
+          </span>
+          <span className="rounded-full border border-[#003D2B]/10 bg-[#003D2B]/5 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#003D2B]">
+            Presentation mode
+          </span>
+        </header>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
+          <div className="text-center mb-12 max-w-2xl">
+            <h1 className="font-serif text-[#003D2B] text-5xl md:text-6xl tracking-tight mb-4">
+              Casa One
+            </h1>
+            <p className="text-[#003D2B]/60 text-lg tracking-wide">
+              Luxury clienteling, queue intelligence, and supervisor visibility in one presentation-ready environment.
+            </p>
+          </div>
+
+          <div className="w-full max-w-3xl border border-[#003D2B]/10 bg-white/70 p-8 md:p-10">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#003D2B]/50 mb-2">Enter demo</p>
+            <h2 className="font-serif text-3xl text-[#003D2B] mb-3">Choose the presentation angle</h2>
+            <p className="text-[#003D2B]/60 text-sm leading-6 mb-8">
+              Supervisor view shows global visibility, team rhythm, conversion, and cross-seller prioritization. Seller view narrows the experience to one active book of business and execution queue.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => enterDemo('supervisor')}
+                className="border border-[#003D2B] bg-[#003D2B] px-6 py-5 text-left text-white transition-colors hover:bg-[#004D38]"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-white/70">Boardroom</p>
+                <p className="mt-2 font-serif text-2xl">Supervisor</p>
+                <p className="mt-2 text-sm text-white/80">Team dashboard, workload visibility, conversion, and cross-seller prioritization.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => enterDemo('seller')}
+                className="border border-[#003D2B]/15 bg-white px-6 py-5 text-left text-[#003D2B] transition-colors hover:bg-[#003D2B]/5"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-[#003D2B]/50">Execution</p>
+                <p className="mt-2 font-serif text-2xl">Seller</p>
+                <p className="mt-2 text-sm text-[#003D2B]/70">Queue-first workflow, client profiles, meetings, and recontact cadence.</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   async function handleCredentialsSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -356,7 +418,7 @@ export default function LoginPage() {
 
             <div className="text-center mb-8">
               <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-                Mot de passe oublié
+                Mot de passe oubliÃ©
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
                 A reset link will be sent to your email
@@ -452,3 +514,5 @@ export default function LoginPage() {
     </main>
   )
 }
+
+

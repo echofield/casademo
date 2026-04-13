@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { AppShell, BackNavButton, TierBadge, OriginBadge, PersonalShopperBadge, HeatIndicator } from '@/components'
@@ -17,6 +17,8 @@ import { BrandAffinityPanel } from './BrandAffinityPanel'
 import { LifestyleInterestsPanel } from './LifestyleInterestsPanel'
 import { ProductPreferencesPanel } from './ProductPreferencesPanel'
 import { SizingPanel } from './SizingPanel'
+import { isDemoMode } from '@/lib/demo/config'
+import { getDemoClientById, getDemoSellerRoster } from '@/lib/demo/presentation-data'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -70,182 +72,187 @@ export default async function Client360Page({ params }: Props) {
   if (!user) redirect('/login')
 
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = isDemoMode ? null : await createClient()
 
   let sellerOptions: { id: string; full_name: string }[] | undefined
   let clientData: Client360
 
   try {
-    // Fetch client with seller name (must be first - needed for seller_id and existence check)
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        seller:profiles!clients_seller_id_fkey(full_name)
-      `)
-      .eq('id', id)
-      .single()
-
-    if (clientError || !client) {
-      notFound()
-    }
-
-    // PARALLELIZED QUERIES - all these run simultaneously
     const isSupervisor = user.effectiveRole === 'supervisor'
-    const [
-      { data: interests },
-      { data: contacts },
-      { data: purchases },
-      { data: knownSizes },
-      { data: sizing },
-      { data: visits },
-      sellersResult,
-      { data: brandAffinityRow },
-    ] = await Promise.all([
-      // Fetch interests (with domain, excluding soft-deleted)
-      supabase
-        .from('client_interests')
-        .select('id, category, value, detail, domain')
-        .eq('client_id', id)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false }),
-      // Fetch contacts with seller name - limit 15
-      supabase
-        .from('contacts')
-        .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
-        .eq('client_id', id)
-        .order('contact_date', { ascending: false })
-        .limit(15),
-      // Fetch purchases - limit 20
-      supabase
-        .from('purchases')
-        .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
-        .eq('client_id', id)
-        .order('purchase_date', { ascending: false })
-        .limit(20),
-      // Fetch derived sizes from purchase history
-      supabase
-        .from('client_known_sizes' as any)
-        .select('client_id, category, size, size_type, last_product, last_purchase_date')
-        .eq('client_id', id),
-      // Fetch sizing
-      supabase
-        .from('client_sizing')
-        .select('id, category, size, fit_preference, notes, size_system')
-        .eq('client_id', id)
-        .order('category'),
-      // Fetch visits - limit 10
-      supabase
-        .from('visits')
-        .select('id, visit_date, duration_minutes, tried_products, notes, converted')
-        .eq('client_id', id)
-        .order('visit_date', { ascending: false })
-        .limit(10),
-      // Fetch sellers for reassignment (supervisors only)
-      isSupervisor
-        ? supabase
-            .from('profiles')
-            .select('id, full_name')
-            .eq('role', 'seller')
-            .eq('active', true)
-            .order('full_name')
-        : Promise.resolve({ data: null }),
-      // Fetch brand affinity
-      supabase
-        .from('client_brand_affinity' as any)
-        .select('*')
-        .eq('client_id', id)
-        .maybeSingle(),
-    ])
 
-    sellerOptions = Array.isArray(sellersResult.data)
-      ? (sellersResult.data as { id: string; full_name: string }[])
-      : undefined
+    if (isDemoMode) {
+      const demoClient = getDemoClientById(id)
+      if (!demoClient) {
+        notFound()
+      }
 
-    // Build Client360 object
-    clientData = {
-      id: client.id,
-      first_name: client.first_name,
-      last_name: client.last_name,
-      email: client.email,
-      phone: client.phone,
-      birthday: (client as any).birthday || null,
-      seller_id: client.seller_id,
-      tier: client.tier as ClientTier,
-      total_spend: client.total_spend || 0,
-      first_contact_date: client.first_contact_date,
-      last_contact_date: client.last_contact_date,
-      next_recontact_date: client.next_recontact_date,
-      notes: client.notes,
-      origin: client.origin || null,
-      is_personal_shopper: client.is_personal_shopper || false,
-      heat_score: client.heat_score || 50,
-      seller_signal: toClientSignal((client as any).seller_signal),
-      signal_note: typeof (client as any).signal_note === 'string' ? (client as any).signal_note : null,
-      signal_updated_at: (client as any).signal_updated_at || null,
-      life_notes: (client as any).life_notes || null,
-      locale: toClientLocale((client as any).locale),
-      first_impact: toFirstImpact((client as any).first_impact),
-      created_at: client.created_at,
-      updated_at: client.updated_at,
-      seller_name: (() => {
-        const s = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
-        return Array.isArray(s) ? s[0]?.full_name : s?.full_name
-      })() || 'Unassigned',
-      interest_in_fashion: ((client as any).interest_in_fashion as FashionInterestLevel) || null,
-      brand_affinity: brandAffinityRow ? (brandAffinityRow as unknown as BrandAffinity) : null,
-      interests: (interests || []).map(i => ({
-        ...i,
-        domain: (i as any).domain || 'product',
-      })) as Client360['interests'],
-      contact_history: (contacts || []).map(c => {
-        const sellerData = c.seller as unknown as { full_name: string } | { full_name: string }[] | null
-        const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
-        return {
-          id: c.id,
-          date: c.contact_date,
-          channel: c.channel as ContactChannel,
-          comment: c.comment,
-          seller: sellerName || 'Unknown',
-        }
-      }),
-      purchase_history: (purchases || []).map(p => ({
-        id: p.id,
-        date: p.purchase_date,
-        amount: p.amount,
-        description: p.description,
-        product_name: (p as any).product_name || null,
-        product_category: (p as any).product_category || null,
-        size: (p as any).size || null,
-        size_type: (p as any).size_type || null,
-        is_gift: (p as any).is_gift || false,
-        gift_recipient: (p as any).gift_recipient || null,
-        source: ((p as any).source || null) as PurchaseSource | null,
-      })),
-      sizing: (sizing || []).map(s => ({
-        id: s.id,
-        category: s.category,
-        size: s.size,
-        fit_preference: s.fit_preference,
-        notes: s.notes,
-        size_system: (s as any).size_system || null,
-      })),
-      known_sizes: ((knownSizes || []) as any[]).map((ks: any) => ({
-        client_id: ks.client_id,
-        category: ks.category,
-        size: ks.size,
-        size_type: ks.size_type,
-        last_product: ks.last_product,
-        last_purchase_date: ks.last_purchase_date,
-      })) as KnownSizeItem[],
-      visit_history: (visits || []).map(v => ({
-        id: v.id,
-        date: v.visit_date,
-        duration_minutes: v.duration_minutes,
-        tried_products: v.tried_products,
-        notes: v.notes,
-        converted: v.converted,
-      })),
+      sellerOptions = isSupervisor
+        ? getDemoSellerRoster()
+            .filter((seller) => seller.active)
+            .map((seller) => ({ id: seller.id, full_name: seller.full_name }))
+        : undefined
+
+      clientData = demoClient
+    } else {
+      const { data: client, error: clientError } = await supabase!
+        .from('clients')
+        .select(`
+          *,
+          seller:profiles!clients_seller_id_fkey(full_name)
+        `)
+        .eq('id', id)
+        .single()
+
+      if (clientError || !client) {
+        notFound()
+      }
+
+      const [
+        { data: interests },
+        { data: contacts },
+        { data: purchases },
+        { data: knownSizes },
+        { data: sizing },
+        { data: visits },
+        sellersResult,
+        { data: brandAffinityRow },
+      ] = await Promise.all([
+        supabase!
+          .from('client_interests')
+          .select('id, category, value, detail, domain')
+          .eq('client_id', id)
+          .eq('is_deleted', false)
+          .order('created_at', { ascending: false }),
+        supabase!
+          .from('contacts')
+          .select(`id, contact_date, channel, comment, seller:profiles!contacts_seller_id_fkey(full_name)`)
+          .eq('client_id', id)
+          .order('contact_date', { ascending: false })
+          .limit(15),
+        supabase!
+          .from('purchases')
+          .select('id, purchase_date, amount, description, source, product_name, product_category, size, size_type, is_gift, gift_recipient')
+          .eq('client_id', id)
+          .order('purchase_date', { ascending: false })
+          .limit(20),
+        supabase!
+          .from('client_known_sizes' as any)
+          .select('client_id, category, size, size_type, last_product, last_purchase_date')
+          .eq('client_id', id),
+        supabase!
+          .from('client_sizing')
+          .select('id, category, size, fit_preference, notes, size_system')
+          .eq('client_id', id)
+          .order('category'),
+        supabase!
+          .from('visits')
+          .select('id, visit_date, duration_minutes, tried_products, notes, converted')
+          .eq('client_id', id)
+          .order('visit_date', { ascending: false })
+          .limit(10),
+        isSupervisor
+          ? supabase!
+              .from('profiles')
+              .select('id, full_name')
+              .in('role', ['seller', 'supervisor'])
+              .eq('active', true)
+              .order('full_name')
+          : Promise.resolve({ data: null }),
+        supabase!
+          .from('client_brand_affinity' as any)
+          .select('*')
+          .eq('client_id', id)
+          .maybeSingle(),
+      ])
+
+      sellerOptions = Array.isArray(sellersResult.data)
+        ? (sellersResult.data as { id: string; full_name: string }[])
+        : undefined
+
+      clientData = {
+        id: client.id,
+        first_name: client.first_name,
+        last_name: client.last_name,
+        email: client.email,
+        phone: client.phone,
+        birthday: (client as any).birthday || null,
+        seller_id: client.seller_id,
+        tier: client.tier as ClientTier,
+        total_spend: client.total_spend || 0,
+        first_contact_date: client.first_contact_date,
+        last_contact_date: client.last_contact_date,
+        next_recontact_date: client.next_recontact_date,
+        notes: client.notes,
+        origin: client.origin || null,
+        is_personal_shopper: client.is_personal_shopper || false,
+        heat_score: client.heat_score || 50,
+        seller_signal: toClientSignal((client as any).seller_signal),
+        signal_note: typeof (client as any).signal_note === 'string' ? (client as any).signal_note : null,
+        signal_updated_at: (client as any).signal_updated_at || null,
+        life_notes: (client as any).life_notes || null,
+        locale: toClientLocale((client as any).locale),
+        first_impact: toFirstImpact((client as any).first_impact),
+        created_at: client.created_at,
+        updated_at: client.updated_at,
+        seller_name: (() => {
+          const sellerData = client.seller as unknown as { full_name: string } | { full_name: string }[] | null
+          return Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
+        })() || 'Unassigned',
+        interest_in_fashion: ((client as any).interest_in_fashion as FashionInterestLevel) || null,
+        brand_affinity: brandAffinityRow ? (brandAffinityRow as unknown as BrandAffinity) : null,
+        interests: (interests || []).map((interest) => ({
+          ...interest,
+          domain: (interest as any).domain || 'product',
+        })) as Client360['interests'],
+        contact_history: (contacts || []).map((contact) => {
+          const sellerData = contact.seller as unknown as { full_name: string } | { full_name: string }[] | null
+          const sellerName = Array.isArray(sellerData) ? sellerData[0]?.full_name : sellerData?.full_name
+          return {
+            id: contact.id,
+            date: contact.contact_date,
+            channel: contact.channel as ContactChannel,
+            comment: contact.comment,
+            seller: sellerName || 'Unknown',
+          }
+        }),
+        purchase_history: (purchases || []).map((purchase) => ({
+          id: purchase.id,
+          date: purchase.purchase_date,
+          amount: purchase.amount,
+          description: purchase.description,
+          product_name: (purchase as any).product_name || null,
+          product_category: (purchase as any).product_category || null,
+          size: (purchase as any).size || null,
+          size_type: (purchase as any).size_type || null,
+          is_gift: (purchase as any).is_gift || false,
+          gift_recipient: (purchase as any).gift_recipient || null,
+          source: ((purchase as any).source || null) as PurchaseSource | null,
+        })),
+        sizing: (sizing || []).map((item) => ({
+          id: item.id,
+          category: item.category,
+          size: item.size,
+          fit_preference: item.fit_preference,
+          notes: item.notes,
+          size_system: (item as any).size_system || null,
+        })),
+        known_sizes: ((knownSizes || []) as any[]).map((knownSize: any) => ({
+          client_id: knownSize.client_id,
+          category: knownSize.category,
+          size: knownSize.size,
+          size_type: knownSize.size_type,
+          last_product: knownSize.last_product,
+          last_purchase_date: knownSize.last_purchase_date,
+        })) as KnownSizeItem[],
+        visit_history: (visits || []).map((visit) => ({
+          id: visit.id,
+          date: visit.visit_date,
+          duration_minutes: visit.duration_minutes,
+          tried_products: visit.tried_products,
+          notes: visit.notes,
+          converted: visit.converted,
+        })),
+      }
     }
   } catch (error: any) {
     // Preserve Next.js navigation errors while handling fetch/runtime failures gracefully.
@@ -256,10 +263,10 @@ export default async function Client360Page({ params }: Props) {
     return <div>Error loading client</div>
   }
 
-  const canEdit = user.effectiveRole === 'supervisor' || clientData.seller_id === user.id
+  const canEdit = !isDemoMode && (user.effectiveRole === 'supervisor' || clientData.seller_id === user.id)
 
   const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return '—'
+    if (!dateStr) return 'â€”'
     return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'long',
@@ -368,7 +375,7 @@ export default async function Client360Page({ params }: Props) {
                   <p className="body-small text-text-muted">
                     Advisor: <span className="text-text">{clientData.seller_name}</span>
                   </p>
-                  {user.effectiveRole === 'supervisor' && clientData.seller_id !== user.id && (
+                  {!isDemoMode && user.effectiveRole === 'supervisor' && clientData.seller_id !== user.id && (
                     <NotifySellerButton
                       clientId={id}
                       sellerId={clientData.seller_id}
@@ -488,7 +495,7 @@ export default async function Client360Page({ params }: Props) {
                 <p className="body whitespace-pre-wrap text-text">{clientData.notes}</p>
               ) : (
                 <p className="body-small text-text-muted italic">
-                  No notes — use "Edit profile" to add some.
+                  No notes â€” use "Edit profile" to add some.
                 </p>
               )}
             </div>
@@ -505,18 +512,26 @@ export default async function Client360Page({ params }: Props) {
               {nextMove.headline}
             </h2>
             <p className="body-small mb-6 text-text-muted">{nextMove.detail}</p>
-            <p className="label mb-2 text-text-muted">Quick actions</p>
-            <p className="body-small text-text-muted">
-              At the bottom: log a contact (updates dates) or{' '}
-              <strong className="font-medium text-text">add a purchase</strong> (e.g. silk shirt + amount) to
-              update total and tier.
-            </p>
-            <a
-              href="#vendor-actions"
-              className="label mt-4 inline-block text-primary hover:text-primary-soft"
-            >
-              Go to actions →
-            </a>
+            <p className="label mb-2 text-text-muted">{isDemoMode ? 'Presentation focus' : 'Quick actions'}</p>
+            {isDemoMode ? (
+              <p className="body-small text-text-muted">
+                This seeded profile showcases client memory, purchase history, sizing, meetings, and prioritization without writing to live systems.
+              </p>
+            ) : (
+              <>
+                <p className="body-small text-text-muted">
+                  At the bottom: log a contact (updates dates) or{' '}
+                  <strong className="font-medium text-text">add a purchase</strong> (e.g. silk shirt + amount) to
+                  update total and tier.
+                </p>
+                <a
+                  href="#vendor-actions"
+                  className="label mt-4 inline-block text-primary hover:text-primary-soft"
+                >
+                  Go to actions ?
+                </a>
+              </>
+            )}
             {canEdit && (
               <MarkDoneButton
                 clientId={id}
@@ -712,16 +727,22 @@ export default async function Client360Page({ params }: Props) {
             </ol>
           )}
         </section>
-
-        <div
-          id="vendor-actions"
-          className="fixed bottom-0 left-0 right-0 z-30 border-t bg-bg/95 px-4 py-3 backdrop-blur-sm md:static md:z-0 md:mt-8 md:border md:border-t-0 md:bg-surface md:px-6 md:py-4 md:backdrop-blur-none"
-          style={cardBorder}
-        >
-          <p className="label mb-2 text-text-muted md:hidden">Seller actions</p>
-          <ClientActions clientId={id} />
-        </div>
+        {canEdit && (
+          <div
+            id="vendor-actions"
+            className="fixed bottom-0 left-0 right-0 z-30 border-t bg-bg/95 px-4 py-3 backdrop-blur-sm md:static md:z-0 md:mt-8 md:border md:border-t-0 md:bg-surface md:px-6 md:py-4 md:backdrop-blur-none"
+            style={cardBorder}
+          >
+            <p className="label mb-2 text-text-muted md:hidden">Seller actions</p>
+            <ClientActions clientId={id} />
+          </div>
+        )}
       </div>
     </AppShell>
   )
 }
+
+
+
+
+
