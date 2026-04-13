@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft } from 'lucide-react'
 import { isDemoMode } from '@/lib/demo/config'
 
+const allowMfaSkip = process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+
 type LoginStep = 'credentials' | 'mfa' | 'forgot' | 'forgot-sent'
 
 /**
@@ -110,6 +112,15 @@ export default function LoginPage() {
       if (signInError) {
         setError('Invalid email or password')
         setLoading(false)
+        return
+      }
+
+      if (allowMfaSkip) {
+        const secureSuffix = window.location.protocol === 'https:' ? '; Secure' : ''
+        document.cookie = `casa_mfa_skipped=1; path=/; max-age=604800; SameSite=Lax${secureSuffix}`
+        prefetchCriticalRoutes()
+        await new Promise(resolve => setTimeout(resolve, 50))
+        window.location.replace('/')
         return
       }
 
@@ -418,7 +429,7 @@ export default function LoginPage() {
 
             <div className="text-center mb-8">
               <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-                Mot de passe oubliÃ©
+                Mot de passe oublié
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
                 A reset link will be sent to your email
@@ -514,5 +525,6 @@ export default function LoginPage() {
     </main>
   )
 }
+
 
 

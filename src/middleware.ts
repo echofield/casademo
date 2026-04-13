@@ -73,6 +73,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  if (MFA_SKIP_ENABLED) {
+    if (isMfaPath) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
   const isOAuthSession = user.app_metadata?.provider === 'google' ||

@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { BackNavButton } from '@/components'
 
+const allowMfaSkip = process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+
 export default function VerifyMFAPage() {
   const router = useRouter()
   const [factorId, setFactorId] = useState<string | null>(null)
@@ -15,6 +17,11 @@ export default function VerifyMFAPage() {
 
   useEffect(() => {
     async function checkMFA() {
+      if (allowMfaSkip) {
+        window.location.replace('/')
+        return
+      }
+
       const supabase = createClient()
 
       const { data: { user } } = await supabase.auth.getUser()

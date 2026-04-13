@@ -19,6 +19,11 @@ export default function SetupMFAPage() {
 
   useEffect(() => {
     async function enrollMFA() {
+      if (allowMfaSkip) {
+        window.location.replace('/')
+        return
+      }
+
       const supabase = createClient()
 
       const { data: { user } } = await supabase.auth.getUser()
