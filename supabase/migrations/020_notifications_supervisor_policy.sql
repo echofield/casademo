@@ -1,7 +1,23 @@
--- ═══════════════════════════════════════════════════════════════
+-- Migration 019: Remove Hamza Said & Ryan Jackson, reassign their clients to Hasael Moussa
+-- Hasael (supervisor + seller) will manually dispatch them from the app
+
+-- Reassign all clients from Hamza Said to Hasael Moussa
+UPDATE clients
+SET seller_id = (SELECT id FROM profiles WHERE full_name = 'Hasael Moussa' LIMIT 1)
+WHERE seller_id = (SELECT id FROM profiles WHERE full_name = 'Hamza Said' LIMIT 1);
+
+-- Reassign all clients from Ryan Jackson to Hasael Moussa
+UPDATE clients
+SET seller_id = (SELECT id FROM profiles WHERE full_name = 'Hasael Moussa' LIMIT 1)
+WHERE seller_id = (SELECT id FROM profiles WHERE full_name = 'Ryan Jackson' LIMIT 1);
+
+-- Deactivate removed profiles (keeps history intact)
+UPDATE profiles SET active = false WHERE full_name IN ('Hamza Said', 'Ryan Jackson');
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- Allow supervisors to insert notifications for any user
 -- Fixes 500 error when supervisor sends reminder to seller
--- ═══════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 -- Drop existing policy and recreate with supervisor INSERT permission
 DROP POLICY IF EXISTS notifications_own ON notifications;
@@ -28,10 +44,10 @@ FOR INSERT WITH CHECK (
   )
 );
 
--- ═══════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- Also create a helper function for sending notifications
 -- This provides a cleaner API and better error handling
--- ═══════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 CREATE OR REPLACE FUNCTION send_notification(
   p_user_id UUID,

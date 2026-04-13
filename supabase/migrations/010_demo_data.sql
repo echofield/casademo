@@ -1,17 +1,17 @@
--- ═══════════════════════════════════════════════════════════════
--- CASA ONE — Demo Data Enhancement Migration
+-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+-- CASA ONE Ã¢â‚¬â€ Demo Data Enhancement Migration
 -- Restricts sellers to 8 real team members
 -- Populates sizing, interests, and purchases with Casablanca data
--- ═══════════════════════════════════════════════════════════════
+-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
--- ── STEP 1: Update seller names to match real team ──
--- The 8 real sellers: Hicham, Hamza, Elliott, Helen, Maxime, Raphaël, Yassmine, Hasael
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 1: Update seller names to match real team Ã¢â€â‚¬Ã¢â€â‚¬
+-- The 8 real sellers: Hicham, Hamza, Elliott, Helen, Maxime, RaphaÃƒÂ«l, Yassmine, Hasael
 
 -- First, get current seller IDs and update their names
 DO $$
 DECLARE
   seller_ids UUID[];
-  real_names TEXT[] := ARRAY['Hicham', 'Hamza', 'Elliott', 'Helen', 'Maxime', 'Raphaël', 'Yassmine', 'Hasael'];
+  real_names TEXT[] := ARRAY['Hicham', 'Hamza', 'Elliott', 'Helen', 'Maxime', 'RaphaÃƒÂ«l', 'Yassmine', 'Hasael'];
   i INT;
 BEGIN
   -- Get all seller IDs (limit to 8)
@@ -37,7 +37,7 @@ BEGIN
     AND id NOT IN (SELECT unnest(seller_ids[1:8]));
 END $$;
 
--- ── STEP 2: Reassign demo clients evenly across 8 sellers ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 2: Reassign demo clients evenly across 8 sellers Ã¢â€â‚¬Ã¢â€â‚¬
 DO $$
 DECLARE
   seller_ids UUID[];
@@ -68,12 +68,12 @@ BEGIN
   END IF;
 END $$;
 
--- ── STEP 3: Clear existing demo sizing/interests/purchases ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 3: Clear existing demo sizing/interests/purchases Ã¢â€â‚¬Ã¢â€â‚¬
 DELETE FROM client_sizing WHERE client_id IN (SELECT id FROM clients WHERE is_demo = true);
 DELETE FROM client_interests WHERE client_id IN (SELECT id FROM clients WHERE is_demo = true);
 DELETE FROM purchases WHERE client_id IN (SELECT id FROM clients WHERE is_demo = true);
 
--- ── STEP 4: Add sizing data for demo clients ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 4: Add sizing data for demo clients Ã¢â€â‚¬Ã¢â€â‚¬
 -- Dual format for shoes (EU/US), letter sizes for clothing
 
 DO $$
@@ -136,13 +136,13 @@ BEGIN
   END LOOP;
 END $$;
 
--- ── STEP 5: Add interests aligned with Casablanca collections ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 5: Add interests aligned with Casablanca collections Ã¢â€â‚¬Ã¢â€â‚¬
 
 DO $$
 DECLARE
   client_rec RECORD;
   product_values TEXT[] := ARRAY['Silk shirts', 'T-shirts', 'Knitwear', 'Shorts', 'Tracksuits', 'Sneakers', 'Accessories', 'Trousers'];
-  collection_values TEXT[] := ARRAY['Tennis Club', 'Maison De Rêve', 'Gradient Wave', 'Monogram', 'Sunset Landscape'];
+  collection_values TEXT[] := ARRAY['Tennis Club', 'Maison De RÃƒÂªve', 'Gradient Wave', 'Monogram', 'Sunset Landscape'];
   style_values TEXT[] := ARRAY['Printed', 'Crochet', 'Knitted', 'Tailored', 'Graphic'];
   color_values TEXT[] := ARRAY['Green', 'Gold', 'Navy', 'White', 'Multicolor', 'Black'];
   occasion_values TEXT[] := ARRAY['Resort', 'Leisure', 'Evening', 'Travel'];
@@ -203,45 +203,45 @@ BEGIN
   END LOOP;
 END $$;
 
--- ── STEP 6: Add purchase history with real Casablanca products ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 6: Add purchase history with real Casablanca products Ã¢â€â‚¬Ã¢â€â‚¬
 
 DO $$
 DECLARE
   client_rec RECORD;
   seller_id UUID;
   product_catalog TEXT[][] := ARRAY[
-    -- Silk shirts (€450-650)
+    -- Silk shirts (Ã¢â€šÂ¬450-650)
     ARRAY['Gradient Wave Silk Shirt', '550'],
     ARRAY['Tennis Club Printed Silk Shirt', '580'],
-    ARRAY['Maison De Rêve Silk Shirt', '520'],
+    ARRAY['Maison De RÃƒÂªve Silk Shirt', '520'],
     ARRAY['Monogram Silk Shirt (black)', '495'],
     ARRAY['Sunset Landscape Silk Shirt', '550'],
-    -- T-shirts (€150-250)
+    -- T-shirts (Ã¢â€šÂ¬150-250)
     ARRAY['Casa Logo Classic T-Shirt', '185'],
     ARRAY['Tennis Club Graphic Tee', '195'],
     ARRAY['Gradient Logo T-Shirt', '175'],
     ARRAY['Minimal Crest T-Shirt', '165'],
-    -- Knitwear (€350-500)
+    -- Knitwear (Ã¢â€šÂ¬350-500)
     ARRAY['Gradient Crochet Shirt', '425'],
     ARRAY['Stripe Knitted Shirt', '395'],
-    ARRAY['Bouclé Knit Short Sleeve', '450'],
+    ARRAY['BouclÃƒÂ© Knit Short Sleeve', '450'],
     ARRAY['Crochet Shorts Gradient', '380'],
-    -- Shorts/Trousers (€300-450)
+    -- Shorts/Trousers (Ã¢â€šÂ¬300-450)
     ARRAY['Silk Printed Shorts', '350'],
     ARRAY['Tailored Relaxed Trousers', '420'],
     ARRAY['Tennis Shorts Classic', '295'],
     ARRAY['Monogram Track Pants', '385'],
-    -- Outerwear (€500-800)
+    -- Outerwear (Ã¢â€šÂ¬500-800)
     ARRAY['Casa Track Jacket', '650'],
     ARRAY['Monogram Zip Jacket', '595'],
     ARRAY['Full Tracksuit Set (green)', '750'],
     ARRAY['Luxury Hoodie Casa Logo', '485'],
-    -- Footwear (€450-650)
+    -- Footwear (Ã¢â€šÂ¬450-650)
     ARRAY['Casablanca Court Sneakers', '550'],
     ARRAY['Tennis Leather Sneakers', '495'],
     ARRAY['Leather Loafers Casablanca', '580'],
     ARRAY['Casa Logo Slides', '295'],
-    -- Accessories (€150-300)
+    -- Accessories (Ã¢â€šÂ¬150-300)
     ARRAY['Silk Scarf Printed', '265'],
     ARRAY['Casa Tennis Cap', '185']
   ];
@@ -277,7 +277,7 @@ BEGIN
         client_rec.id,
         seller_id,
         product_catalog[product_idx][2]::numeric,
-        product_catalog[product_idx][1] || ' — ' || sizes[1 + floor(random() * array_length(sizes, 1))::int],
+        product_catalog[product_idx][1] || ' Ã¢â‚¬â€ ' || sizes[1 + floor(random() * array_length(sizes, 1))::int],
         purchase_date,
         (ARRAY['organic', 'recontact', 'campaign'])[1 + floor(random() * 3)::int]::conversion_source
       );
@@ -285,7 +285,7 @@ BEGIN
   END LOOP;
 END $$;
 
--- ── STEP 7: Recalculate tier and total_spend for all demo clients ──
+-- Ã¢â€â‚¬Ã¢â€â‚¬ STEP 7: Recalculate tier and total_spend for all demo clients Ã¢â€â‚¬Ã¢â€â‚¬
 -- The trigger should handle this, but let's ensure consistency
 
 UPDATE clients c
@@ -293,20 +293,22 @@ SET
   total_spend = COALESCE((
     SELECT SUM(amount) FROM purchases WHERE client_id = c.id
   ), 0),
-  tier = CASE
-    WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 25000 THEN 'grand_prix'
-    WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 17000 THEN 'diplomatico'
-    WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 10000 THEN 'idealiste'
-    WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 2500 THEN 'kaizen'
-    WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 1000 THEN 'optimisto'
-    ELSE 'rainbow'
-  END,
+  tier = (
+    CASE
+      WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 25000 THEN 'grand_prix'
+      WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 17000 THEN 'diplomatico'
+      WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 10000 THEN 'idealiste'
+      WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 2500 THEN 'kaizen'
+      WHEN COALESCE((SELECT SUM(amount) FROM purchases WHERE client_id = c.id), 0) >= 1000 THEN 'optimisto'
+      ELSE 'rainbow'
+    END
+  )::client_tier,
   updated_at = now()
 WHERE is_demo = true;
 
--- ═══════════════════════════════════════════════════════════════
+-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 -- VERIFICATION QUERIES (run after migration to check results)
--- ═══════════════════════════════════════════════════════════════
+-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 /*
 -- Check seller distribution
 SELECT full_name,

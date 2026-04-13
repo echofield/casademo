@@ -209,6 +209,31 @@ export default function SetupMFAPage() {
             </div>
           )}
 
+          {allowMfaSkip && (
+            <div className="mb-6 border border-[#003D2B]/10 bg-white/70 p-4 text-center">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#003D2B]/45">
+                Demo Access
+              </p>
+              <p className="mt-2 text-sm text-[#003D2B]/70">
+                QR setup stays available, but you can continue into the demo without MFA for now.
+              </p>
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="
+                  mt-4 w-full py-3
+                  border border-[#003D2B]/20 bg-white
+                  text-[#003D2B] text-xs tracking-[0.15em] uppercase
+                  hover:bg-[#003D2B]/5
+                  focus:outline-none focus:ring-2 focus:ring-[#003D2B]/20
+                  transition-all duration-200
+                "
+              >
+                Continue Without MFA
+              </button>
+            </div>
+          )}
+
           {qrCode && (
             <form onSubmit={handleVerify}>
               <div className="mb-6">
@@ -258,13 +283,13 @@ export default function SetupMFAPage() {
           )}
 
           {allowMfaSkip && (
-            <div className="mt-8 text-center">
+            <div className="mt-6 text-center">
               <button
                 type="button"
                 onClick={handleSkip}
                 className="text-[#003D2B]/40 text-xs hover:text-[#003D2B]/60 transition-colors"
               >
-                Set up later
+                Skip and enter demo
               </button>
             </div>
           )}
