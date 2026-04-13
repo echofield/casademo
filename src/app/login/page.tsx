@@ -1,11 +1,11 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft } from 'lucide-react'
 import { isDemoMode } from '@/lib/demo/config'
 
-const allowMfaSkip = process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+const allowMfaSkip = true
 
 type LoginStep = 'credentials' | 'mfa' | 'forgot' | 'forgot-sent'
 

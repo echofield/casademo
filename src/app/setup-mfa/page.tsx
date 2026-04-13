@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { BackNavButton } from '@/components'
 
-const allowMfaSkip = process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+const allowMfaSkip = true
 
 export default function SetupMFAPage() {
   const router = useRouter()

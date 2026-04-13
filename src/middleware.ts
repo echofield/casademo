@@ -5,9 +5,7 @@ const PUBLIC_PATHS = ['/login', '/auth/callback', '/reset-password']
 const MFA_PATHS = ['/setup-mfa', '/verify-mfa']
 const API_AUTH_PATHS = ['/api/auth']
 const MFA_SKIP_COOKIE = 'casa_mfa_skipped'
-const MFA_SKIP_ENABLED =
-  process.env.ALLOW_MFA_SKIP === 'true' ||
-  process.env.NEXT_PUBLIC_ALLOW_MFA_SKIP === 'true'
+const MFA_SKIP_ENABLED = true
 const DEMO_MODE = process.env.NEXT_PUBLIC_CASA_DEMO_MODE === 'true'
 
 export async function middleware(request: NextRequest) {
