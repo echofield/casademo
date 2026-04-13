@@ -519,3 +519,37 @@
     overflow: hidden;
   }
 }
+
+@layer utilities {
+  @keyframes skeletonWave {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .skeleton-block {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+    background: rgba(27, 67, 50, 0.08);
+  }
+
+  .skeleton-block::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.58) 50%, transparent 100%);
+    animation: skeletonWave 1.3s ease-in-out infinite;
+  }
+
+  .loading-copy {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(27, 67, 50, 0.55);
+  }
+}

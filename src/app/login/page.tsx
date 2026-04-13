@@ -14,17 +14,27 @@ type LoginStep = 'credentials' | 'mfa' | 'forgot' | 'forgot-sent'
  * Fires in background before redirect - gives a head start on cold starts.
  */
 function prefetchCriticalRoutes() {
-  // Prefetch the home page HTML (warms Next.js and serverless)
-  const prefetchLink = document.createElement('link')
-  prefetchLink.rel = 'prefetch'
-  prefetchLink.href = '/'
-  prefetchLink.as = 'document'
-  document.head.appendChild(prefetchLink)
+  ['/', '/queue', '/clients', '/calendar', '/dashboard', '/team'].forEach((href) => {
+    const prefetchLink = document.createElement('link')
+    prefetchLink.rel = 'prefetch'
+    prefetchLink.href = href
+    prefetchLink.as = 'document'
+    document.head.appendChild(prefetchLink)
+  })
 
-  // Warm up critical API endpoints (fire and forget)
-  // These requests prime the serverless functions
   fetch('/api/recontact-queue', { method: 'GET', credentials: 'include' }).catch(() => {})
   fetch('/api/contacts/recent', { method: 'GET', credentials: 'include' }).catch(() => {})
+  fetch('/api/notifications?limit=5', { method: 'GET', credentials: 'include' }).catch(() => {})
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  fetch(`/api/meetings?start=${today.toISOString()}&end=${tomorrow.toISOString()}`, {
+    method: 'GET',
+    credentials: 'include',
+  }).catch(() => {})
 }
 
 export default function LoginPage() {
@@ -35,6 +45,7 @@ export default function LoginPage() {
   const [factorId, setFactorId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   function enterDemo(mode: 'supervisor' | 'seller') {
     document.cookie = mode === 'seller'
@@ -118,8 +129,9 @@ export default function LoginPage() {
       if (allowMfaSkip) {
         const secureSuffix = window.location.protocol === 'https:' ? '; Secure' : ''
         document.cookie = `casa_mfa_skipped=1; path=/; max-age=604800; SameSite=Lax${secureSuffix}`
+        setRedirecting(true)
         prefetchCriticalRoutes()
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise(resolve => setTimeout(resolve, 180))
         window.location.replace('/')
         return
       }
@@ -184,14 +196,9 @@ export default function LoginPage() {
         return
       }
 
-      // Prefetch critical routes while user sees "Verifying..." state
-      // This warms up serverless functions before redirect
+      setRedirecting(true)
       prefetchCriticalRoutes()
-
-      // Small delay to let prefetch requests start, then redirect
-      await new Promise(resolve => setTimeout(resolve, 50))
-
-      // Success - redirect to home
+      await new Promise(resolve => setTimeout(resolve, 180))
       window.location.replace('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
@@ -231,6 +238,29 @@ export default function LoginPage() {
     // Sign out to clear the partial session
     const supabase = createClient()
     supabase.auth.signOut()
+  }
+
+  if (redirecting) {
+    return (
+      <main className="min-h-screen bg-[#F7F4EE] flex flex-col">
+        <header className="flex items-center justify-between px-8 py-6">
+          <span className="text-[#003D2B]/90 text-sm font-medium tracking-[0.2em] uppercase">
+            Casa One
+          </span>
+        </header>
+
+        <div className="flex-1 flex items-center justify-center px-6 pb-20">
+          <div className="w-full max-w-md border border-[#003D2B]/10 bg-white/75 p-8 text-center">
+            <p className="mb-3 text-[11px] uppercase tracking-[0.18em] text-[#003D2B]/45">Opening workspace</p>
+            <h2 className="mb-3 font-serif text-3xl text-[#003D2B]">Preparing your day</h2>
+            <p className="mb-6 text-sm text-[#003D2B]/60">Queue, meetings, notifications, and client context are warming up.</p>
+            <div className="h-[2px] w-full bg-[#003D2B]/8">
+              <div className="h-full w-2/3 animate-pulse bg-[#003D2B]" />
+            </div>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -429,7 +459,7 @@ export default function LoginPage() {
 
             <div className="text-center mb-8">
               <h2 className="font-serif text-[#003D2B] text-2xl mb-2">
-                Mot de passe oublié
+                Mot de passe oublie
               </h2>
               <p className="text-[#003D2B]/60 text-sm">
                 A reset link will be sent to your email

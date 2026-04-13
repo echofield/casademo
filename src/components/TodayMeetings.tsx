@@ -25,7 +25,6 @@ export function TodayMeetings() {
   useEffect(() => {
     async function fetchTodayMeetings() {
       try {
-        // Get today's meetings
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const tomorrow = new Date(today)
@@ -36,7 +35,6 @@ export function TodayMeetings() {
         )
         if (res.ok) {
           const data = await res.json()
-          // Filter to only scheduled meetings
           const scheduledMeetings = (data.data || []).filter(
             (m: MeetingWithDetails) => m.status === 'scheduled'
           )
@@ -57,71 +55,91 @@ export function TodayMeetings() {
   if (loading) {
     return (
       <section className="mt-6 border bg-surface p-6" style={cardBorder}>
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="w-4 h-4 text-primary" strokeWidth={1.5} />
+        <div className="mb-4 flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" strokeWidth={1.5} />
           <span className="label text-text-muted">TODAY</span>
         </div>
-        <p className="text-text-muted text-sm">Loading...</p>
+        <div className="space-y-3">
+          {[1, 2].map((row) => (
+            <div key={row} className="border-b pb-3 last:border-b-0 last:pb-0" style={cardBorder}>
+              <div className="skeleton-block mb-2 h-4 w-40" />
+              <div className="skeleton-block h-3 w-56" />
+            </div>
+          ))}
+        </div>
       </section>
     )
   }
 
   return (
     <section className="mt-6 border bg-surface p-6" style={cardBorder}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-primary" strokeWidth={1.5} />
+          <Calendar className="h-4 w-4 text-primary" strokeWidth={1.5} />
           <span className="label text-text-muted">TODAY</span>
         </div>
         <Link
           href="/calendar"
-          className="text-xs text-primary hover:text-primary-soft uppercase tracking-wide"
+          className="text-xs uppercase tracking-wide text-primary hover:text-primary-soft"
         >
-          Calendar →
+          Calendar {'>'}
         </Link>
       </div>
 
       {meetings.length === 0 ? (
-        <div className="text-center py-6">
-          <p className="text-text-muted text-sm mb-3">No meetings today</p>
+        <div className="py-6 text-center">
+          <p className="mb-3 text-sm text-text-muted">No meetings today</p>
           <Link
             href="/calendar"
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wide text-primary border border-primary/20 hover:bg-primary/5 transition-colors"
+            className="inline-flex items-center gap-2 border border-primary/20 px-4 py-2 text-xs font-medium uppercase tracking-wide text-primary transition-colors hover:bg-primary/5"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             Schedule a meeting
           </Link>
         </div>
       ) : (
         <div className="space-y-3">
-          {meetings.map(meeting => {
+          {meetings.map((meeting) => {
             const statusConfig = MEETING_STATUS_CONFIG[meeting.status]
             const timeRange = formatTimeRange(meeting.start_time, meeting.end_time)
-            const primaryLine = `${timeRange} — ${meeting.client_name || meeting.title}`
+            const primaryLine = `${timeRange} - ${meeting.client_name || meeting.title}`
             const secondaryLine = formatMeetingOwnerLine(meeting)
 
             return (
               <div
                 key={meeting.id}
-                className="flex items-start gap-3 py-3 border-b last:border-b-0"
+                className="flex items-start gap-3 border-b py-3 last:border-b-0"
                 style={cardBorder}
               >
-                <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
-                <div className="flex-1 min-w-0">
+                <div className={`h-2 w-2 rounded-full ${statusConfig.dotColor}`} />
+                <div className="min-w-0 flex-1">
                   {meeting.client_name ? (
                     <Link
                       href={`/clients/${meeting.client_id}`}
-                      className="text-sm font-medium text-text hover:text-primary truncate block"
+                      className="block truncate text-sm font-medium text-text hover:text-primary"
                     >
                       {primaryLine}
                     </Link>
                   ) : (
-                    <span className="text-sm font-medium text-text truncate block">{primaryLine}</span>
+                    <span className="block truncate text-sm font-medium text-text">{primaryLine}</span>
                   )}
                   <div className="mt-1 flex items-center gap-2 text-xs text-text-muted">
                     <span className="truncate">{secondaryLine}</span>
-                    <span className="shrink-0 inline-flex items-center gap-1">
-                      {(() => { const Icon = FORMAT_ICONS[meeting.format === 'external' ? 'pin' : meeting.format === 'boutique' ? 'store' : meeting.format === 'call' ? 'phone' : meeting.format === 'video' ? 'video' : 'message']; return <Icon size={11} strokeWidth={1.5} />; })()}
+                    <span className="inline-flex shrink-0 items-center gap-1">
+                      {(() => {
+                        const Icon = FORMAT_ICONS[
+                          meeting.format === 'external'
+                            ? 'pin'
+                            : meeting.format === 'boutique'
+                              ? 'store'
+                              : meeting.format === 'call'
+                                ? 'phone'
+                                : meeting.format === 'video'
+                                  ? 'video'
+                                  : 'message'
+                        ]
+                        return <Icon size={11} strokeWidth={1.5} />
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -132,7 +150,7 @@ export function TodayMeetings() {
           <div className="pt-2">
             <Link
               href="/calendar"
-              className="text-xs text-text-muted hover:text-primary uppercase tracking-wide"
+              className="text-xs uppercase tracking-wide text-text-muted hover:text-primary"
             >
               {meetings.length} meetings today
             </Link>

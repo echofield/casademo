@@ -115,7 +115,11 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
       </div>
 
       {loading ? (
-        <p className="text-text-muted text-sm">Loading...</p>
+        <div className="space-y-3">
+          <div className="skeleton-block h-20 w-full" />
+          <div className="skeleton-block h-12 w-full" />
+          <div className="skeleton-block h-12 w-full" />
+        </div>
       ) : (
         <>
           {/* Next meeting */}
@@ -126,7 +130,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
                 <Calendar className="w-5 h-5 text-primary" />
                 <div>
                   <p className="font-serif text-lg text-text">
-                    {formatDate(nextMeeting.start_time)} - {formatTimeRange(nextMeeting.start_time, nextMeeting.end_time).split(' – ')[0]}
+                    {formatDate(nextMeeting.start_time)} - {new Date(nextMeeting.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`px-2 py-0.5 text-xs rounded-full flex items-center gap-1 ${MEETING_FORMAT_CONFIG[nextMeeting.format].bgColor} ${MEETING_FORMAT_CONFIG[nextMeeting.format].textColor}`}>
@@ -182,7 +186,7 @@ export function ClientMeetingsSection({ clientId, clientName, canEdit }: ClientM
             href={`/calendar?client_id=${clientId}`}
             className="label mt-4 inline-block text-primary hover:text-primary-soft"
           >
-            View full history →
+            View full history {'>'}
           </Link>
         </>
       )}

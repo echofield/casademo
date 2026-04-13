@@ -41,11 +41,15 @@ export function SellerImpactWidget({ sellerId }: { sellerId: string }) {
 
   if (loading) {
     return (
-      <div
-        className="border bg-surface p-5 animate-pulse"
-        style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
-      >
-        <div className="h-16 bg-[#003D2B]/5 rounded" />
+      <div className="border bg-surface p-5" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+        <div className="mb-3 flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-[#003D2B]" strokeWidth={1.5} />
+          <span className="label text-text-muted">MY IMPACT THIS MONTH</span>
+        </div>
+        <div className="space-y-3">
+          <div className="skeleton-block h-9 w-40" />
+          <div className="skeleton-block h-3 w-32" />
+        </div>
       </div>
     )
   }
@@ -55,23 +59,20 @@ export function SellerImpactWidget({ sellerId }: { sellerId: string }) {
   }
 
   return (
-    <div
-      className="border bg-surface p-5"
-      style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <TrendingUp className="w-4 h-4 text-[#003D2B]" strokeWidth={1.5} />
+    <div className="border bg-surface p-5" style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}>
+      <div className="mb-3 flex items-center gap-2">
+        <TrendingUp className="h-4 w-4 text-[#003D2B]" strokeWidth={1.5} />
         <span className="label text-text-muted">MY IMPACT THIS MONTH</span>
       </div>
-      <div className="flex items-baseline gap-2 flex-wrap">
+      <div className="flex flex-wrap items-baseline gap-2">
         <span className="font-serif text-2xl text-[#003D2B]">{data.crm_sales}</span>
         <span className="text-sm text-text-muted">CRM sales</span>
-        <span className="text-text-muted mx-1">·</span>
+        <span className="mx-1 text-text-muted">·</span>
         <span className="font-serif text-2xl text-[#003D2B]">{formatCurrency(data.crm_revenue)}</span>
         <span className="text-sm text-text-muted">revenue</span>
       </div>
       {data.total_sales > 0 && (
-        <p className="text-xs text-text-muted mt-2">
+        <p className="mt-2 text-xs text-text-muted">
           {data.crm_pct}% of your sales from Casa One recontact
         </p>
       )}

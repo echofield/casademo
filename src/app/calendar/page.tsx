@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
@@ -264,7 +264,7 @@ export default function CalendarPage() {
             <p className="label mb-3 text-text-muted">Meetings</p>
             <h1 className="heading-1 text-text">Meetings</h1>
             {view === 'list' && summaryBits.length > 0 && (
-              <p className="mt-2 text-sm text-text-muted">{summaryBits.join(' · ')}</p>
+              <p className="mt-2 text-sm text-text-muted">{summaryBits.join(' / ')}</p>
             )}
             {isDemoMode && (
               <p className="mt-2 text-sm text-text-muted">Presentation data is seeded and read-only for this calendar surface.</p>
@@ -294,8 +294,17 @@ export default function CalendarPage() {
         />
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-text-muted">Loading...</p>
+          <div className="space-y-4 py-4">
+            {[1, 2, 3].map((row) => (
+              <div
+                key={row}
+                className="border bg-surface p-5"
+                style={{ borderColor: 'rgba(28, 27, 25, 0.08)' }}
+              >
+                <div className="skeleton-block mb-3 h-5 w-40" />
+                <div className="skeleton-block h-3 w-56" />
+              </div>
+            ))}
           </div>
         ) : view === 'list' ? (
           <AgendaView meetings={meetings} onAction={canManageMeetings ? handleMeetingAction : undefined} />
