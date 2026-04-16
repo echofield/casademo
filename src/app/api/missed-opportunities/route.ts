@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const {
       date,
+      seller_id,
       seller_name,
       client_id,
       result,
@@ -75,11 +76,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (isDemoMode) {
-      // In demo mode, return a mock created record without writing to DB
       const mock = {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
         date: date ?? new Date().toISOString().split('T')[0],
+        seller_id: seller_id ?? null,
         seller_name,
         client_id: client_id ?? null,
         result,
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
       .from('missed_opportunities')
       .insert({
         date: date ?? new Date().toISOString().split('T')[0],
+        seller_id: seller_id ?? null,
         seller_name,
         client_id: client_id ?? null,
         result,

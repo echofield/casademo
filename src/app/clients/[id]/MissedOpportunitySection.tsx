@@ -7,6 +7,8 @@ import type { MissedOpportunity } from '@/lib/demo/presentation-data'
 
 interface Props {
   clientId: string
+  /** The seller assigned to this client — pre-filled in the modal. */
+  sellerId: string | null
   sellerName: string
 }
 
@@ -36,7 +38,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function MissedOpportunitySection({ clientId, sellerName }: Props) {
+export function MissedOpportunitySection({ clientId, sellerId, sellerName }: Props) {
   const [items, setItems] = useState<MissedOpportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -73,7 +75,8 @@ export function MissedOpportunitySection({ clientId, sellerName }: Props) {
         onClose={() => setShowModal(false)}
         onCreated={handleCreated}
         clientId={clientId}
-        sellerName={sellerName}
+        defaultSellerId={sellerId}
+        defaultSellerName={sellerName}
       />
 
       <section className="mt-6 border bg-surface p-6 md:p-8" style={cardBorder}>
@@ -128,6 +131,8 @@ export function MissedOpportunitySection({ clientId, sellerName }: Props) {
                         <ResultBadge result={mo.result} />
                         <span className="label text-text-muted">{mo.missed_type}</span>
                         <span className="body-small text-text-muted">·</span>
+                        <span className="body-small text-text-muted">{mo.seller_name}</span>
+                        <span className="body-small text-text-muted">·</span>
                         <span className="body-small text-text-muted">{formatDate(mo.date)}</span>
                       </div>
                       {mo.description && (
@@ -145,10 +150,9 @@ export function MissedOpportunitySection({ clientId, sellerName }: Props) {
                   {/* Inline detail */}
                   {isExpanded && (
                     <div
-                      className="mb-4 ml-0 px-1 pb-2"
+                      className="mb-4 px-1 pb-2"
                       style={{ borderLeft: '2px solid var(--faint)', marginLeft: '4px', paddingLeft: '16px' }}
                     >
-                      <p className="label mb-3 text-text-muted">By {mo.seller_name}</p>
                       <DetailRow label="What happened" value={mo.description} />
                       <DetailRow label="Cause" value={mo.cause} />
                       <DetailRow label="Impact" value={mo.impact} />

@@ -1350,6 +1350,7 @@ export type MissedOpportunity = {
   id: string
   created_at: string
   date: string
+  seller_id: string | null
   seller_name: string
   client_id: string | null
   result: 'Good' | 'Missed'
@@ -1365,7 +1366,8 @@ const DEMO_MISSED_OPPORTUNITIES: MissedOpportunity[] = [
     id: 'mo-001',
     created_at: '2025-03-10T14:22:00Z',
     date: '2025-03-10',
-    seller_name: 'Hasaël Moran',
+    seller_id: 'seller-hasael',
+    seller_name: 'Hasael Moussa',
     client_id: 'client-julien-delacroix',
     result: 'Missed',
     missed_type: 'Price objection',
@@ -1378,7 +1380,8 @@ const DEMO_MISSED_OPPORTUNITIES: MissedOpportunity[] = [
     id: 'mo-002',
     created_at: '2025-03-18T11:05:00Z',
     date: '2025-03-18',
-    seller_name: 'Camille Renard',
+    seller_id: 'seller-elliott',
+    seller_name: 'Elliott Nowack',
     client_id: 'client-amina-rahal',
     result: 'Missed',
     missed_type: 'Wrong timing',
@@ -1391,7 +1394,8 @@ const DEMO_MISSED_OPPORTUNITIES: MissedOpportunity[] = [
     id: 'mo-003',
     created_at: '2025-04-02T16:40:00Z',
     date: '2025-04-02',
-    seller_name: 'Hasaël Moran',
+    seller_id: 'seller-hasael',
+    seller_name: 'Hasael Moussa',
     client_id: 'client-sana-al-farsi',
     result: 'Good',
     missed_type: 'Client not ready',

@@ -657,6 +657,7 @@ export default async function Client360Page({ params }: Props) {
         {/* Missed Opportunities */}
         <MissedOpportunitySection
           clientId={id}
+          sellerId={clientData.seller_id}
           sellerName={clientData.seller_name}
         />
 
@@ -739,7 +740,7 @@ export default async function Client360Page({ params }: Props) {
             id="vendor-actions"
             className="mt-8 border border-border bg-surface px-6 py-4"
             style={cardBorder}
-          >
+          >
             <ClientActions clientId={id} />
           </div>
         )}

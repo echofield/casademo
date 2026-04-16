@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import type { MissedOpportunity } from '@/lib/demo/presentation-data'
+import type { SellerOption } from '@/app/api/sellers/route'
 
 const MISSED_TYPES = [
   'No show',
@@ -20,13 +21,24 @@ interface Props {
   onClose: () => void
   onCreated: (mo: MissedOpportunity) => void
   clientId: string
-  sellerName: string
+  /** The seller assigned to this client — used as the default. */
+  defaultSellerId: string | null
+  defaultSellerName: string
 }
 
-export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, sellerName }: Props) {
+export function MissedOpportunityModal({
+  isOpen,
+  onClose,
+  onCreated,
+  clientId,
+  defaultSellerId,
+  defaultSellerName,
+}: Props) {
   const today = new Date().toISOString().split('T')[0]
 
   const [date, setDate] = useState(today)
+  const [sellerId, setSellerId] = useState<string>(defaultSellerId ?? '')
+  const [sellerName, setSellerName] = useState(defaultSellerName)
   const [result, setResult] = useState<'Missed' | 'Good'>('Missed')
   const [missedType, setMissedType] = useState('')
   const [description, setDescription] = useState('')
@@ -36,10 +48,27 @@ export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, s
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [sellers, setSellers] = useState<SellerOption[]>([])
+  const [sellersLoaded, setSellersLoaded] = useState(false)
+
+  // Load sellers once on first open
+  useEffect(() => {
+    if (!isOpen || sellersLoaded) return
+    fetch('/api/sellers')
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.data) setSellers(json.data)
+      })
+      .catch(() => {})
+      .finally(() => setSellersLoaded(true))
+  }, [isOpen, sellersLoaded])
+
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setDate(today)
+      setSellerId(defaultSellerId ?? '')
+      setSellerName(defaultSellerName)
       setResult('Missed')
       setMissedType('')
       setDescription('')
@@ -61,9 +90,16 @@ export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, s
 
   if (!isOpen) return null
 
+  const handleSellerChange = (id: string) => {
+    setSellerId(id)
+    const found = sellers.find((s) => s.id === id)
+    if (found) setSellerName(found.full_name)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!missedType) { setError('Please select a type.'); return }
+    if (!sellerName.trim()) { setError('Please select a seller.'); return }
     setLoading(true)
     setError(null)
 
@@ -73,6 +109,7 @@ export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, s
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date,
+          seller_id: sellerId || null,
           seller_name: sellerName,
           client_id: clientId,
           result,
@@ -137,7 +174,7 @@ export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, s
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6">
-            {/* Date + Result */}
+            {/* Row 1: Date + Result */}
             <div className="mb-5 flex gap-4">
               <div className="flex-1">
                 <label className="label mb-1.5 block text-text-muted">Date</label>
@@ -174,20 +211,48 @@ export function MissedOpportunityModal({ isOpen, onClose, onCreated, clientId, s
               </div>
             </div>
 
-            {/* Type */}
-            <div className="mb-5">
-              <label className="label mb-1.5 block text-text-muted">Type</label>
-              <select
-                value={missedType}
-                onChange={(e) => setMissedType(e.target.value)}
-                className="w-full border-b border-text-muted/20 bg-transparent py-2 text-sm text-text focus:border-primary focus:outline-none"
-                required
-              >
-                <option value="">Select a type...</option>
-                {MISSED_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+            {/* Row 2: Seller + Type */}
+            <div className="mb-5 flex gap-4">
+              <div className="flex-1">
+                <label className="label mb-1.5 block text-text-muted">
+                  Seller
+                  <span className="ml-1 font-normal normal-case tracking-normal opacity-60">(who handled this)</span>
+                </label>
+                {sellers.length > 0 ? (
+                  <select
+                    value={sellerId}
+                    onChange={(e) => handleSellerChange(e.target.value)}
+                    className="w-full border-b border-text-muted/20 bg-transparent py-2 text-sm text-text focus:border-primary focus:outline-none"
+                  >
+                    <option value="">Select a seller...</option>
+                    {sellers.map((s) => (
+                      <option key={s.id} value={s.id}>{s.full_name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={sellerName}
+                    onChange={(e) => setSellerName(e.target.value)}
+                    placeholder="Seller name..."
+                    className="w-full border-b border-text-muted/20 bg-transparent py-2 text-sm text-text placeholder:text-text-muted/40 focus:border-primary focus:outline-none"
+                  />
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="label mb-1.5 block text-text-muted">Type</label>
+                <select
+                  value={missedType}
+                  onChange={(e) => setMissedType(e.target.value)}
+                  className="w-full border-b border-text-muted/20 bg-transparent py-2 text-sm text-text focus:border-primary focus:outline-none"
+                  required
+                >
+                  <option value="">Select a type...</option>
+                  {MISSED_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* 2x2 textarea grid */}
