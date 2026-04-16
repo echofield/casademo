@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { CULTURE_PIECES } from './data'
+import { CULTURE_PIECES, CULTURAL_REFERENCES } from './data'
 import { CultureHero } from './CultureHero'
 import { CulturePieceCard } from './CulturePieceCard'
 import { CulturePieceDetail } from './CulturePieceDetail'
 import { CultureReferenceStrip } from './CultureReferenceStrip'
+import { CultureReferenceDetail } from './CultureReferenceDetail'
 import { LectureBlock } from './LectureBlock'
 
 type Tab = 'pieces' | 'references' | 'lecture'
@@ -19,21 +20,32 @@ const TABS: { id: Tab; label: string }[] = [
 export function CulturePage() {
   const [activeTab, setActiveTab] = useState<Tab>('pieces')
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null)
+  const [selectedReferenceId, setSelectedReferenceId] = useState<string | null>(null)
 
   const selectedPiece = CULTURE_PIECES.find((p) => p.id === selectedPieceId) ?? null
+  const selectedReference = CULTURAL_REFERENCES.find((r) => r.id === selectedReferenceId) ?? null
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab)
     setSelectedPieceId(null)
+    setSelectedReferenceId(null)
   }
 
   return (
     <>
-      {/* Full-screen piece detail — rendered outside main container, covers nav */}
+      {/* Full-screen piece detail */}
       {selectedPiece && (
         <CulturePieceDetail
           piece={selectedPiece}
           onClose={() => setSelectedPieceId(null)}
+        />
+      )}
+
+      {/* Full-screen reference sheet */}
+      {selectedReference && (
+        <CultureReferenceDetail
+          reference={selectedReference}
+          onClose={() => setSelectedReferenceId(null)}
         />
       )}
 
@@ -83,7 +95,9 @@ export function CulturePage() {
         )}
 
         {/* References tab */}
-        {activeTab === 'references' && <CultureReferenceStrip />}
+        {activeTab === 'references' && (
+          <CultureReferenceStrip onSelect={(id) => setSelectedReferenceId(id)} />
+        )}
 
         {/* Lecture tab */}
         {activeTab === 'lecture' && (

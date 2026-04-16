@@ -29,6 +29,13 @@ export type CulturalReference = {
   field: string
   caption: string
   linkedPieces: string[]
+  sheet: {
+    headline: string
+    body: string[]
+    resonance: string[]
+    closing: string
+    bgTint: string
+  }
 }
 
 export const CULTURE_PIECES: CulturePiece[] = [
@@ -213,14 +220,50 @@ export const CULTURE_PIECES: CulturePiece[] = [
 
 export const CULTURAL_REFERENCES: CulturalReference[] = [
   {
+    id: 'letta',
+    image: '/culture/letta-mbulu.jpg',
+    artist: 'Letta Mbulu',
+    title: 'Not Yet Uhuru',
+    field: 'Afro-jazz / South Africa',
+    caption: 'Presence held with composure. Controlled, precise, magnetic — identity through restraint.',
+    linkedPieces: ['belt', 'eyewear-memphis'],
+    sheet: {
+      headline: 'Normalizo — Letta Mbulu',
+      body: [
+        'Released in 1977, this piece moves between soul, jazz, and South African musical tradition with restraint and clarity.',
+        'Born in Soweto, Letta Mbulu went into exile in the 1960s to escape apartheid, later building her musical life between Africa and the United States. Her work carries a dual grounding — displacement and return, control and emotion, memory and presence.',
+        'Supported early by Quincy Jones, her voice holds a composed intensity. Nothing is overstated. Everything is carried.',
+        '"Normalizo" translates to "I am fine" in isiZulu. A simple affirmation, held without emphasis. A form of quiet stability.',
+      ],
+      resonance: [
+        'In this reference field, the connection is not literal. It sits in posture: composure, precision, dignity without display.',
+      ],
+      closing: 'Not a declared influence. A resonance — a way of holding presence with clarity and restraint.',
+      bgTint: 'rgba(163, 135, 103, 0.05)',
+    },
+  },
+  {
     id: 'cortex',
     image: '/culture/cortex-troupeau-bleu.jpg',
     artist: 'Cortex',
     title: 'Troupeau Bleu',
-    field: 'Jazz-funk / Paris, 1975',
-    caption:
-      'Rhythm built through structure, not speed. The same quality the house brings to its graphic work — precision that creates its own momentum.',
+    field: 'Jazz-funk / Paris, 1976',
+    caption: 'Rhythm built through structure, not speed. Precision that creates its own momentum.',
     linkedPieces: ['windbreaker', 'eyewear-pilot'],
+    sheet: {
+      headline: 'Troupeau Bleu — Cortex',
+      body: [
+        'Released in 1976, Troupeau Bleu stands apart for its refined construction — blending jazz, funk, and soul with a distinctly French sensibility.',
+        'The composition is controlled, deliberate. Nothing rushes. Nothing collapses. It unfolds through structure rather than intensity.',
+        'The group\'s approach is almost architectural: melody, rhythm, and space held in balance, allowing movement to emerge naturally.',
+        'Over time, the record became a quiet reference point — later sampled by a new generation of artists, extending its life without altering its core.',
+      ],
+      resonance: [
+        'In this reference field, the connection is structural: precision, measured elegance, freedom within form.',
+      ],
+      closing: 'Not a declared influence. A resonance — a way of constructing movement through control, not excess.',
+      bgTint: 'rgba(100, 120, 160, 0.04)',
+    },
   },
   {
     id: 'mikedunn',
@@ -228,18 +271,21 @@ export const CULTURAL_REFERENCES: CulturalReference[] = [
     artist: 'Mike Dunn',
     title: 'House Masters',
     field: 'Chicago house / 1980s',
-    caption:
-      'The dancefloor as a site of self-expression. Post-sport, post-leisure — the same energy the house channels in its ready-to-wear language.',
+    caption: 'The dancefloor as a site of self-expression. Rhythm as shared language — post-sport, post-leisure.',
     linkedPieces: ['windbreaker'],
-  },
-  {
-    id: 'letta',
-    image: '/culture/letta-mbulu.jpg',
-    artist: 'Letta Mbulu',
-    title: 'Not Yet Uhuru',
-    field: 'Afro-jazz / South Africa',
-    caption:
-      'Presence held with composure. Controlled, precise, magnetic — the same register the house occupies: identity through restraint.',
-    linkedPieces: ['belt', 'eyewear-memphis'],
+    sheet: {
+      headline: 'Feel the Muzik — Mike Dunn',
+      body: [
+        'Emerging from late-1970s Chicago, house music redefined rhythm as a shared language.',
+        'As disco began to fade, a new generation of DJs and producers reshaped its energy through machines — drum patterns, repetition, and minimal structure — building a sound designed for collective experience.',
+        'Mike Dunn\'s work sits within that origin point. Not as spectacle, but as function: rhythm held steady, movement sustained, energy distributed across a room.',
+        'At roughly 120 beats per minute, the tempo aligns with the body. In crowded spaces, individuals synchronize without instruction. The experience becomes physical, then collective.',
+      ],
+      resonance: [
+        'In this reference field, the connection is not stylistic. It is energetic: pulse, continuity, shared rhythm.',
+      ],
+      closing: 'Not a declared influence. A resonance — a system where movement becomes identity through repetition and precision.',
+      bgTint: 'rgba(60, 50, 80, 0.04)',
+    },
   },
 ]
