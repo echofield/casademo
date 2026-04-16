@@ -57,10 +57,10 @@ function ClientChip({ client, interestTag }: { client: Client360; interestTag: s
   return (
     <Link
       href={`/clients/${client.id}`}
-      className="group inline-flex flex-wrap items-center gap-x-2 gap-y-1"
+      className="group inline-flex flex-wrap items-baseline gap-x-2 gap-y-1"
     >
       <span
-        className="text-sm transition-colors group-hover:underline underline-offset-4"
+        className="font-serif text-base leading-tight transition-colors group-hover:underline underline-offset-4"
         style={{ color: 'var(--ink)' }}
       >
         {client.first_name} {client.last_name}
@@ -165,23 +165,44 @@ function MomentCard({
           </p>
         </div>
 
+        {m.pairing.type === 'existing' ? (
+          resolvedClients.length > 0 && (
+            <div className="flex flex-col gap-2.5 border-l-2 pl-4" style={{ borderColor: 'var(--gold)' }}>
+              <p
+                className="text-[10px] font-medium uppercase tracking-[0.18em]"
+                style={{ color: 'var(--warmgrey)' }}
+              >
+                With
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {resolvedClients.map((c) => {
+                  const pairing = m.pairing as Extract<typeof m.pairing, { type: 'existing' }>
+                  return (
+                    <ClientChip key={c.id} client={c} interestTag={pairing.interestTag} />
+                  )
+                })}
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col gap-2.5 border-l-2 pl-4" style={{ borderColor: 'var(--faint)' }}>
+            <p
+              className="text-[10px] font-medium uppercase tracking-[0.18em]"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              Targeting
+            </p>
+            <ProspectChip
+              tier={m.pairing.tier}
+              interestTag={m.pairing.interestTag}
+              channel={m.pairing.channel}
+            />
+          </div>
+        )}
+
         <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
           {m.contextLine}
         </p>
-
-        <div className="flex flex-col gap-2">
-          {m.pairing.type === 'existing'
-            ? resolvedClients.map((c) => (
-                <ClientChip key={c.id} client={c} interestTag={m.pairing.interestTag} />
-              ))
-            : (
-                <ProspectChip
-                  tier={m.pairing.tier}
-                  interestTag={m.pairing.interestTag}
-                  channel={m.pairing.channel}
-                />
-              )}
-        </div>
 
         <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ink)' }}>
           {m.proposition}

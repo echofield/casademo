@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import type { MissedOpportunity } from '@/lib/demo/presentation-data'
+import { getDemoClients } from '@/lib/demo/presentation-data'
 import type { Client360 } from '@/lib/types'
 import type { ActivationMoment } from './data/activationMoments'
 import {
@@ -34,13 +35,34 @@ export function OpportunitiesPage({ missed, clients, moments }: Props) {
     () => computeMetrics(missed, moments, dormant.length),
     [missed, moments, dormant.length],
   )
+
+  // ACTIVATION_MOMENTS and PIECES_TO_MATCH reference fixture client IDs.
+  // Always resolve those names against the demo roster (merged with whatever
+  // live client data exists) so the named pairings render in every environment.
+  const resolutionPool = useMemo<Client360[]>(() => {
+    const fixture = getDemoClients() as unknown as Client360[]
+    const seen = new Set<string>()
+    const merged: Client360[] = []
+    for (const c of clients) {
+      if (seen.has(c.id)) continue
+      seen.add(c.id)
+      merged.push(c)
+    }
+    for (const c of fixture) {
+      if (seen.has(c.id)) continue
+      seen.add(c.id)
+      merged.push(c)
+    }
+    return merged
+  }, [clients])
+
   const clientsByMoment = useMemo(
-    () => resolveMomentClients(moments, clients),
-    [moments, clients],
+    () => resolveMomentClients(moments, resolutionPool),
+    [moments, resolutionPool],
   )
   const clientByPiece = useMemo(
-    () => resolvePieceClient(PIECES_TO_MATCH, clients),
-    [clients],
+    () => resolvePieceClient(PIECES_TO_MATCH, resolutionPool),
+    [resolutionPool],
   )
 
   return (
