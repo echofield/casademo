@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
+import { ModalPortal } from '@/components/ModalPortal'
 import type { MissedOpportunity } from '@/lib/demo/presentation-data'
 import type { SellerOption } from '@/app/api/sellers/route'
 
@@ -77,8 +78,7 @@ export function MissedOpportunityModal({
       setAction('')
       setError(null)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen])
+  }, [defaultSellerId, defaultSellerName, isOpen, today])
 
   // ESC to close
   useEffect(() => {
@@ -133,7 +133,7 @@ export function MissedOpportunityModal({
   }
 
   return (
-    <>
+    <ModalPortal>
       {/* Backdrop — z-50 sits above the sticky nav (z-40) */}
       <div
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
@@ -314,6 +314,6 @@ export function MissedOpportunityModal({
           </form>
         </div>
       </div>
-    </>
+    </ModalPortal>
   )
 }
