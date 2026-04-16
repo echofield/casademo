@@ -183,13 +183,13 @@ export function formatTimeRange(startTime: string, endTime: string): string {
   const start = new Date(startTime)
   const end = new Date(endTime)
   const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  return `${formatTime(start)} â€“ ${formatTime(end)}`
+  return `${formatTime(start)} — ${formatTime(end)}`
 }
 
 export function formatMeetingOwnerLine(
   meeting: Pick<MeetingWithDetails, 'seller_name' | 'format'>
 ): string {
-  return [meeting.seller_name, MEETING_FORMAT_CONFIG[meeting.format].label].join(' Â· ')
+  return [meeting.seller_name, MEETING_FORMAT_CONFIG[meeting.format].label].join(' · ')
 }
 
 // Helper to check if meeting is today

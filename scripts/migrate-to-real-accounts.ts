@@ -113,7 +113,7 @@ async function main() {
   for (const m of TEAM.filter(t => t.mock_email)) {
     const mockUser = byEmail.get(m.mock_email!.toLowerCase())
     if (!mockUser) {
-      console.log(`  NOT FOUND: ${m.mock_email} â€” will create fresh`)
+      console.log(`  NOT FOUND: ${m.mock_email} — will create fresh`)
       m.mock_email = null // fall through to step 3
       continue
     }
@@ -149,7 +149,7 @@ async function main() {
     // Check if auth user already exists with the real email (maybe re-running script)
     const existingAuth = byEmail.get(m.real_email.toLowerCase())
     if (existingAuth) {
-      console.log(`  EXISTS: ${m.real_email} â€” updating password + profile`)
+      console.log(`  EXISTS: ${m.real_email} — updating password + profile`)
       await supabase.auth.admin.updateUserById(existingAuth.id, {
         password: requireSecret(m.password_env),
         email_confirm: true,
@@ -274,7 +274,7 @@ async function main() {
   if (finalProfiles) {
     for (const p of finalProfiles) {
       const clients = await getClientCount(p.id)
-      console.log(`  [${p.role.padEnd(10)}] ${p.full_name.padEnd(22)} <${p.email}> â€” ${clients} clients`)
+      console.log(`  [${p.role.padEnd(10)}] ${p.full_name.padEnd(22)} <${p.email}> — ${clients} clients`)
     }
   }
 

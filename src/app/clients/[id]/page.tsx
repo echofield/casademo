@@ -267,7 +267,7 @@ export default async function Client360Page({ params }: Props) {
   const canEdit = !isDemoMode && (user.effectiveRole === 'supervisor' || clientData.seller_id === user.id)
 
   const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return 'â€”'
+    if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'long',
@@ -309,7 +309,7 @@ export default async function Client360Page({ params }: Props) {
 
   return (
     <AppShell userRole={user.profile.role} effectiveRole={user.effectiveRole} userName={user.profile.full_name}>
-      <div className="mx-auto max-w-5xl pb-32 md:pb-10">
+      <div className="mx-auto max-w-5xl pb-10">
         <BackNavButton
           fallbackHref="/clients"
           label="Clients"
@@ -496,7 +496,7 @@ export default async function Client360Page({ params }: Props) {
                 <p className="body whitespace-pre-wrap text-text">{clientData.notes}</p>
               ) : (
                 <p className="body-small text-text-muted italic">
-                  No notes â€” use "Edit profile" to add some.
+                  No notes — use "Edit profile" to add some.
                 </p>
               )}
             </div>
@@ -737,10 +737,9 @@ export default async function Client360Page({ params }: Props) {
         {canEdit && (
           <div
             id="vendor-actions"
-            className="fixed bottom-0 left-0 right-0 z-30 border-t bg-bg/95 px-4 py-3 backdrop-blur-sm md:static md:z-0 md:mt-8 md:border md:border-t-0 md:bg-surface md:px-6 md:py-4 md:backdrop-blur-none"
+            className="mt-8 border border-border bg-surface px-6 py-4"
             style={cardBorder}
-          >
-            <p className="label mb-2 text-text-muted md:hidden">Seller actions</p>
+          >
             <ClientActions clientId={id} />
           </div>
         )}

@@ -1,4 +1,4 @@
-﻿import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AppShell, CornerBrackets } from '@/components'
 import { ClientTier } from '@/lib/types'
@@ -446,7 +446,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Signal Overview â€” second block, first-class feature */}
+        {/* Signal Overview — second block, first-class feature */}
         {signalDistributionData.length > 0 && (
           <>
             <SignalMatrix
@@ -460,7 +460,7 @@ export default async function DashboardPage() {
           </>
         )}
 
-        {/* Casa One Impact â€” conversion metrics */}
+        {/* Casa One Impact — conversion metrics */}
         <ConversionMetrics className="mb-10" />
 
         {/* Two column layout */}
