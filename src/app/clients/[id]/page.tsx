@@ -316,10 +316,10 @@ export default async function Client360Page({ params }: Props) {
           className="label mb-6 md:mb-8"
         />
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div className="flex flex-col gap-8">
           {/* Fiche client */}
           <section
-            className="border bg-surface p-6 md:p-8 lg:col-span-2"
+            className="border bg-surface p-6 md:p-8"
             style={cardBorder}
           >
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
