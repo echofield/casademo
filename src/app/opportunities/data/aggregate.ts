@@ -1,6 +1,7 @@
 import type { MissedOpportunity } from '@/lib/demo/presentation-data'
 import type { Client360, ClientTier } from '@/lib/types'
 import type { ActivationMoment } from './activationMoments'
+import type { PieceMatch } from './pieces'
 
 export type OpportunityMetrics = {
   valueAtStakeEur: number
@@ -177,6 +178,25 @@ export function formatEur(n: number): string {
 export function formatEurRange(range: { min: number; max: number }): string {
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
   return `€${fmt(range.min)}\u2013€${fmt(range.max)}`
+}
+
+/**
+ * Resolve each piece's paired clientId into a Client360 record from the demo roster.
+ * Returns a Map keyed by piece id. Pieces with a missing client are omitted.
+ */
+export function resolvePieceClient(
+  pieces: PieceMatch[],
+  clients: Client360[],
+): Map<string, Client360> {
+  const byId = new Map<string, Client360>()
+  for (const c of clients) byId.set(c.id, c)
+
+  const out = new Map<string, Client360>()
+  for (const p of pieces) {
+    const c = byId.get(p.pairing.clientId)
+    if (c) out.set(p.id, c)
+  }
+  return out
 }
 
 /**

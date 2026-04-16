@@ -10,11 +10,14 @@ import {
   sellersNeedingFollowUp,
   reportedThisWeek,
   resolveMomentClients,
+  resolvePieceClient,
 } from './data/aggregate'
+import { PIECES_TO_MATCH } from './data/pieces'
 import { OpportunityHero } from './sections/OpportunityHero'
 import { SupervisorOverview } from './sections/SupervisorOverview'
 import { MissedOpportunitiesReview } from './sections/MissedOpportunitiesReview'
 import { ActivationMoments } from './sections/ActivationMoments'
+import { PiecesToMatch } from './sections/PiecesToMatch'
 import { RecommendedActions } from './sections/RecommendedActions'
 
 interface Props {
@@ -35,6 +38,10 @@ export function OpportunitiesPage({ missed, clients, moments }: Props) {
     () => resolveMomentClients(moments, clients),
     [moments, clients],
   )
+  const clientByPiece = useMemo(
+    () => resolvePieceClient(PIECES_TO_MATCH, clients),
+    [clients],
+  )
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -49,6 +56,8 @@ export function OpportunitiesPage({ missed, clients, moments }: Props) {
       <MissedOpportunitiesReview missed={missed} clients={clients} />
 
       <ActivationMoments moments={moments} clientsByMoment={clientsByMoment} />
+
+      <PiecesToMatch pieces={PIECES_TO_MATCH} clientByPiece={clientByPiece} />
 
       <RecommendedActions
         missed={missed}
