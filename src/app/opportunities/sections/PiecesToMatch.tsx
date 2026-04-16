@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import type { Client360 } from '@/lib/types'
-import type { PieceMatch, PieceState } from '../data/pieces'
+import type { PieceMatch, PieceSizeCategory, PieceState } from '../data/pieces'
 import { PIECE_STATE_LABEL } from '../data/pieces'
 import { formatEur } from '../data/aggregate'
 
@@ -27,7 +26,18 @@ const TOUCHPOINT_LABEL: Record<PieceMatch['pairing']['recommendedTouchpoint'], s
   'personal-shopper-call': 'Personal shopper call',
 }
 
-function StateBadge({ state }: { state: PieceState }) {
+function resolveSizeLabel(
+  client: Client360 | undefined,
+  sizeCategory: PieceSizeCategory,
+): string | null {
+  if (!client || !sizeCategory) return null
+  const known = client.known_sizes?.find((k) => k.category === sizeCategory)
+  if (!known?.size) return null
+  const prefix = known.size_type && known.size_type !== 'INTL' ? `${known.size_type} ` : ''
+  return `Size ${prefix}${known.size}`
+}
+
+function StateTag({ state }: { state: PieceState }) {
   const color =
     state === 'new' ? 'var(--gold)' : state === 'limited' ? 'var(--ink)' : 'var(--ink-soft)'
   return (
@@ -40,7 +50,7 @@ function StateBadge({ state }: { state: PieceState }) {
   )
 }
 
-function PieceCard({
+function PieceRow({
   piece,
   client,
   index,
@@ -52,26 +62,13 @@ function PieceCard({
   total: number
 }) {
   const ordinal = `${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`
+  const sizeLabel = resolveSizeLabel(client, piece.sizeCategory)
 
   return (
     <article
-      className="flex flex-col bg-[var(--paper)]"
-      style={{ border: '0.5px solid var(--faint)' }}
+      className="grid grid-cols-1 gap-8 py-9 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_auto]"
     >
-      <div
-        className="relative aspect-[4/5] w-full overflow-hidden"
-        style={{ backgroundColor: 'var(--paper-dim)' }}
-      >
-        <Image
-          src={piece.image}
-          alt={piece.title}
-          fill
-          sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover"
-        />
-      </div>
-
-      <div className="flex flex-1 flex-col gap-5 p-6 md:p-7">
+      <div className="flex min-w-0 flex-col gap-5">
         <div className="flex items-center justify-between gap-4">
           <span
             className="text-[10px] font-medium uppercase tracking-[0.18em] tabular-nums"
@@ -79,53 +76,76 @@ function PieceCard({
           >
             {ordinal}
           </span>
-          <StateBadge state={piece.state} />
+          <div className="md:hidden">
+            <StateTag state={piece.state} />
+          </div>
         </div>
 
-        <div>
-          <p
-            className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            {piece.category}
-          </p>
-          <h3
-            className="font-serif text-2xl leading-[1.25]"
-            style={{ color: 'var(--ink)' }}
-          >
+        <div className="flex flex-col gap-1">
+          <h3 className="font-serif text-2xl leading-[1.2]" style={{ color: 'var(--ink)' }}>
             {piece.title}
           </h3>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span
+              className="text-[10px] font-medium uppercase tracking-[0.14em]"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              {piece.category}
+            </span>
+            {sizeLabel && (
+              <>
+                <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+                <span
+                  className="text-[10px] font-medium uppercase tracking-[0.14em]"
+                  style={{ color: 'var(--warmgrey)' }}
+                >
+                  {sizeLabel}
+                </span>
+              </>
+            )}
+          </div>
+          <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
+            {piece.materialNote}
+          </p>
         </div>
 
         {client ? (
-          <Link
-            href={`/clients/${client.id}`}
-            className="group inline-flex flex-wrap items-center gap-x-2 gap-y-1"
+          <div
+            className="flex flex-col gap-2 border-l-2 pl-4"
+            style={{ borderColor: 'var(--gold)' }}
           >
-            <span
-              className="text-sm transition-colors group-hover:underline underline-offset-4"
-              style={{ color: 'var(--ink)' }}
-            >
-              {client.first_name} {client.last_name}
-            </span>
-            <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
-            <span
-              className="text-[11px] font-medium uppercase tracking-[0.12em]"
+            <p
+              className="text-[10px] font-medium uppercase tracking-[0.18em]"
               style={{ color: 'var(--warmgrey)' }}
             >
-              {TIER_LABEL[client.tier] ?? client.tier}
-            </span>
-          </Link>
+              For
+            </p>
+            <Link
+              href={`/clients/${client.id}`}
+              className="group inline-flex flex-wrap items-baseline gap-x-2 gap-y-1"
+            >
+              <span
+                className="font-serif text-base leading-tight transition-colors group-hover:underline underline-offset-4"
+                style={{ color: 'var(--ink)' }}
+              >
+                {client.first_name} {client.last_name}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+              <span
+                className="text-[11px] font-medium uppercase tracking-[0.12em]"
+                style={{ color: 'var(--warmgrey)' }}
+              >
+                {TIER_LABEL[client.tier] ?? client.tier}
+              </span>
+            </Link>
+          </div>
         ) : (
           <p className="text-sm italic" style={{ color: 'var(--warmgrey)' }}>
-            No paired client available.
+            No paired client resolved.
           </p>
         )}
 
-        <p
-          className="text-[15px] leading-relaxed"
-          style={{ color: 'var(--ink)' }}
-        >
+        <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ink)' }}>
           {piece.pairing.reason}
         </p>
 
@@ -134,36 +154,38 @@ function PieceCard({
             {piece.inventoryNote}
           </p>
         )}
+      </div>
 
-        <div
-          className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t pt-5"
-          style={{ borderColor: 'var(--faint)' }}
-        >
-          <div>
-            <p
-              className="text-[10px] font-medium uppercase tracking-[0.14em]"
-              style={{ color: 'var(--warmgrey)' }}
-            >
-              Touchpoint
-            </p>
-            <p className="mt-1 text-sm" style={{ color: 'var(--ink)' }}>
-              {TOUCHPOINT_LABEL[piece.pairing.recommendedTouchpoint]}
-            </p>
-          </div>
-          <div className="text-right">
-            <p
-              className="text-[10px] font-medium uppercase tracking-[0.14em]"
-              style={{ color: 'var(--warmgrey)' }}
-            >
-              Boutique
-            </p>
-            <p
-              className="mt-1 font-serif text-lg"
-              style={{ color: 'var(--ink)' }}
-            >
-              {formatEur(piece.priceEur)}
-            </p>
-          </div>
+      <div className="flex flex-row items-start justify-between gap-6 md:flex-col md:items-end md:justify-start md:text-right">
+        <div className="hidden md:block">
+          <StateTag state={piece.state} />
+        </div>
+
+        <div className="md:mt-6">
+          <p
+            className="text-[10px] font-medium uppercase tracking-[0.14em]"
+            style={{ color: 'var(--warmgrey)' }}
+          >
+            Boutique
+          </p>
+          <p
+            className="mt-1 font-serif text-xl"
+            style={{ color: 'var(--ink)' }}
+          >
+            {formatEur(piece.priceEur)}
+          </p>
+        </div>
+
+        <div className="md:mt-4">
+          <p
+            className="text-[10px] font-medium uppercase tracking-[0.14em]"
+            style={{ color: 'var(--warmgrey)' }}
+          >
+            Touchpoint
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--ink)' }}>
+            {TOUCHPOINT_LABEL[piece.pairing.recommendedTouchpoint]}
+          </p>
         </div>
       </div>
     </article>
@@ -190,7 +212,7 @@ export function PiecesToMatch({ pieces, clientByPiece }: Props) {
           className="max-w-xl text-sm"
           style={{ color: 'var(--ink-soft)', opacity: 0.78 }}
         >
-          Curated piece-to-client pairings. One named client per piece, chosen only when the affinity is explicit.
+          Pulled from the live catalog, matched against a named client’s affinity and known size. One pairing per piece.
         </p>
       </div>
 
@@ -199,15 +221,19 @@ export function PiecesToMatch({ pieces, clientByPiece }: Props) {
           No pairings ready yet.
         </p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+        <div className="divide-y" style={{ borderColor: 'var(--faint)' }}>
           {pieces.map((p, i) => (
-            <PieceCard
+            <div
               key={p.id}
-              piece={p}
-              client={clientByPiece.get(p.id)}
-              index={i}
-              total={pieces.length}
-            />
+              style={{ borderTop: i === 0 ? 'none' : '0.5px solid var(--faint)' }}
+            >
+              <PieceRow
+                piece={p}
+                client={clientByPiece.get(p.id)}
+                index={i}
+                total={pieces.length}
+              />
+            </div>
           ))}
         </div>
       )}
