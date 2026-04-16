@@ -1,0 +1,164 @@
+import type { MissedOpportunity } from '@/lib/demo/presentation-data'
+import type { Client360, ClientTier } from '@/lib/types'
+import type { ActivationMoment } from './activationMoments'
+
+export type OpportunityMetrics = {
+  valueAtStakeEur: number
+  openCount: number
+  missedCount: number
+  activeMomentsCount: number
+}
+
+const EUR_PATTERN = /(?:EUR|€)\s*([\d.,\u00a0\s]+)/i
+
+/**
+ * Best-effort extraction of a numeric EUR value from free-text impact/description.
+ * Returns 0 if nothing parseable is found. Handles spaces, commas, and non-breaking spaces.
+ */
+export function extractEurFromImpact(text: string | null | undefined): number {
+  if (!text) return 0
+  const match = EUR_PATTERN.exec(text)
+  if (!match) return 0
+  const raw = match[1].replace(/[\u00a0\s]/g, '').replace(/\./g, '').replace(/,/g, '.')
+  const n = parseFloat(raw)
+  return Number.isFinite(n) ? Math.round(n) : 0
+}
+
+export function sumMomentMidpoints(moments: ActivationMoment[]): number {
+  return moments.reduce(
+    (sum, m) => sum + Math.round((m.estimatedPotentialEur.min + m.estimatedPotentialEur.max) / 2),
+    0,
+  )
+}
+
+export function sumMissedImpacts(missed: MissedOpportunity[]): number {
+  return missed
+    .filter((m) => m.result === 'Missed')
+    .reduce((sum, m) => sum + extractEurFromImpact(m.impact), 0)
+}
+
+export function computeMetrics(
+  missed: MissedOpportunity[],
+  moments: ActivationMoment[],
+  highPriorityClientsCount: number,
+): OpportunityMetrics {
+  const valueAtStakeEur = sumMomentMidpoints(moments) + sumMissedImpacts(missed)
+  const missedOpenCount = missed.filter((m) => m.result === 'Missed').length
+  return {
+    valueAtStakeEur,
+    openCount: moments.length + highPriorityClientsCount,
+    missedCount: missedOpenCount,
+    activeMomentsCount: moments.length,
+  }
+}
+
+const TIER_PRIORITY: Record<ClientTier, number> = {
+  rainbow: 5,
+  diplomatico: 4,
+  grand_prix: 3,
+  optimisto: 2,
+  kaizen: 1,
+  idealiste: 0,
+}
+
+function daysSince(dateStr: string | null | undefined): number {
+  if (!dateStr) return 9999
+  const then = new Date(dateStr).getTime()
+  if (Number.isNaN(then)) return 9999
+  const now = Date.now()
+  return Math.floor((now - then) / (1000 * 60 * 60 * 24))
+}
+
+export type DormantVip = {
+  id: string
+  first_name: string
+  last_name: string
+  tier: ClientTier
+  daysSinceLastContact: number
+  seller_signal: Client360['seller_signal']
+}
+
+/**
+ * Top dormant VIPs to reactivate.
+ * Ranking: tier priority first, then days since last contact (longer = more dormant), then heat_score.
+ * Excludes 'lost' signals. Only surfaces higher tiers to keep the section quiet.
+ */
+export function topClientsToReactivate(
+  clients: Client360[],
+  limit = 3,
+): DormantVip[] {
+  return clients
+    .filter((c) => c.seller_signal !== 'lost')
+    .filter((c) => (TIER_PRIORITY[c.tier] ?? 0) >= TIER_PRIORITY.kaizen)
+    .map((c) => ({
+      id: c.id,
+      first_name: c.first_name,
+      last_name: c.last_name,
+      tier: c.tier,
+      daysSinceLastContact: daysSince(c.last_contact_date),
+      seller_signal: c.seller_signal,
+      _rank: TIER_PRIORITY[c.tier] ?? 0,
+      _heat: c.heat_score ?? 0,
+    }))
+    .sort((a, b) => {
+      if (b._rank !== a._rank) return b._rank - a._rank
+      if (b.daysSinceLastContact !== a.daysSinceLastContact) return b.daysSinceLastContact - a.daysSinceLastContact
+      return b._heat - a._heat
+    })
+    .slice(0, limit)
+    .map(({ _rank, _heat, ...rest }) => rest)
+}
+
+export type SellerFollowUp = {
+  seller_id: string
+  seller_name: string
+  missedCount: number
+}
+
+/**
+ * Sellers with more than one missed opportunity in the last 30 days.
+ * Ranked by missed count desc.
+ */
+export function sellersNeedingFollowUp(missed: MissedOpportunity[]): SellerFollowUp[] {
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+  const byKey = new Map<string, SellerFollowUp>()
+  for (const m of missed) {
+    if (m.result !== 'Missed') continue
+    const at = new Date(m.date).getTime()
+    if (Number.isNaN(at) || at < cutoff) continue
+    const key = m.seller_id ?? m.seller_name
+    const prev = byKey.get(key)
+    if (prev) {
+      prev.missedCount += 1
+    } else {
+      byKey.set(key, {
+        seller_id: m.seller_id ?? '',
+        seller_name: m.seller_name,
+        missedCount: 1,
+      })
+    }
+  }
+  return Array.from(byKey.values())
+    .filter((s) => s.missedCount > 1)
+    .sort((a, b) => b.missedCount - a.missedCount)
+}
+
+export function reportedThisWeek(missed: MissedOpportunity[]): MissedOpportunity[] {
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000
+  return missed.filter((m) => {
+    const at = new Date(m.date).getTime()
+    return !Number.isNaN(at) && at >= cutoff
+  })
+}
+
+export function formatEur(n: number): string {
+  if (n >= 1000) {
+    return `€${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)}`
+  }
+  return `€${n}`
+}
+
+export function formatEurRange(range: { min: number; max: number }): string {
+  const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
+  return `€${fmt(range.min)}\u2013€${fmt(range.max)}`
+}

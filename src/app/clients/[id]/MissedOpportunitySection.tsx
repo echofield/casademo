@@ -114,6 +114,8 @@ export function MissedOpportunitySection({ clientId, sellerId, sellerName }: Pro
           <ol className="space-y-0">
             {items.map((mo) => {
               const isExpanded = expandedId === mo.id
+              const showSeller =
+                mo.seller_name && mo.seller_name.trim().toLowerCase() !== sellerName.trim().toLowerCase()
               return (
                 <li
                   key={mo.id}
@@ -130,8 +132,12 @@ export function MissedOpportunitySection({ clientId, sellerId, sellerName }: Pro
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <ResultBadge result={mo.result} />
                         <span className="label text-text-muted">{mo.missed_type}</span>
-                        <span className="body-small text-text-muted">·</span>
-                        <span className="body-small text-text-muted">{mo.seller_name}</span>
+                        {showSeller && (
+                          <>
+                            <span className="body-small text-text-muted">·</span>
+                            <span className="body-small text-text-muted">{mo.seller_name}</span>
+                          </>
+                        )}
                         <span className="body-small text-text-muted">·</span>
                         <span className="body-small text-text-muted">{formatDate(mo.date)}</span>
                       </div>

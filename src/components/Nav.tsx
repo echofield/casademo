@@ -73,6 +73,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
     { href: '/culture', label: 'Culture' },
     ...(effectiveRole === 'supervisor'
       ? [
+          { href: '/opportunities', label: 'Opportunities' },
           { href: '/dashboard', label: 'Dashboard' },
           { href: '/team', label: 'Team' },
         ]
