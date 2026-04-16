@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 import type { CulturePiece } from './data'
@@ -7,27 +10,29 @@ interface Props {
   onClose: () => void
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p
-      className="mb-3 uppercase tracking-[0.1em]"
-      style={{ fontSize: '0.63rem', fontWeight: 600, color: 'var(--warmgrey)' }}
+    <div
+      className="grid gap-8 py-10 md:grid-cols-[180px_1fr]"
+      style={{ borderTop: '0.5px solid var(--faint)' }}
     >
-      {children}
-    </p>
+      <p
+        className="pt-0.5 uppercase tracking-[0.1em]"
+        style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--warmgrey)' }}
+      >
+        {label}
+      </p>
+      <div>{children}</div>
+    </div>
   )
-}
-
-function Divider() {
-  return <div className="my-7" style={{ borderTop: '0.5px solid var(--faint)' }} />
 }
 
 function BulletList({ items }: { items: string[] }) {
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-2">
       {items.map((item) => (
         <li key={item} className="flex gap-3">
-          <span style={{ color: 'var(--warmgrey)', flexShrink: 0, paddingTop: '1px' }}>—</span>
+          <span style={{ color: 'var(--warmgrey)', flexShrink: 0 }}>—</span>
           <span className="body-small" style={{ color: 'var(--ink-soft)' }}>
             {item}
           </span>
@@ -38,146 +43,162 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 export function CulturePieceDetail({ piece, onClose }: Props) {
+  const [visible, setVisible] = useState(false)
+
+  // Fade-in on mount
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  // Scroll lock
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  // ESC to close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
   return (
     <div
-      className="mt-px"
+      className="fixed inset-0 z-50 overflow-y-auto"
       style={{
-        border: '1px solid var(--ink)',
         backgroundColor: 'var(--paper)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'none' : 'scale(0.995)',
+        transition: 'opacity 280ms ease, transform 280ms ease',
       }}
     >
-      {/* Header bar */}
-      <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '0.5px solid var(--faint)' }}
-      >
-        <div className="flex items-center gap-3">
-          <p
-            className="uppercase tracking-[0.1em]"
-            style={{ fontSize: '0.63rem', fontWeight: 600, color: 'var(--warmgrey)' }}
-          >
-            {piece.category}
-          </p>
-          <span style={{ color: 'var(--faint)' }}>·</span>
-          <p
-            className="uppercase tracking-[0.1em]"
-            style={{ fontSize: '0.63rem', fontWeight: 600, color: 'var(--ink)' }}
-          >
-            {piece.title}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center transition-opacity hover:opacity-50"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" style={{ color: 'var(--ink-soft)' }} />
-        </button>
-      </div>
+      <div className="mx-auto max-w-5xl px-6 pb-32 pt-10 md:px-16">
 
-      {/* Body */}
-      <div className="grid md:grid-cols-[300px_1fr]">
-        {/* Image column */}
-        <div
-          className="relative hidden md:block"
-          style={{ borderRight: '0.5px solid var(--faint)', minHeight: '400px' }}
-        >
-          <Image
-            src={piece.image}
-            alt={piece.title}
-            fill
-            sizes="300px"
-            className="object-cover"
-          />
+        {/* Top bar */}
+        <div className="mb-12 flex items-start justify-between">
+          <div>
+            <p
+              className="mb-3 uppercase tracking-[0.14em]"
+              style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--warmgrey)' }}
+            >
+              {piece.category}
+            </p>
+            <h1 className="heading-1" style={{ color: 'var(--ink)', maxWidth: '520px' }}>
+              {piece.title}
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-8 mt-1 flex h-9 w-9 shrink-0 items-center justify-center transition-opacity hover:opacity-40"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" style={{ color: 'var(--ink)' }} />
+          </button>
         </div>
 
-        {/* Content column */}
-        <div className="overflow-y-auto p-8 md:p-10" style={{ maxHeight: '680px' }}>
-
-          {/* 1. Overview */}
-          <SectionLabel>Overview</SectionLabel>
-          <p className="body" style={{ color: 'var(--ink-soft)', lineHeight: '1.65' }}>
-            {piece.overview}
-          </p>
-
-          <Divider />
-
-          {/* 2. Characteristics */}
-          <SectionLabel>Characteristics</SectionLabel>
-          <div className="space-y-3">
-            {piece.characteristics.map((c) => (
-              <div key={c.label} className="flex gap-6">
-                <p
-                  className="w-28 shrink-0 uppercase tracking-wide"
-                  style={{ fontSize: '0.63rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.09em', paddingTop: '1px' }}
-                >
-                  {c.label}
-                </p>
-                <p className="body-small flex-1" style={{ color: 'var(--ink-soft)' }}>
-                  {c.value}
-                </p>
-              </div>
-            ))}
+        {/* Hero: image + overview + characteristics */}
+        <div className="mb-4 grid gap-12 md:grid-cols-[2fr_3fr]">
+          {/* Image */}
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4' }}>
+            <Image
+              src={piece.image}
+              alt={piece.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
+              className="object-cover"
+              priority
+            />
           </div>
 
-          <Divider />
+          {/* Overview + Characteristics */}
+          <div className="flex flex-col justify-start pt-2">
+            <p
+              className="mb-4 uppercase tracking-[0.1em]"
+              style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--warmgrey)' }}
+            >
+              Overview
+            </p>
+            <p className="body mb-10" style={{ color: 'var(--ink-soft)', lineHeight: '1.7' }}>
+              {piece.overview}
+            </p>
 
-          {/* 3. Product Advantages */}
-          <SectionLabel>Product Advantages</SectionLabel>
+            <p
+              className="mb-5 uppercase tracking-[0.1em]"
+              style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--warmgrey)', borderTop: '0.5px solid var(--faint)', paddingTop: '32px' }}
+            >
+              Characteristics
+            </p>
+            <div className="space-y-4">
+              {piece.characteristics.map((c) => (
+                <div key={c.label} className="flex gap-6">
+                  <p
+                    className="w-28 shrink-0 uppercase tracking-wide"
+                    style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.09em', paddingTop: '1px' }}
+                  >
+                    {c.label}
+                  </p>
+                  <p className="body-small flex-1" style={{ color: 'var(--ink-soft)' }}>
+                    {c.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Full-width sections */}
+
+        <SectionRow label="Product Advantages">
           <BulletList items={piece.productAdvantages} />
+        </SectionRow>
 
-          <Divider />
-
-          {/* 4. Client Benefits */}
-          <SectionLabel>Client Benefits</SectionLabel>
+        <SectionRow label="Client Benefits">
           <BulletList items={piece.clientBenefits} />
+        </SectionRow>
 
-          {/* 5. Price Positioning */}
-          {piece.pricePositioning && (
-            <>
-              <Divider />
-              <SectionLabel>Price Positioning</SectionLabel>
-              <p
-                className="body-small"
-                style={{
-                  color: 'var(--gold)',
-                  backgroundColor: 'rgba(163, 135, 103, 0.06)',
-                  padding: '12px 14px',
-                  borderLeft: '2px solid var(--gold)',
-                }}
-              >
-                {piece.pricePositioning}
-              </p>
-            </>
-          )}
+        {piece.pricePositioning && (
+          <SectionRow label="Price Positioning">
+            <p
+              className="body-small"
+              style={{
+                color: 'var(--gold)',
+                borderLeft: '2px solid var(--gold)',
+                paddingLeft: '14px',
+                lineHeight: '1.65',
+              }}
+            >
+              {piece.pricePositioning}
+            </p>
+          </SectionRow>
+        )}
 
-          <Divider />
-
-          {/* 6. Seller Advice */}
-          <SectionLabel>Seller Advice</SectionLabel>
+        <SectionRow label="Seller Advice">
           <p
             className="body-small"
             style={{
               color: 'var(--ink)',
-              backgroundColor: 'rgba(27, 67, 50, 0.04)',
-              padding: '12px 14px',
               borderLeft: '2px solid var(--primary)',
+              paddingLeft: '14px',
               lineHeight: '1.65',
             }}
           >
             {piece.sellerAdvice}
           </p>
+        </SectionRow>
 
-          <Divider />
-
-          {/* 7. Lecture */}
-          <SectionLabel>Lecture</SectionLabel>
-          <div className="space-y-4">
+        <SectionRow label="Lecture">
+          <div className="grid gap-8 sm:grid-cols-2">
             <div>
               <p
-                className="mb-1 uppercase tracking-wide"
-                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.1em' }}
+                className="mb-2 uppercase tracking-[0.09em]"
+                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)' }}
               >
                 Who can wear it
               </p>
@@ -187,8 +208,8 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
             </div>
             <div>
               <p
-                className="mb-1 uppercase tracking-wide"
-                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.1em' }}
+                className="mb-2 uppercase tracking-[0.09em]"
+                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)' }}
               >
                 What to see first
               </p>
@@ -198,8 +219,8 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
             </div>
             <div>
               <p
-                className="mb-1 uppercase tracking-wide"
-                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.1em' }}
+                className="mb-2 uppercase tracking-[0.09em]"
+                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)' }}
               >
                 What not to force
               </p>
@@ -209,8 +230,8 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
             </div>
             <div>
               <p
-                className="mb-1 uppercase tracking-wide"
-                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)', letterSpacing: '0.1em' }}
+                className="mb-2 uppercase tracking-[0.09em]"
+                style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--warmgrey)' }}
               >
                 Cultural resonance
               </p>
@@ -219,16 +240,14 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
               </p>
             </div>
           </div>
+        </SectionRow>
 
-          <Divider />
-
-          {/* 8. Cross-sell */}
-          <SectionLabel>Cross-sell</SectionLabel>
+        <SectionRow label="Cross-sell">
           <p className="body-small" style={{ color: 'var(--ink-soft)' }}>
             {piece.crossSell}
           </p>
+        </SectionRow>
 
-        </div>
       </div>
     </div>
   )
