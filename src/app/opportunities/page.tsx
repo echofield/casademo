@@ -52,6 +52,16 @@ export default async function OpportunitiesRoute() {
     }
   }
 
+  // ACTIVATION_MOMENTS and PIECES_TO_MATCH reference demo fixture IDs
+  // (e.g. client-daphne-kim). Merge demo roster into the client pool so
+  // moment/piece resolvers can always surface named clients, even when
+  // Supabase-backed clients use different IDs.
+  const demoClients = getDemoClients() as unknown as Client360[]
+  const seenIds = new Set(clients.map((c) => c.id))
+  for (const dc of demoClients) {
+    if (!seenIds.has(dc.id)) clients.push(dc)
+  }
+
   return (
     <AppShell
       userRole={user.profile.role}
