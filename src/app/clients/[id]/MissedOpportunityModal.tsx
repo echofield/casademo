@@ -134,9 +134,9 @@ export function MissedOpportunityModal({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — z-50 sits above the sticky nav (z-40) */}
       <div
-        className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden
       />
@@ -146,7 +146,7 @@ export function MissedOpportunityModal({
         role="dialog"
         aria-modal="true"
         aria-label="Report missed opportunity"
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-[200] flex items-center justify-center p-4"
       >
         <div
           className="w-full max-w-xl border bg-surface shadow-sm"
