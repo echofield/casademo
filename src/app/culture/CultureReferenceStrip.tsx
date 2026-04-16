@@ -1,5 +1,5 @@
-import Image from 'next/image'
 import { CULTURAL_REFERENCES, CULTURE_PIECES } from './data'
+import { FadeImage } from './FadeImage'
 
 interface Props {
   onSelect: (id: string) => void
@@ -34,8 +34,8 @@ export function CultureReferenceStrip({ onSelect }: Props) {
               style={{ backgroundColor: 'var(--paper)' }}
             >
               {/* Image */}
-              <div className="relative aspect-square w-full overflow-hidden bg-bg-soft">
-                <Image
+              <div className="relative aspect-square w-full overflow-hidden" style={{ backgroundColor: 'var(--paper-dim)' }}>
+                <FadeImage
                   src={ref.image}
                   alt={`${ref.artist} — ${ref.title}`}
                   fill

@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { X } from 'lucide-react'
 import type { CulturalReference } from './data'
 import { CULTURE_PIECES } from './data'
+import { FadeImage } from './FadeImage'
 
 interface Props {
   reference: CulturalReference
@@ -16,8 +16,14 @@ export function CultureReferenceDetail({ reference, onClose }: Props) {
   const linked = CULTURE_PIECES.filter((p) => reference.linkedPieces.includes(p.id))
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => setVisible(true))
-    return () => cancelAnimationFrame(id)
+    let id1: number, id2: number
+    id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setVisible(true))
+    })
+    return () => {
+      cancelAnimationFrame(id1)
+      cancelAnimationFrame(id2)
+    }
   }, [])
 
   useEffect(() => {
@@ -43,8 +49,8 @@ export function CultureReferenceDetail({ reference, onClose }: Props) {
       style={{
         backgroundColor: 'var(--paper)',
         opacity: visible ? 1 : 0,
-        transform: visible ? 'none' : 'scale(0.995)',
-        transition: 'opacity 280ms ease, transform 280ms ease',
+        transform: visible ? 'none' : 'scale(0.993)',
+        transition: 'opacity 340ms cubic-bezier(0.16, 1, 0.3, 1), transform 340ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       {/* Subtle tonal wash behind the entire sheet */}
@@ -167,8 +173,11 @@ export function CultureReferenceDetail({ reference, onClose }: Props) {
           </div>
 
           {/* Image */}
-          <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1 / 1', alignSelf: 'start' }}>
-            <Image
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: '1 / 1', alignSelf: 'start', backgroundColor: 'var(--paper-dim)' }}
+          >
+            <FadeImage
               src={reference.image}
               alt={`${reference.artist} — ${reference.title}`}
               fill

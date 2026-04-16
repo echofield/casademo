@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { X } from 'lucide-react'
 import type { CulturePiece } from './data'
+import { FadeImage } from './FadeImage'
 
 interface Props {
   piece: CulturePiece
@@ -45,10 +45,16 @@ function BulletList({ items }: { items: string[] }) {
 export function CulturePieceDetail({ piece, onClose }: Props) {
   const [visible, setVisible] = useState(false)
 
-  // Fade-in on mount
+  // Double-RAF: ensures browser commits opacity:0 before animating
   useEffect(() => {
-    const id = requestAnimationFrame(() => setVisible(true))
-    return () => cancelAnimationFrame(id)
+    let id1: number, id2: number
+    id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setVisible(true))
+    })
+    return () => {
+      cancelAnimationFrame(id1)
+      cancelAnimationFrame(id2)
+    }
   }, [])
 
   // Scroll lock
@@ -74,8 +80,8 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
       style={{
         backgroundColor: 'var(--paper)',
         opacity: visible ? 1 : 0,
-        transform: visible ? 'none' : 'scale(0.995)',
-        transition: 'opacity 280ms ease, transform 280ms ease',
+        transform: visible ? 'none' : 'scale(0.993)',
+        transition: 'opacity 340ms cubic-bezier(0.16, 1, 0.3, 1), transform 340ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       <div className="mx-auto max-w-5xl px-6 pb-32 pt-10 md:px-16">
@@ -106,8 +112,11 @@ export function CulturePieceDetail({ piece, onClose }: Props) {
         {/* Hero: image + overview + characteristics */}
         <div className="mb-4 grid gap-12 md:grid-cols-[2fr_3fr]">
           {/* Image */}
-          <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4' }}>
-            <Image
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: '3/4', backgroundColor: 'var(--paper-dim)' }}
+          >
+            <FadeImage
               src={piece.image}
               alt={piece.title}
               fill

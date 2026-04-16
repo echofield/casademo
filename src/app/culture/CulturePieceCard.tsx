@@ -1,5 +1,5 @@
-import Image from 'next/image'
 import type { CulturePiece } from './data'
+import { FadeImage } from './FadeImage'
 
 interface Props {
   piece: CulturePiece
@@ -22,8 +22,8 @@ export function CulturePieceCard({ piece, isSelected, onClick }: Props) {
         }}
       >
         {/* Image */}
-        <div className="relative aspect-square w-full overflow-hidden bg-bg-soft">
-          <Image
+        <div className="relative aspect-square w-full overflow-hidden" style={{ backgroundColor: 'var(--paper-dim)' }}>
+          <FadeImage
             src={piece.image}
             alt={piece.title}
             fill
