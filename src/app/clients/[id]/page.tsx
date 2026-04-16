@@ -17,6 +17,7 @@ import { BrandAffinityPanel } from './BrandAffinityPanel'
 import { LifestyleInterestsPanel } from './LifestyleInterestsPanel'
 import { ProductPreferencesPanel } from './ProductPreferencesPanel'
 import { SizingPanel } from './SizingPanel'
+import { MissedOpportunitySection } from './MissedOpportunitySection'
 import { isDemoMode } from '@/lib/demo/config'
 import { getDemoClientById, getDemoSellerRoster } from '@/lib/demo/presentation-data'
 
@@ -651,6 +652,12 @@ export default async function Client360Page({ params }: Props) {
           clientId={id}
           clientName={`${clientData.first_name} ${clientData.last_name}`}
           canEdit={canEdit}
+        />
+
+        {/* Missed Opportunities */}
+        <MissedOpportunitySection
+          clientId={id}
+          sellerName={clientData.seller_name}
         />
 
         {/* History */}

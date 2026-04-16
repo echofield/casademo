@@ -1341,3 +1341,70 @@ export const DEMO_PRESENTATION_COPY = {
   positionLine: 'Luxury clienteling, queue intelligence, and supervisor visibility in one operating layer.',
   marker: 'Presentation mode',
 }
+
+// ---------------------------------------------------------------------------
+// Missed Opportunities demo data
+// ---------------------------------------------------------------------------
+
+export type MissedOpportunity = {
+  id: string
+  created_at: string
+  date: string
+  seller_name: string
+  client_id: string | null
+  result: 'Good' | 'Missed'
+  missed_type: string
+  description: string
+  cause: string
+  impact: string
+  recommended_action: string
+}
+
+const DEMO_MISSED_OPPORTUNITIES: MissedOpportunity[] = [
+  {
+    id: 'mo-001',
+    created_at: '2025-03-10T14:22:00Z',
+    date: '2025-03-10',
+    seller_name: 'Hasaël Moran',
+    client_id: 'client-julien-delacroix',
+    result: 'Missed',
+    missed_type: 'Price objection',
+    description: 'Client showed strong interest in the Ripple Windbreaker but declined at checkout citing price.',
+    cause: 'No price anchoring done earlier in the conversation. Competitor price mentioned by client (Amiri).',
+    impact: 'Sale lost. Client left without purchase. Estimated loss: 540 €.',
+    recommended_action: 'Prepare price positioning for the Windbreaker on next visit. Lead with value, not price.',
+  },
+  {
+    id: 'mo-002',
+    created_at: '2025-03-18T11:05:00Z',
+    date: '2025-03-18',
+    seller_name: 'Camille Renard',
+    client_id: 'client-amina-rahal',
+    result: 'Missed',
+    missed_type: 'Wrong timing',
+    description: 'Client visited between two appointments. Not enough time to present the full eyewear range.',
+    cause: 'No prior booking. Walk-in during peak hour. Could not dedicate full attention.',
+    impact: 'No sale. Client expressed interest but left to "think about it".',
+    recommended_action: 'Follow up within 48h. Propose a dedicated appointment for the eyewear presentation.',
+  },
+  {
+    id: 'mo-003',
+    created_at: '2025-04-02T16:40:00Z',
+    date: '2025-04-02',
+    seller_name: 'Hasaël Moran',
+    client_id: 'client-sana-al-farsi',
+    result: 'Good',
+    missed_type: 'Client not ready',
+    description: 'Client came in to browse, not to buy. Conversation went well. Belt and eyewear noted as future interests.',
+    cause: 'First visit. Client in discovery mode.',
+    impact: 'No immediate sale but strong first impression. Interests logged.',
+    recommended_action: 'Schedule a follow-up in 3 weeks. Reference belt + Memphis eyewear in recontact.',
+  },
+]
+
+export function getDemoMissedOpportunities(clientId?: string): MissedOpportunity[] {
+  if (clientId) {
+    return DEMO_MISSED_OPPORTUNITIES.filter((mo) => mo.client_id === clientId)
+  }
+  return DEMO_MISSED_OPPORTUNITIES
+}
