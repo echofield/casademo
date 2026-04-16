@@ -70,6 +70,7 @@ export function Nav({ userRole, effectiveRole, userName }: NavProps) {
     { href: '/queue', label: 'Queue' },
     { href: '/clients', label: 'Clients' },
     { href: '/calendar', label: 'Calendar' },
+    { href: '/culture', label: 'Culture' },
     ...(effectiveRole === 'supervisor'
       ? [
           { href: '/dashboard', label: 'Dashboard' },
