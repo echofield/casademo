@@ -9,19 +9,35 @@ export type OpportunityMetrics = {
   activeMomentsCount: number
 }
 
-const EUR_PATTERN = /(?:EUR|€)\s*([\d.,\u00a0\s]+)/i
+const EUR_PREFIX_PATTERN = /(?:EUR|€)\s*([\d][\d.,\u00a0\s]*)/i
+const EUR_SUFFIX_PATTERN = /([\d][\d.,\u00a0\s]*)\s*(?:EUR|€)/i
+
+function parseEuroNumber(raw: string): number {
+  const hasComma = raw.includes(',')
+  const hasDot = raw.includes('.')
+  // Treat a single comma as decimal separator only when there is no dot and exactly two digits follow.
+  let normalised: string
+  if (hasComma && !hasDot && /,\d{1,2}$/.test(raw.replace(/[\u00a0\s]/g, ''))) {
+    normalised = raw.replace(/[\u00a0\s]/g, '').replace(/,/g, '.')
+  } else {
+    normalised = raw.replace(/[\u00a0\s]/g, '').replace(/[.,]/g, '')
+  }
+  const n = parseFloat(normalised)
+  return Number.isFinite(n) ? Math.round(n) : 0
+}
 
 /**
  * Best-effort extraction of a numeric EUR value from free-text impact/description.
- * Returns 0 if nothing parseable is found. Handles spaces, commas, and non-breaking spaces.
+ * Handles both "€540" / "EUR 540" prefixes and "540 €" / "2,400 EUR" suffixes.
+ * Returns 0 if nothing parseable is found.
  */
 export function extractEurFromImpact(text: string | null | undefined): number {
   if (!text) return 0
-  const match = EUR_PATTERN.exec(text)
-  if (!match) return 0
-  const raw = match[1].replace(/[\u00a0\s]/g, '').replace(/\./g, '').replace(/,/g, '.')
-  const n = parseFloat(raw)
-  return Number.isFinite(n) ? Math.round(n) : 0
+  const prefix = EUR_PREFIX_PATTERN.exec(text)
+  if (prefix) return parseEuroNumber(prefix[1])
+  const suffix = EUR_SUFFIX_PATTERN.exec(text)
+  if (suffix) return parseEuroNumber(suffix[1])
+  return 0
 }
 
 export function sumMomentMidpoints(moments: ActivationMoment[]): number {
@@ -161,4 +177,32 @@ export function formatEur(n: number): string {
 export function formatEurRange(range: { min: number; max: number }): string {
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
   return `€${fmt(range.min)}\u2013€${fmt(range.max)}`
+}
+
+/**
+ * Resolve each moment's `pairing.clientIds` into full Client360 records from the demo roster.
+ * Acquisition moments resolve to an empty array (no specific client).
+ * Missing ids are silently skipped.
+ */
+export function resolveMomentClients(
+  moments: ActivationMoment[],
+  clients: Client360[],
+): Map<string, Client360[]> {
+  const map = new Map<string, Client360>()
+  for (const c of clients) map.set(c.id, c)
+
+  const resolved = new Map<string, Client360[]>()
+  for (const m of moments) {
+    if (m.pairing.type === 'existing') {
+      const list: Client360[] = []
+      for (const id of m.pairing.clientIds) {
+        const c = map.get(id)
+        if (c) list.push(c)
+      }
+      resolved.set(m.id, list)
+    } else {
+      resolved.set(m.id, [])
+    }
+  }
+  return resolved
 }

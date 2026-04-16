@@ -9,6 +9,7 @@ import {
   topClientsToReactivate,
   sellersNeedingFollowUp,
   reportedThisWeek,
+  resolveMomentClients,
 } from './data/aggregate'
 import { OpportunityHero } from './sections/OpportunityHero'
 import { SupervisorOverview } from './sections/SupervisorOverview'
@@ -30,6 +31,10 @@ export function OpportunitiesPage({ missed, clients, moments }: Props) {
     () => computeMetrics(missed, moments, dormant.length),
     [missed, moments, dormant.length],
   )
+  const clientsByMoment = useMemo(
+    () => resolveMomentClients(moments, clients),
+    [moments, clients],
+  )
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -43,7 +48,7 @@ export function OpportunitiesPage({ missed, clients, moments }: Props) {
 
       <MissedOpportunitiesReview missed={missed} clients={clients} />
 
-      <ActivationMoments moments={moments} />
+      <ActivationMoments moments={moments} clientsByMoment={clientsByMoment} />
 
       <RecommendedActions
         missed={missed}

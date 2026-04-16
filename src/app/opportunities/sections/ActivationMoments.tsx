@@ -1,125 +1,232 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import type { ActivationMoment } from '../data/activationMoments'
-import { ACCESS_TYPE_LABEL } from '../data/activationMoments'
+import type { ActivationMoment, MomentBucket } from '../data/activationMoments'
+import { TOUCHPOINT_LABEL } from '../data/activationMoments'
 import { formatEurRange } from '../data/aggregate'
+import type { Client360 } from '@/lib/types'
 
 interface Props {
   moments: ActivationMoment[]
+  clientsByMoment: Map<string, Client360[]>
 }
 
-type Filter = 'all' | 'heritage' | 'concierge' | 'selective'
+type Filter = 'all' | MomentBucket
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
-  { id: 'heritage', label: 'Heritage' },
-  { id: 'concierge', label: 'Concierge' },
-  { id: 'selective', label: 'Selective' },
+  { id: 'existing', label: 'Existing client' },
+  { id: 'acquisition', label: 'New prospect' },
 ]
 
-const CATEGORY_LABEL: Record<ActivationMoment['category'], string> = {
-  heritage: 'Heritage',
-  concierge: 'Concierge',
-  selective: 'Selective',
+const BUCKET_CHIP_LABEL: Record<MomentBucket, string> = {
+  existing: 'Existing client',
+  acquisition: 'New prospect',
 }
 
-function MomentCard({ m }: { m: ActivationMoment }) {
+const TIER_LABEL: Record<string, string> = {
+  rainbow: 'Rainbow',
+  diplomatico: 'Diplomatico',
+  grand_prix: 'Grand Prix',
+  optimisto: 'Optimisto',
+  kaizen: 'Kaizen',
+  idealiste: 'Idealiste',
+}
+
+function BucketGlyph({ bucket }: { bucket: MomentBucket }) {
+  if (bucket === 'existing') {
+    return (
+      <span
+        className="inline-block h-[7px] w-[7px] rounded-full"
+        style={{ backgroundColor: 'var(--gold)' }}
+        aria-hidden
+      />
+    )
+  }
+  return (
+    <span
+      className="inline-block h-[7px] w-[7px] rounded-full"
+      style={{ border: '1px solid var(--gold)' }}
+      aria-hidden
+    />
+  )
+}
+
+function ClientChip({ client, interestTag }: { client: Client360; interestTag: string }) {
+  return (
+    <Link
+      href={`/clients/${client.id}`}
+      className="group inline-flex flex-wrap items-center gap-x-2 gap-y-1"
+    >
+      <span
+        className="text-sm transition-colors group-hover:underline underline-offset-4"
+        style={{ color: 'var(--ink)' }}
+      >
+        {client.first_name} {client.last_name}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+      <span
+        className="text-[11px] font-medium uppercase tracking-[0.12em]"
+        style={{ color: 'var(--warmgrey)' }}
+      >
+        {TIER_LABEL[client.tier] ?? client.tier}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+        {interestTag}
+      </span>
+    </Link>
+  )
+}
+
+function ProspectChip({
+  tier,
+  interestTag,
+  channel,
+}: {
+  tier: string
+  interestTag: string
+  channel: string
+}) {
+  return (
+    <div className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span
+        className="text-sm italic"
+        style={{ color: 'var(--ink)' }}
+      >
+        Prospect
+      </span>
+      <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+      <span
+        className="text-[11px] font-medium uppercase tracking-[0.12em]"
+        style={{ color: 'var(--warmgrey)' }}
+      >
+        {TIER_LABEL[tier] ?? tier}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+        {interestTag}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
+      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+        {channel}
+      </span>
+    </div>
+  )
+}
+
+function MomentCard({
+  m,
+  index,
+  total,
+  resolvedClients,
+}: {
+  m: ActivationMoment
+  index: number
+  total: number
+  resolvedClients: Client360[]
+}) {
+  const bandColor = m.bucket === 'existing' ? 'var(--paper-dim)' : 'var(--faint)'
+  const ordinal = `${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`
+
   return (
     <article
-      className="flex flex-col gap-6 border bg-[var(--paper)] p-6 md:p-8"
-      style={{ borderColor: 'var(--faint)' }}
+      className="flex flex-col bg-[var(--paper)]"
+      style={{ border: '0.5px solid var(--faint)' }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="h-[3px] w-full" style={{ backgroundColor: bandColor }} aria-hidden />
+
+      <div className="flex flex-1 flex-col gap-6 p-6 md:p-7">
+        <div className="flex items-center justify-between gap-4">
           <span
-            className="text-[10px] font-medium uppercase tracking-[0.14em]"
+            className="text-[10px] font-medium uppercase tracking-[0.18em] tabular-nums"
             style={{ color: 'var(--warmgrey)' }}
           >
-            {CATEGORY_LABEL[m.category]}
+            {ordinal}
           </span>
-          <span className="text-xs" style={{ color: 'var(--warmgrey)' }}>·</span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.14em]" style={{ color: 'var(--warmgrey)' }}>
-            {ACCESS_TYPE_LABEL[m.access.type]}
-          </span>
+          <div className="flex items-center gap-2">
+            <BucketGlyph bucket={m.bucket} />
+            <span
+              className="text-[10px] font-medium uppercase tracking-[0.14em]"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              {BUCKET_CHIP_LABEL[m.bucket]}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <h3 className="font-serif text-2xl leading-tight" style={{ color: 'var(--ink)' }}>
-          {m.title}
-        </h3>
-        <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
-          {m.venue} · {m.dateWindow}
+        <div>
+          <h3 className="font-serif text-2xl leading-[1.25]" style={{ color: 'var(--ink)' }}>
+            {m.title}
+          </h3>
+          <p className="mt-1 text-sm" style={{ color: 'var(--warmgrey)' }}>
+            {m.dateWindow}
+          </p>
+        </div>
+
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
+          {m.contextLine}
         </p>
-      </div>
 
-      <div className="space-y-4 text-sm leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
-        <div>
-          <p
-            className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            Why now
-          </p>
-          <p style={{ color: 'var(--ink)' }}>{m.whyNow}</p>
+        <div className="flex flex-col gap-2">
+          {m.pairing.type === 'existing'
+            ? resolvedClients.map((c) => (
+                <ClientChip key={c.id} client={c} interestTag={m.pairing.interestTag} />
+              ))
+            : (
+                <ProspectChip
+                  tier={m.pairing.tier}
+                  interestTag={m.pairing.interestTag}
+                  channel={m.pairing.channel}
+                />
+              )}
         </div>
-        <div>
-          <p
-            className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            Client angle
-          </p>
-          <p style={{ color: 'var(--ink)' }}>{m.clientAngle}</p>
-        </div>
-        <div>
-          <p
-            className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            Suggested action
-          </p>
-          <p style={{ color: 'var(--ink)' }}>{m.suggestedAction}</p>
-        </div>
-      </div>
 
-      <div
-        className="mt-2 flex flex-wrap items-end justify-between gap-4 border-t pt-5"
-        style={{ borderColor: 'var(--faint)' }}
-      >
-        <div>
-          <p
-            className="text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            Access
-          </p>
-          <p className="mt-1 text-sm" style={{ color: 'var(--ink)' }}>
-            {m.access.providerLabel}
-          </p>
-        </div>
-        <div className="text-right">
-          <p
-            className="text-[10px] font-medium uppercase tracking-[0.14em]"
-            style={{ color: 'var(--warmgrey)' }}
-          >
-            Estimated potential
-          </p>
-          <p className="mt-1 font-serif text-lg" style={{ color: 'var(--ink)' }}>
-            {formatEurRange(m.estimatedPotentialEur)}
-          </p>
+        <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ink)' }}>
+          {m.proposition}
+        </p>
+
+        <div
+          className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t pt-5"
+          style={{ borderColor: 'var(--faint)' }}
+        >
+          <div>
+            <p
+              className="text-[10px] font-medium uppercase tracking-[0.14em]"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              Touchpoint
+            </p>
+            <p className="mt-1 text-sm" style={{ color: 'var(--ink)' }}>
+              {TOUCHPOINT_LABEL[m.touchpoint]}
+            </p>
+          </div>
+          <div className="text-right">
+            <p
+              className="text-[10px] font-medium uppercase tracking-[0.14em]"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              Estimated potential
+            </p>
+            <p
+              className="mt-1 font-serif text-lg"
+              style={{ color: 'var(--success)' }}
+            >
+              {formatEurRange(m.estimatedPotentialEur)}
+            </p>
+          </div>
         </div>
       </div>
     </article>
   )
 }
 
-export function ActivationMoments({ moments }: Props) {
+export function ActivationMoments({ moments, clientsByMoment }: Props) {
   const [filter, setFilter] = useState<Filter>('all')
 
   const visible = useMemo(
-    () => (filter === 'all' ? moments : moments.filter((m) => m.category === filter)),
+    () => (filter === 'all' ? moments : moments.filter((m) => m.bucket === filter)),
     [moments, filter],
   )
 
@@ -128,10 +235,10 @@ export function ActivationMoments({ moments }: Props) {
       className="border-t pt-14 pb-14 md:pt-16 md:pb-16"
       style={{ borderColor: 'var(--faint)' }}
     >
-      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
           <p
-            className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em]"
+            className="mb-3 text-[10px] font-medium uppercase tracking-[0.18em]"
             style={{ color: 'var(--warmgrey)' }}
           >
             Client activation
@@ -141,9 +248,9 @@ export function ActivationMoments({ moments }: Props) {
           </h2>
           <p
             className="max-w-xl text-sm"
-            style={{ color: 'var(--ink-soft)', opacity: 0.75 }}
+            style={{ color: 'var(--ink-soft)', opacity: 0.78 }}
           >
-            Curated windows where a specific client or client-type is most receptive. Access coordinated through the appropriate channel.
+            Strict pairings of a named client with a contextual moment and a Casa One-delivered experience. Acquisition moments surface prospect profiles only.
           </p>
         </div>
 
@@ -176,9 +283,15 @@ export function ActivationMoments({ moments }: Props) {
           No moments in this category yet.
         </p>
       ) : (
-        <div className="grid gap-px bg-[var(--faint)] sm:grid-cols-2">
-          {visible.map((m) => (
-            <MomentCard key={m.id} m={m} />
+        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+          {visible.map((m, i) => (
+            <MomentCard
+              key={m.id}
+              m={m}
+              index={i}
+              total={visible.length}
+              resolvedClients={clientsByMoment.get(m.id) ?? []}
+            />
           ))}
         </div>
       )}

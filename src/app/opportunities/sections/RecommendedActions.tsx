@@ -56,7 +56,7 @@ function buildPlays({
       id: `activation-${topMoment.id}`,
       kind: 'activation',
       title: `Align sellers around ${topMoment.title}`,
-      detail: topMoment.suggestedAction,
+      detail: topMoment.proposition,
       value: formatEurRange(topMoment.estimatedPotentialEur),
     })
   }
@@ -107,7 +107,7 @@ export function RecommendedActions(props: Props) {
     >
       <div className="mb-10">
         <p
-          className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em]"
+          className="mb-3 text-[10px] font-medium uppercase tracking-[0.18em]"
           style={{ color: 'var(--warmgrey)' }}
         >
           Next moves
@@ -129,11 +129,14 @@ export function RecommendedActions(props: Props) {
         </p>
       ) : (
         <ol
-          className="grid gap-px bg-[var(--faint)] md:grid-cols-2"
+          className="grid gap-6 md:grid-cols-2 md:gap-8"
         >
           {plays.map((p) => {
             const body = (
-              <div className="flex h-full flex-col gap-3 bg-[var(--paper)] p-6 md:p-8">
+              <div
+                className="flex h-full flex-col gap-3 bg-[var(--paper)] p-6 md:p-7"
+                style={{ border: '0.5px solid var(--faint)' }}
+              >
                 <div className="flex items-center justify-between gap-4">
                   <span
                     className="text-[10px] font-medium uppercase tracking-[0.14em]"
@@ -142,7 +145,15 @@ export function RecommendedActions(props: Props) {
                     {KIND_LABEL[p.kind]}
                   </span>
                   {p.value && (
-                    <span className="text-sm" style={{ color: 'var(--ink)' }}>
+                    <span
+                      className="text-sm"
+                      style={{
+                        color:
+                          p.kind === 'activation' || p.kind === 'recovery'
+                            ? 'var(--success)'
+                            : 'var(--ink)',
+                      }}
+                    >
                       {p.value}
                     </span>
                   )}

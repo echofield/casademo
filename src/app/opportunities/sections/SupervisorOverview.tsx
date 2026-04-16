@@ -10,34 +10,6 @@ interface Props {
   sellersNeedingFollowUp: SellerFollowUp[]
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      className="mb-5 text-[10px] font-medium uppercase tracking-[0.14em]"
-      style={{ color: 'var(--warmgrey)' }}
-    >
-      {children}
-    </p>
-  )
-}
-
-function Column({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <SectionTitle>{title}</SectionTitle>
-      <div className="space-y-4">{children}</div>
-    </div>
-  )
-}
-
-function Empty({ text }: { text: string }) {
-  return (
-    <p className="text-sm italic" style={{ color: 'var(--warmgrey)' }}>
-      {text}
-    </p>
-  )
-}
-
 const TIER_LABEL: Record<string, string> = {
   rainbow: 'Rainbow',
   diplomatico: 'Diplomatico',
@@ -47,79 +19,111 @@ const TIER_LABEL: Record<string, string> = {
   idealiste: 'Idealiste',
 }
 
+function Row({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-2 py-6 md:flex-row md:items-baseline md:gap-10">
+      <p
+        className="md:w-28 shrink-0 text-[10px] font-medium uppercase tracking-[0.18em]"
+        style={{ color: 'var(--warmgrey)' }}
+      >
+        {label}
+      </p>
+      <p
+        className="text-base leading-[1.7] md:text-[17px] md:leading-[1.7]"
+        style={{ color: 'var(--ink)' }}
+      >
+        {children}
+      </p>
+    </div>
+  )
+}
+
+function joinWithCommas(nodes: React.ReactNode[]): React.ReactNode[] {
+  const out: React.ReactNode[] = []
+  nodes.forEach((node, i) => {
+    if (i > 0) {
+      out.push(i === nodes.length - 1 ? ', and ' : ', ')
+    }
+    out.push(node)
+  })
+  return out
+}
+
 export function SupervisorOverview({
   reportedThisWeek,
   dormantVips,
   sellersNeedingFollowUp,
 }: Props) {
+  const dormantSentence =
+    dormantVips.length === 0 ? (
+      'No dormant VIPs surfaced this week.'
+    ) : (() => {
+        const names = dormantVips.map((c) => (
+          <Link
+            key={c.id}
+            href={`/clients/${c.id}`}
+            className="underline-offset-4 transition-colors hover:underline"
+            style={{ color: 'var(--ink)' }}
+          >
+            {c.first_name} {c.last_name}
+          </Link>
+        ))
+        const tiers = Array.from(new Set(dormantVips.map((c) => TIER_LABEL[c.tier] ?? c.tier)))
+        const tierPart = tiers.length === 1 ? `${tiers[0]} tier` : tiers.join(' and ') + ' tiers'
+        const maxDays = Math.max(...dormantVips.map((c) => c.daysSinceLastContact))
+        const daysPart = Number.isFinite(maxDays) && maxDays < 9999 ? `${maxDays}+ days since last contact` : 'long-silent'
+        return (
+          <>
+            {joinWithCommas(names)} have gone quiet. {tierPart}, {daysPart}.
+          </>
+        )
+      })()
+
+  const reportedSentence =
+    reportedThisWeek.length === 0
+      ? 'No sales gaps reported in the last seven days.'
+      : reportedThisWeek.length === 1
+        ? 'One sales gap reported this week.'
+        : `${reportedThisWeek.length} sales gaps reported this week.`
+
+  const sellersSentence =
+    sellersNeedingFollowUp.length === 0 ? (
+      'No seller flagged for follow-up this month.'
+    ) : (
+      <>
+        {joinWithCommas(
+          sellersNeedingFollowUp.slice(0, 3).map((s) => (
+            <span key={s.seller_id || s.seller_name} style={{ color: 'var(--ink)' }}>
+              {s.seller_name}
+            </span>
+          )),
+        )}
+        {' '}have flagged multiple gaps in the last 30 days.
+      </>
+    )
+
   return (
     <section className="pb-14 md:pb-16">
-      <div className="mb-8">
-        <h2 className="heading-2 mb-2" style={{ color: 'var(--ink)' }}>
-          Overview
-        </h2>
-        <p
-          className="max-w-xl text-sm"
-          style={{ color: 'var(--ink-soft)', opacity: 0.75 }}
-        >
-          Key signals, quietly surfaced.
-        </p>
-      </div>
+      <h2 className="heading-2 mb-8" style={{ color: 'var(--ink)' }}>
+        Overview
+      </h2>
 
-      <div className="grid gap-10 md:grid-cols-3 md:gap-12">
-        <Column title="Reported this week">
-          {reportedThisWeek.length === 0 ? (
-            <Empty text="Nothing reported in the last seven days." />
-          ) : (
-            reportedThisWeek.slice(0, 4).map((m) => (
-              <div key={m.id} className="text-sm leading-relaxed">
-                <p style={{ color: 'var(--ink)' }}>{m.missed_type}</p>
-                <p className="mt-0.5" style={{ color: 'var(--warmgrey)' }}>
-                  {m.seller_name} · {new Date(m.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
-                </p>
-              </div>
-            ))
-          )}
-        </Column>
-
-        <Column title="Dormant VIPs to reactivate">
-          {dormantVips.length === 0 ? (
-            <Empty text="No dormant VIPs surfaced." />
-          ) : (
-            dormantVips.map((c) => (
-              <Link
-                key={c.id}
-                href={`/clients/${c.id}`}
-                className="group block text-sm leading-relaxed"
-              >
-                <p
-                  className="transition-colors group-hover:underline"
-                  style={{ color: 'var(--ink)' }}
-                >
-                  {c.first_name} {c.last_name}
-                </p>
-                <p className="mt-0.5" style={{ color: 'var(--warmgrey)' }}>
-                  {TIER_LABEL[c.tier] ?? c.tier} · {c.daysSinceLastContact === 9999 ? 'no recent contact' : `${c.daysSinceLastContact}d since last contact`}
-                </p>
-              </Link>
-            ))
-          )}
-        </Column>
-
-        <Column title="Sellers needing follow-up">
-          {sellersNeedingFollowUp.length === 0 ? (
-            <Empty text="No sellers flagged this month." />
-          ) : (
-            sellersNeedingFollowUp.slice(0, 4).map((s) => (
-              <div key={s.seller_id || s.seller_name} className="text-sm leading-relaxed">
-                <p style={{ color: 'var(--ink)' }}>{s.seller_name}</p>
-                <p className="mt-0.5" style={{ color: 'var(--warmgrey)' }}>
-                  {s.missedCount} missed · last 30 days
-                </p>
-              </div>
-            ))
-          )}
-        </Column>
+      <div
+        className="divide-y"
+        style={{
+          borderTop: '0.5px solid var(--faint)',
+          borderBottom: '0.5px solid var(--faint)',
+        }}
+      >
+        <Row label="This week">{reportedSentence}</Row>
+        <Row label="Dormant">{dormantSentence}</Row>
+        <Row label="Sellers">{sellersSentence}</Row>
       </div>
     </section>
   )

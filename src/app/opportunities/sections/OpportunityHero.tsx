@@ -7,51 +7,59 @@ interface Props {
   metrics: OpportunityMetrics
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+/**
+ * Editorial paragraph-hero. Intentionally avoids a KPI grid so the top of the
+ * page doesn't read as a dashboard. Figures are carried inside running prose;
+ * the Value-at-stake figure is the only number anchored visually, in green.
+ */
+export function OpportunityHero({ metrics }: Props) {
+  const openLabel = metrics.openCount === 1 ? 'opportunity' : 'opportunities'
+  const missedLabel =
+    metrics.missedCount === 0
+      ? 'No sales gaps reported in the last seven days.'
+      : metrics.missedCount === 1
+        ? 'One sales gap reported this week.'
+        : `${metrics.missedCount} sales gaps reported this week.`
+  const momentsLabel =
+    metrics.activeMomentsCount === 1 ? 'One moment live.' : `${metrics.activeMomentsCount} moments live.`
+
   return (
-    <div className="flex flex-col gap-2">
+    <section className="py-16 md:py-20">
       <p
-        className="text-[10px] font-medium uppercase tracking-[0.14em]"
+        className="mb-6 text-[10px] font-medium uppercase tracking-[0.18em]"
         style={{ color: 'var(--warmgrey)' }}
       >
-        {label}
+        Supervisor view · Today
       </p>
-      <p className="font-serif text-3xl md:text-4xl" style={{ color: 'var(--ink)' }}>
-        {value}
-      </p>
-    </div>
-  )
-}
 
-export function OpportunityHero({ metrics }: Props) {
-  return (
-    <section className="pt-8 pb-10 md:pt-12 md:pb-14">
-      <div className="mb-12">
-        <p
-          className="mb-4 text-[10px] font-medium uppercase tracking-[0.18em]"
-          style={{ color: 'var(--warmgrey)' }}
+      <h1 className="heading-1 mb-10" style={{ color: 'var(--ink)' }}>
+        Opportunities
+      </h1>
+
+      <p
+        className="max-w-3xl text-lg leading-[1.7] md:text-xl md:leading-[1.7]"
+        style={{ color: 'var(--ink)' }}
+      >
+        {metrics.openCount} client {openLabel} to open, worth roughly{' '}
+        <span
+          className="font-serif"
+          style={{ color: 'var(--success)' }}
         >
-          Supervisor view
-        </p>
-        <h1 className="heading-1 mb-4" style={{ color: 'var(--ink)' }}>
-          Opportunities
-        </h1>
-        <p
-          className="max-w-2xl text-base leading-relaxed"
-          style={{ color: 'var(--ink-soft)' }}
-        >
-          A global view of clients, events, and reported sales gaps worth acting on.
-        </p>
-      </div>
+          {formatEur(metrics.valueAtStakeEur)}
+        </span>{' '}
+        at the midpoint. {momentsLabel} {missedLabel}
+      </p>
 
       <div
-        className="grid grid-cols-2 gap-x-6 gap-y-8 border-t border-b py-8 md:grid-cols-4"
+        className="mt-10 border-t pt-6"
         style={{ borderColor: 'var(--faint)' }}
       >
-        <Metric label="Value at stake" value={formatEur(metrics.valueAtStakeEur)} />
-        <Metric label="Open opportunities" value={String(metrics.openCount)} />
-        <Metric label="Missed reported" value={String(metrics.missedCount)} />
-        <Metric label="Active moments" value={String(metrics.activeMomentsCount)} />
+        <p
+          className="text-[11px] font-medium uppercase tracking-[0.18em]"
+          style={{ color: 'var(--warmgrey)' }}
+        >
+          One client, one experience.
+        </p>
       </div>
     </section>
   )
